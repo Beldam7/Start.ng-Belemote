@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
+import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import { CharacterStyle } from "../character";
 import { addLights, buildHuman, Human } from "./human";
 
@@ -17,10 +18,19 @@ export default function Viewer({ style, className, interactive = true }: Props) 
     const el = host.current!;
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFShadowMap;
     el.appendChild(renderer.domElement);
 
     const scene = new THREE.Scene();
     addLights(scene);
+    // soft reflections from a simple studio room, so skin and gold pick up light from all sides
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    const room = new RoomEnvironment();
+    const env = pmrem.fromScene(room, 0.04).texture;
+    room.dispose();
+    scene.environment = env;
+    scene.environmentIntensity = 0.35;
     const camera = new THREE.PerspectiveCamera(26, 1, 0.1, 20);
     camera.position.set(0, 1.05, 4.3);
     camera.lookAt(0, 0.88, 0);
@@ -40,6 +50,12 @@ export default function Viewer({ style, className, interactive = true }: Props) 
     const shadow = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.9), new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false }));
     shadow.rotation.x = -Math.PI / 2;
     scene.add(shadow);
+    // the light's shadow, falling on an invisible floor
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(4, 4), new THREE.ShadowMaterial({ opacity: 0.16 }));
+    floor.rotation.x = -Math.PI / 2;
+    floor.position.y = 0.001;
+    floor.receiveShadow = true;
+    scene.add(floor);
 
     const turntable = new THREE.Group();
     scene.add(turntable);
@@ -131,6 +147,10 @@ export default function Viewer({ style, className, interactive = true }: Props) 
       shadow.geometry.dispose();
       (shadow.material as THREE.Material).dispose();
       shadowTex.dispose();
+      floor.geometry.dispose();
+      (floor.material as THREE.Material).dispose();
+      env.dispose();
+      pmrem.dispose();
       renderer.dispose();
       renderer.forceContextLoss();
       el.removeChild(renderer.domElement);
