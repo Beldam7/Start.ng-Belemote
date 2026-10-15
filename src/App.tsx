@@ -64,10 +64,11 @@ export default function App() {
   }, [refreshGames]);
 
   // The Hangout is always first; the rest come from the API.
-  const cards = [HANGOUT, ...(games ?? []).filter((g) => g.slug !== HANGOUT.slug)];
+  const community = (games ?? []).filter((g) => g.slug !== HANGOUT.slug);
+  const cards = [HANGOUT, ...community];
 
   // A real address for the hero: your own newest game, else the newest game on start.ng.
-  const example = myLatest ?? games?.[0] ?? null;
+  const example = myLatest ?? community[0] ?? null;
 
   // Close the profile menu on an outside click or Escape.
   useEffect(() => {
@@ -214,14 +215,14 @@ export default function App() {
             {games && <span className="count">{cards.length} to play</span>}
           </div>
           {games === null && <p className="empty">Loading games…</p>}
-          {games?.length === 0 && (
+          {games && community.length === 0 && (
             <p className="empty">
               No community games yet. The first ones are on their way. <a href="#how">Put yours here.</a>
             </p>
           )}
           <div className="grid">
             {cards.map((g) => (
-              <a key={g.slug} className="game" href={g.url} {...(isInAppGame(g) ? {} : { target: "_blank", rel: "noreferrer" })} onClick={(e) => pickGame(e, g)}>
+              <a key={g.slug} className={g.slug === HANGOUT.slug ? "game legendary" : "game"} href={g.url} {...(isInAppGame(g) ? {} : { target: "_blank", rel: "noreferrer" })} onClick={(e) => pickGame(e, g)}>
                 <div className="art" style={{ background: `linear-gradient(135deg, ${g.colors[0]}, ${g.colors[1]})` }}>
                   {g.cover ? <img src={g.cover} alt="" loading="lazy" /> : <span>{g.title.charAt(0)}</span>}
                 </div>

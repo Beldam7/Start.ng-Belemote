@@ -25,7 +25,7 @@ export const HANGOUT: Game = {
   url: "/hangout",
   host: "start.ng/hangout",
   by: "start.ng",
-  colors: ["#d8fd71", "#292a23"],
+  colors: ["#292a23", "#5b7d0d"],
   cover: null,
 };
 
