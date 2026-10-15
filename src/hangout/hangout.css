@@ -1,0 +1,94 @@
+/* The Hangout page. Everything is under .hangout, with its own class names, so it can't clash with the homepage styles. */
+.hangout { position: fixed; inset: 0; overflow: hidden; background: var(--bg); }
+
+.hangout-scene { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; }
+.hangout-scene:active { cursor: grabbing; }
+
+/* name tags above heads */
+.hangout-labels { position: fixed; inset: 0; pointer-events: none; }
+.hangout-tag {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+}
+.hangout-tag.you { background: var(--ink); color: var(--lime); }
+
+.hangout-hud {
+  position: fixed;
+  top: 14px; left: 16px; right: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  pointer-events: none;
+}
+.hangout-hud > * { pointer-events: auto; }
+.hangout-brand, .hangout-online {
+  background: var(--ink);
+  color: var(--card);
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 14px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.hangout-brand b { font-weight: 800; }
+.hangout-brand span { color: var(--lime); }
+.hangout-online::before {
+  content: "";
+  display: inline-block;
+  width: 8px; height: 8px;
+  margin-right: 8px;
+  border-radius: 50%;
+  background: var(--lime);
+}
+
+.hangout-hint, .hangout-status {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: rgba(41, 42, 35, 0.85);
+  color: var(--card);
+  font-size: 13px;
+  white-space: nowrap;
+}
+.hangout-hint { bottom: 16px; }
+.hangout-hint b { color: var(--lime); font-weight: 600; }
+.hangout-status { top: 64px; }
+
+.hangout-overlay {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(246, 245, 238, 0.35);
+}
+.hangout-panel {
+  width: 100%;
+  max-width: 400px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 28px;
+  text-align: center;
+  box-shadow: 6px 6px 0 var(--lime);
+}
+.hangout-panel h1 { margin: 0 0 8px; font-size: 28px; letter-spacing: -0.02em; }
+.hangout-panel p { margin: 0 0 20px; color: var(--muted); line-height: 1.5; }
+.hangout-panel p:last-child { margin-bottom: 0; }
+.hangout-panel button { padding: 12px 22px; }
+
+[hidden].hangout-overlay, [hidden].hangout-hud, .hangout [hidden] { display: none !important; }
+
+@media (max-width: 600px) {
+  .hangout-hint { white-space: normal; width: calc(100% - 32px); text-align: center; }
+}
