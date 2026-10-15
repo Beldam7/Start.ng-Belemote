@@ -47,3 +47,34 @@ export async function saveCharacter(token: string | null, character: Character):
   if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Could not save your character");
   return data;
 }
+
+// ---- the signed-in builder's own games (profile > Your games)
+
+/** Only public GitHub repo links (same rule as the backend): https://github.com/<owner>/<repo>, optionally /tree/<branch>. */
+export const GITHUB_REPO_RE = /^https:\/\/github\.com\/[\w.-]+\/[\w.-]+?(?:\.git)?(?:\/tree\/[\w./-]+?)?\/?$/;
+
+/** Publish (or update) a game from a public GitHub repo. It goes live at <name>.start.ng. */
+export async function publishGame(token: string | null, repoUrl: string): Promise<{ name: string; url: string; created: boolean }> {
+  const res = await fetch(`${API_URL}/games/publish`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ repo_url: repoUrl }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Could not upload that game");
+  return data;
+}
+
+export async function myGames(token: string | null): Promise<PublishedGame[]> {
+  const res = await fetch(`${API_URL}/games/mine`, { headers: { Authorization: `Bearer ${token}` } });
+  return res.ok ? res.json() : [];
+}
+
+/** Take your game offline and free its name. */
+export async function unpublishGame(token: string | null, name: string): Promise<void> {
+  const res = await fetch(`${API_URL}/games/${encodeURIComponent(name)}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(typeof data.detail === "string" ? data.detail : "Could not remove that game");
+  }
+}
