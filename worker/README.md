@@ -56,6 +56,23 @@ done
 ```
 (or drag the `dave` folder into the bucket in the dashboard).
 
+## Run it locally (no Cloudflare needed)
+
+`dev-server.js` runs the real Worker code against a folder on your computer instead of R2.
+Each folder is a game: `sample-game/dave/index.html` is `dave`.
+
+```
+cd worker
+npm run dev
+```
+
+- `http://localhost:8787` lists the games it finds.
+- `http://dave.localhost:8787` opens the `dave` game. Chrome and Firefox resolve `*.localhost` by themselves.
+- Use your own games folder: `GAMES_DIR=/path/to/games npm run dev` (add `PORT=3000` to change the port).
+- Reserved names (`api.localhost`, `www.localhost`, ...) answer 404, since there is no backend locally.
+- Files are never cached, so refresh the page after you edit a game.
+- If your browser will not open `*.localhost`, add the name to your hosts file, e.g. `127.0.0.1 dave.localhost`.
+
 ## Test
 
 Locally, no Cloudflare needed: `npm test` (fake bucket, 9 tests).
