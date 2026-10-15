@@ -1,4 +1,4 @@
-import { me, PublishedGame } from "./api";
+import { getLeaderboard, me, PublishedGame, submitScore } from "./api";
 import { CharacterStyle, styleFor } from "./character";
 
 // A homepage card for a game from GET /games (games published with POST /games/publish).
@@ -58,20 +58,58 @@ export function gameReturnUrl(): string | null {
 export type GameStyle = CharacterStyle;
 export { styleFor };
 
-/** Runs on /connect: answers "who is signed in?" from games, and nobody else. */
-export function serveConnect() {
-  window.addEventListener("message", async (e) => {
-    if (!isGameOrigin(e.origin) || e.data?.type !== "startng:whoami") return;
+// The game a message came from: lanedash.start.ng -> "lanedash". Taken from the origin the
+// browser reports, never from the message, so a game can only save scores for itself.
+const gameFromOrigin = (origin: string) => new URL(origin).hostname.split(".")[0];
+const errorText = (err: unknown, fallback: string) => (err instanceof Error ? err.message : fallback);
+
+// What /connect answers. Every reply echoes the request's requestId.
+type Message = { type: string; requestId?: unknown; score?: unknown; limit?: unknown };
+const handlers: Record<string, (msg: Message, game: string) => Promise<object>> = {
+  // { type: "startng:whoami" } -> { type: "startng:user", user: { id, name, style } | null }
+  "startng:whoami": async () => {
     const user = await me(localStorage.getItem("token")).catch(() => null);
-    const reply = {
+    return {
       type: "startng:user",
-      requestId: e.data.requestId,
       user: user && {
         id: user.id,
         name: user.character?.name ?? user.name ?? "Player",
         style: user.character?.style ?? styleFor(user.id),
       },
     };
-    (e.source as Window | null)?.postMessage(reply, e.origin);
+  },
+
+  // { type: "startng:score", score } -> { type: "startng:scoreSaved", ok, result: { best, improved, rank } | error }
+  "startng:score": async (msg, game) => {
+    const token = localStorage.getItem("token");
+    if (!token) return { type: "startng:scoreSaved", ok: false, error: "Sign in to save your score" };
+    if (!Number.isSafeInteger(msg.score) || (msg.score as number) < 0) {
+      return { type: "startng:scoreSaved", ok: false, error: "A score must be a whole number, 0 or more" };
+    }
+    try {
+      return { type: "startng:scoreSaved", ok: true, result: await submitScore(token, game, msg.score as number) };
+    } catch (err) {
+      return { type: "startng:scoreSaved", ok: false, error: errorText(err, "Could not save the score") };
+    }
+  },
+
+  // { type: "startng:leaderboard", limit? } -> { type: "startng:leaderboardData", ok, entries | error }
+  "startng:leaderboard": async (msg, game) => {
+    const limit = Number.isInteger(msg.limit) ? Math.min(Math.max(msg.limit as number, 1), 50) : 10;
+    try {
+      return { type: "startng:leaderboardData", ok: true, entries: await getLeaderboard(game, limit) };
+    } catch (err) {
+      return { type: "startng:leaderboardData", ok: false, error: errorText(err, "Could not load the leaderboard") };
+    }
+  },
+};
+
+/** Runs on /connect: answers games (and nobody else) about the signed-in player and scores. */
+export function serveConnect() {
+  window.addEventListener("message", async (e) => {
+    const handle = handlers[e.data?.type];
+    if (!isGameOrigin(e.origin) || !handle) return;
+    const reply = await handle(e.data, gameFromOrigin(e.origin));
+    (e.source as Window | null)?.postMessage({ ...reply, requestId: e.data.requestId }, e.origin);
   });
 }
