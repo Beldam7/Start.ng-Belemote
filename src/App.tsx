@@ -2,6 +2,7 @@ import { FormEvent, lazy, Suspense, useCallback, useEffect, useRef, useState } f
 import { GoogleLogin } from "@react-oauth/google";
 import { approvePendingGame, getPendingGame, googleLogin, listGames, login, me, myGames, PendingGameInfo, register, saveCharacter, TokenResponse, User } from "./api";
 import { AvatarFace } from "./Avatar";
+import ScrollJump from "./ScrollJump";
 import { Character, styleFor } from "./character";
 // The creator (and three.js) loads only when someone opens it.
 const CharacterCreator = lazy(() => import("./CharacterCreator"));
@@ -282,8 +283,8 @@ export default function App() {
           <ol>
             <li><b>Build it</b><span>Any static browser game: HTML, JavaScript, three.js, Phaser. Players bring their start.ng character, scores and friends.</span></li>
             <li><b>Push it to GitHub</b><span>A public repo with a ready-to-play <code>index.html</code> at the top or in <code>dist/</code>, plus a <code>cover.png</code> for its card.</span></li>
-            <li><b>Publish it</b><span>One API call with your repo link, no key needed. Or hand your AI <code>start.ng/docs</code> and let it do the lot.</span></li>
-            <li><b>Approve it once</b><span>Open the link you get back and it's live at <code>yourgame.start.ng</code>. After that, every push updates it.</span></li>
+            <li><b>Upload it</b><span>Paste your repo link in Your games on your profile, or publish with one API call. Or hand your AI <code>start.ng/docs</code> and let it do the lot.</span></li>
+            <li><b>It's live</b><span>Your game plays at <code>yourgame.start.ng</code>, with its own leaderboard if you want one. After that, every push updates it.</span></li>
           </ol>
           <div className="how-actions">
             <a className="btn" href="/docs">Read the docs</a>
@@ -296,6 +297,7 @@ export default function App() {
         <span>start<span>.ng</span></span>
         <span>Built by the HNG community</span>
       </footer>
+      <ScrollJump />
 
       {profileOpen && (
         <Suspense fallback={null}>

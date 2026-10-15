@@ -2,16 +2,39 @@
 
 start.ng is a home for small browser games made by the community. Every game lives at its own address, like `yourgame.start.ng`, and every signed-in player brings their own start.ng character into every game.
 
-This page is everything you need to build a start.ng game and put it live with the API, by hand or with your AI. If you're using an AI, give it this page as plain text: **https://start.ng/docs.md**.
+This page is everything you need to build a start.ng game and put it live, by hand or with your AI. If you're using an AI, give it this page as plain text: **https://start.ng/docs.md**.
 
 > **For AI assistants:** follow this page exactly. Build a static game, push it to a public GitHub repo, call `POST https://api.start.ng/games/publish`, and show the human the `approve_url` from the reply if there is one. Everything you need is below.
+
+## How it works
+
+Your game is **frontend only**: HTML, CSS and JavaScript running in the player's browser. You don't need a server or a database, and you never handle passwords.
+
+**start.ng is your backend.** It gives every game:
+
+- **Players:** sign-in, a name and a character that looks the same in every game
+- **A shared leaderboard,** with the columns you choose
+- **Multiplayer rooms,** for games where players see each other live
+- **Hosting** at `<name>.start.ng`, kept up to date with your GitHub repo
+
+Your game talks to start.ng in one of two ways. Use whichever suits you; they share the same accounts and leaderboards.
+
+| | The connect page | The HTTP API |
+| --- | --- | --- |
+| How | `postMessage` to a hidden `https://start.ng/connect` frame | `fetch` to `https://api.start.ng` with a **game session** |
+| Sign-in | Already signed in on start.ng? Your game knows straight away | The player goes to start.ng once and comes back with a session |
+| Gives you | The player and their face picture, scores, leaderboard, multiplayer tickets | The player, scores, leaderboard |
+| See | [Talk to start.ng](#talk-to-start-ng) | [The HTTP API: game sessions](#the-http-api-game-sessions) |
+
+Your game's name is its address: `relic-hunter.start.ng` is the game `relic-hunter`.
 
 ## What a start.ng game is
 
 - **A static website:** HTML, CSS, JavaScript, images, sounds and fonts. It runs entirely in the browser; there's no server code.
 - **In a public GitHub repo,** with a ready-to-play `index.html` either at the top of the repo or in `dist/`, `build/`, `docs/` or `out/` (start.ng looks in that order).
-- **Already built.** start.ng never runs your code or installs packages. If you use Vite, React or similar, build it and commit the built folder (for example `dist/`). A source `index.html` that loads `/src/main.ts` is refused with "needs building first".
-- **Any game engine works,** as long as the result is static files: plain JavaScript, three.js, Phaser, PixiJS, Babylon.js and so on.
+- **Already built.** start.ng never runs your code or installs packages (no `npm install`, no `npm run build`). If you use Vite, React or similar, build it and commit the built folder (for example `dist/`). A source `index.html` that loads `/src/main.ts` is refused with "needs building first".
+- **No secrets.** Everything in your game is public. Never put API keys or passwords in it.
+- **Any game engine works,** as long as the result is static files: plain JavaScript, canvas, three.js, Phaser, PixiJS, Babylon.js and so on.
 
 ### Rules for the files
 
@@ -20,7 +43,7 @@ This page is everything you need to build a start.ng game and put it live with t
 | Served file types | `html htm css js mjs json map txt svg png jpg jpeg gif webp avif ico woff woff2 ttf otf mp3 ogg wav mp4 webm wasm`. Other files are skipped (and listed in the reply) |
 | Size | Up to 2,000 files and 100 MB in total, 25 MB per file |
 | Left out | Hidden files and folders (`.git`, `.env`…), `node_modules`, links |
-| Paths | Use **relative** paths (`src/game.js`, not `/src/game.js`) so the game works anywhere |
+| Paths | Use **relative** paths (`./game.js`, `assets/hero.png`, not `/assets/hero.png`) so the game works anywhere |
 | Extra pages | Link to them with a trailing slash: `help/`, not `help` |
 | Safety | Files are checked against known malware patterns before they go live |
 
@@ -28,7 +51,20 @@ This page is everything you need to build a start.ng game and put it live with t
 
 Your game plays at `<name>.start.ng`. The name comes from `name` in the publish request, or from the repo name if you leave it out. It's turned into lowercase letters, numbers and hyphens (`Tower Stack` becomes `tower-stack`), at most 40 characters. `api`, `auth`, `login`, `www` and `3rdmainland` can't be used. The first person to put a name live owns it.
 
-## Publish your game
+## Put your game live
+
+There are two ways. Both check the game the same way and put it at `<name>.start.ng` and on the start.ng homepage.
+
+### On the start.ng website
+
+1. Sign in on **start.ng**.
+2. Click your **face**, then **View profile**, then **Your games**.
+3. Paste your GitHub repo link and click **Upload**.
+4. It's live at `your-game.start.ng`. To take it down, click **Remove** on its card.
+
+### With the API
+
+No key or account is needed, which makes this the way for AI assistants and scripts.
 
 ```
 POST https://api.start.ng/games/publish
@@ -43,7 +79,7 @@ Content-Type: application/json
 | `name` | No | The game's name and address. Defaults to the repo name |
 | `branch` | No | Which branch to publish. Defaults to the repo's main branch |
 
-No key or account is needed. What happens next depends on whether the repo is already live.
+What happens next depends on whether the repo is already live.
 
 ### A new game: approve it once
 
@@ -64,13 +100,15 @@ The first time you publish a repo, start.ng downloads it, checks it, and replies
 }
 ```
 
-**Open `approve_url`** (AI assistants: show it to the human and ask them to open it). It signs you in to start.ng, which creates your account if you're new, and asks *"Put tower-stack live?"*. Say yes and it's live at `https://tower-stack.start.ng` on your account. That repo is now linked to your account for good.
+**Open `approve_url`** (AI assistants: show it to the human and ask them to open it). It signs you in to start.ng, which creates your account if you're new, and asks "Put tower-stack live?". Say yes and it's live at `https://tower-stack.start.ng` on your account. That repo is now linked to your account for good.
 
 - The link works **once** and lasts **30 days**. If it runs out, publish again for a new one.
-- Problems with the game (no `index.html`, too big…) come back **before** the link, so you never approve something that doesn't work.
+- Problems with the game (no `index.html`, too big, a broken `startng.json`…) come back **before** the link, so you never approve something that doesn't work.
 - New games published without signing in are limited to 20 an hour per address.
 
-### An approved game: updates go live straight away
+Signed-in requests (`Authorization: Bearer <start.ng token>`, as the start.ng website sends) skip the approve step and go live on that account straight away.
+
+### An approved game: publishing again updates it
 
 Publishing a repo that's already live updates the game immediately, on its owner's account, with no link. The reply is **200**:
 
@@ -87,11 +125,13 @@ Publishing a repo that's already live updates the game immediately, on its owner
 }
 ```
 
-You don't usually need to call it again, though: **start.ng watches the branch it published from and updates the game by itself after every push**, usually within a minute or two (games that haven't changed in a while are checked less often, up to once an hour). So the everyday loop is just: change the game, push to GitHub. If a push doesn't publish (say `index.html` went missing), the game stays as it was until a push that works.
+A repo can only update the game it's linked to; asking for a different `name` gives **409**.
 
-Calling publish yourself updates the game right away. A repo can only update the game it's linked to; asking for a different `name` gives **409**.
+### Updates: just push
 
-Signed-in requests (`Authorization: Bearer <start.ng token>`, as the start.ng website sends) skip the approve step and go live on that account straight away.
+However you put your game live, **start.ng watches the branch it came from and updates the game by itself after every push**, usually within a minute or two (games that haven't changed in a while are checked less often, up to once an hour). So the everyday loop is: change the game, push to GitHub. Done.
+
+If a push doesn't publish (say `index.html` went missing), the game stays as it was until a push that works. Uploading the same link again on the website, or calling publish, updates it right away.
 
 ### Errors
 
@@ -99,7 +139,7 @@ Signed-in requests (`Authorization: Bearer <start.ng token>`, as the start.ng we
 | --- | --- | --- |
 | 400 | The link isn't a public GitHub repo link, or the name can't be used | Fix `repo_url` or `name` |
 | 409 | The name is taken, or this repo is live under another name | Pick another `name`, or leave it out to update the linked game |
-| 422 | Something's wrong with the game: no `index.html`, needs building, too big, repo not found or not public… | Read `detail`, fix the repo, push, publish again |
+| 422 | Something's wrong with the game: no `index.html`, needs building, too big, a mistake in `startng.json`, repo not found or not public… | Read `detail`, fix the repo, push, publish again |
 | 429 | Too many new games from your address | Try again in an hour |
 | 502 / 503 | start.ng couldn't upload right now, or publishing isn't set up | Try again later |
 
@@ -107,20 +147,21 @@ Every error has a `detail` message written for people.
 
 ### A cover picture
 
-Your game's card on start.ng shows a cover picture. Put **`cover.png`** (or `cover.jpg` / `cover.webp`) next to your `index.html` and publish: start.ng picks it up automatically.
+Your game's card on start.ng shows a cover picture. Put **`cover.png`** (or `cover.jpg` / `cover.webp`) next to your `index.html` or at the top of your repo: start.ng picks it up automatically.
 
-- **16:10**, at least **640 × 400** (1280 × 800 looks sharp). Cards crop to 16:10.
-- PNG, JPEG or WebP, ideally under 2 MB.
+- **16:10**, at least **640 × 400** (1600 × 1000 looks sharp). Cards crop to 16:10.
+- PNG, JPEG or WebP, under 2 MB.
 - Make it look like the game, with its title on it. AI assistants: generate one, save it as `cover.png` next to `index.html`, and publish.
-- Without one, the card shows the first letter of the game's name. The owner can also upload a cover from their start.ng profile; that one wins.
+- Or upload one from **Your games** on your start.ng profile; that one wins over the repo's.
+- Without one, the card shows the first letter of the game's name.
 
 ## Players and their character
 
-start.ng handles sign-in. Your game never sees passwords or sign-in tokens: it asks start.ng who's playing through a hidden page, `https://start.ng/connect`, using the browser's `postMessage`. This only works when your game is served from a `*.start.ng` address, which publishing does for you.
+start.ng handles sign-in. Your game never sees passwords, emails or the player's start.ng sign-in. It either asks start.ng's connect page who's playing, or calls the API with a game session that only works for your game.
 
 ### Talk to start.ng
 
-Add this to your game once:
+The connect page is a hidden page, `https://start.ng/connect`, that your game talks to with the browser's `postMessage`. It only answers games served from a `*.start.ng` address, which publishing does for you. Add this to your game once:
 
 ```js
 // Talks to start.ng through its hidden connect page.
@@ -195,13 +236,45 @@ Ask again when the player comes back to your tab (`visibilitychange` and `focus`
 
 ### Sign in
 
-Send the player to start.ng; it brings them back to your game afterwards:
+Send the player to start.ng with a link back to your game; it signs them in (and has them make a character if they're new) and sends them back:
 
 ```js
-location.href = `https://start.ng/?return_to=${encodeURIComponent(location.href)}`;
+location.href = `https://start.ng/?return_to=${encodeURIComponent(location.origin + location.pathname)}`;
 ```
 
+They come back with a game session in the address, `https://your-game.start.ng/#startng_session=eyJ...&expires_in=7200`. If you use the connect page you can ignore it (just ask `startng:whoami` again); if you use the HTTP API, keep it (next section).
+
 The start.ng homepage asks signed-out players "sign in or play as a guest?" before opening a game. If they pick guest, your game opens with `?guest` in its address: skip your own sign-in question then.
+
+### The HTTP API: game sessions
+
+To call the API with `fetch`, your game needs a **game session**: a key start.ng gives your game after the player signs in. It only works for **your** game's player API, lasts **2 hours**, and is never the player's password or real sign-in.
+
+Read it once when your game loads, keep it, and clean the address:
+
+```js
+const params = new URLSearchParams(location.hash.slice(1));
+if (params.get('startng_session')) {
+  sessionStorage.setItem('startng_session', params.get('startng_session'));
+  history.replaceState(null, '', location.pathname + location.search); // remove it from the address bar
+}
+const session = sessionStorage.getItem('startng_session'); // null = not signed in
+```
+
+Send it as a header: `Authorization: Bearer <session>`. If it has expired, the API answers **401**: send the player through [Sign in](#sign-in) again.
+
+Who is playing:
+
+```
+GET https://api.start.ng/games/{game}/player
+Authorization: Bearer <session>
+```
+
+```json
+{ "id": 7, "name": "Trini", "style": { "body": "female", "primaryColor": "#4b7bec", "secondaryColor": "#2b2f4a", "skinColor": "#8d5524", "hairColor": "#17120f", "hair": "braids", "hat": "none", "accessory": "backpack" } }
+```
+
+`style` is the player's start.ng character (`null` if they haven't made one). It never includes the email.
 
 ### The character rule
 
@@ -259,33 +332,109 @@ Fall back to something sensible for any missing or unknown value: start.ng may a
     document.getElementById('player-account').textContent = reply.user?.account ? `@${reply.user.account}` : 'Not signed in';
     document.getElementById('player-sign-in').hidden = !!reply.user;
     document.getElementById('player-sign-in').onclick = () =>
-      (location.href = `https://start.ng/?return_to=${encodeURIComponent(location.href)}`);
+      (location.href = `https://start.ng/?return_to=${encodeURIComponent(location.origin + location.pathname)}`);
     document.getElementById('player-card').hidden = false;
   }
 </script>
 ```
 
-## Scores and leaderboards
+## Leaderboards
 
-Each game gets its own start.ng leaderboard: every signed-in player's **best** score, highest first.
+**Leaderboards are optional.** Each game's board keeps every signed-in player's **best run**. There are two kinds:
 
-```js
-// Save a score (signed-in players only; whole numbers from 0 to 1,000,000,000).
-const saved = await askStartNg({ type: 'startng:score', score: 1240 }, 'startng:scoreSaved');
-// { ok: true, result: { best: 1500, improved: false, rank: 2 } }  or  { ok: false, error: "Sign in to save your score" }
+- **A plain score:** send one whole number, `score`. Highest wins. Nothing to set up.
+- **Your own columns:** waves and kills, gems and time, coins and distance, whatever fits your game. Describe them in `startng.json`.
 
-// Read the top players (limit 1 to 50, default 10). Works for guests too.
-const board = await askStartNg({ type: 'startng:leaderboard', limit: 10 }, 'startng:leaderboardData');
-// { ok: true, entries: [{ rank: 1, player_id: 7, name: "Chioma", color: "#a55eea", score: 2400 }, ...] }
+A game that has never saved a score and has no `startng.json` has no leaderboard. Once it has one, its card on start.ng gets a **Leaderboard** button showing your columns.
+
+### Your own columns: `startng.json`
+
+Add a file called **`startng.json`** next to your `index.html` (or at the top of your repo):
+
+```json
+{
+  "leaderboard": {
+    "stats": [
+      { "key": "waves", "label": "Waves survived", "order": "highest" },
+      { "key": "kills", "label": "Enemies killed", "order": "highest" }
+    ]
+  }
+}
 ```
 
-- start.ng works out which game a score belongs to from your game's address, so a game can only save its own scores.
-- Highlight the player's own row by comparing `player_id` with `user.id`.
+| Field | Meaning |
+| --- | --- |
+| `key` | The name your game sends: lowercase letters, digits and `_`, starting with a letter, up to 24 characters |
+| `label` | The column title players see, up to 30 characters |
+| `order` | `"highest"` (default) or `"lowest"` wins, for example the fastest time |
+| `format` | Optional: `"number"` (default) or `"time"` (send seconds, shown as `m:ss`) |
+
+- **1 to 5 stats.** Players are ranked by the **first** stat; the next ones break ties, then whoever got there first.
+- start.ng reads `startng.json` when the game is published (and on every update). If something's wrong in it, publishing tells you what to fix.
+
+Examples:
+
+| Game | `stats` |
+| --- | --- |
+| Wave shooter | `waves` (highest), `kills` (highest) |
+| Runner | `distance` "Km run" (highest), `coins` (highest) |
+| Race or escape | `gems` (highest), `time` (lowest, `"format": "time"`) |
+
+### Save a run
+
+Signed-in players only. Send **exactly** the stats in your `startng.json` (or a plain `score` if you don't have one), each a **whole number** from 0 to 1,000,000,000. Anything else is refused.
+
+With the connect page:
+
+```js
+// With startng.json:
+const saved = await askStartNg({ type: 'startng:score', stats: { waves: 5, kills: 10 } }, 'startng:scoreSaved');
+// Or a plain score:
+const saved = await askStartNg({ type: 'startng:score', score: 1240 }, 'startng:scoreSaved');
+// { ok: true, result: { best: 5, improved: true, rank: 3, stats: { waves: 5, kills: 10 } } }
+// or { ok: false, error: "Sign in to save your score" }
+```
+
+With the HTTP API:
+
+```
+POST https://api.start.ng/games/{game}/scores
+Authorization: Bearer <session>
+Content-Type: application/json
+
+{ "stats": { "waves": 5, "kills": 10 } }
+```
+
+```json
+{ "best": 5, "improved": true, "rank": 3, "stats": { "waves": 5, "kills": 10 } }
+```
+
+Only the player's **best run** is kept: `improved` tells you whether this one beat it, and `stats` is their best run. `best` is its first stat.
+
+### Read the board
+
+Works for everyone, guests included. `limit` is 1 to 50 (default 10).
+
+```js
+const board = await askStartNg({ type: 'startng:leaderboard', limit: 10 }, 'startng:leaderboardData');
+// { ok: true, entries: [...] }
+```
+
+```
+GET https://api.start.ng/games/{game}/leaderboard?limit=10
+```
+
+```json
+[ { "rank": 1, "player_id": 7, "name": "Trini", "color": "#4b7bec", "score": 8, "stats": { "waves": 8, "kills": 2 } } ]
+```
+
+- Highlight the player's own row by comparing `player_id` with their `id`.
+- start.ng works out which game a score belongs to from your game's address (or its session), so a game can only save its own scores.
 - Guests can see the leaderboard but can't save. Invite them to sign in.
 
 ## Multiplayer
 
-For games where players see each other live, like the Hangout:
+For games where players see each other live, like the Hangout. This uses the connect page.
 
 1. Get a one-minute ticket: `askStartNg({ type: 'startng:ticket' }, 'startng:ticketData')` → `{ ok, ticket, url }` (signed-in players only).
 2. Open a WebSocket to `url` with `?ticket=` and the ticket added (URL-encoded), within a minute.
@@ -299,22 +448,93 @@ For games where players see each other live, like the Hangout:
 
 Players are `{ id, name, style, seat, x, z, ry, moving }`, with names and looks from start.ng, so nobody can pretend to be someone else. Positions stay within ±60 metres. If the connection closes with code `4401`, the player needs to sign in; `4403`, the room is full; `4409`, they joined from another tab. Up to 50 players share a room. See [the Hangout](https://github.com/Blackburn0/startng-hangout) for a full example.
 
-## Other endpoints
+## API reference
 
-| Endpoint | What it returns |
+Base URL: `https://api.start.ng`. Games on `*.start.ng` can call it straight from the browser.
+
+| Endpoint | Sign-in | What it does |
+| --- | --- | --- |
+| `POST /games/publish` | None (or a start.ng sign-in) | Put a game live or update it. See [With the API](#with-the-api) |
+| `GET /games/publish/{code}` | None | What's waiting at an approve link |
+| `GET /games` | None | Every live game: `[{ name, url, repo_url, by, updated_at, cover_url, leaderboard }]`. `leaderboard` is its columns, or `null` |
+| `GET /games/{game}/player` | Game session | Who's playing: `{ id, name, style }` |
+| `POST /games/{game}/scores` | Game session | Save a run: `{ "stats": {...} }` or `{ "score": n }` |
+| `GET /games/{game}/leaderboard?limit=10` | None | The top players |
+| `DELETE /games/{game}/scores/{player_id}` | The owner's start.ng sign-in | Remove a bad score |
+
+| Status | Meaning |
 | --- | --- |
-| `GET https://api.start.ng/games` | Every live game: `[{ name, url, repo_url, by, updated_at, cover_url }]` |
-| `GET https://api.start.ng/games/{name}/leaderboard?limit=10` | A game's top players |
-| `GET https://api.start.ng/games/publish/{code}` | What's waiting at an approve link |
+| 401 | No session, it expired, or it's for another game: sign the player in again |
+| 404 | No game with that name |
+| 422 | A bad run: a stat missing or extra, not a whole number, below 0 or too big |
+
+## Full example
+
+A game using the HTTP API: a sign-in link, saving a run, and showing the board.
+
+```html
+<a id="signin" hidden>Sign in with start.ng to save your score</a>
+<p id="message"></p>
+<ol id="board"></ol>
+
+<script type="module">
+  const API = 'https://api.start.ng';
+  const GAME = location.hostname.split('.')[0]; // "relic-hunter" on relic-hunter.start.ng
+
+  // pick up the session after sign-in
+  const params = new URLSearchParams(location.hash.slice(1));
+  if (params.get('startng_session')) {
+    sessionStorage.setItem('startng_session', params.get('startng_session'));
+    history.replaceState(null, '', location.pathname + location.search);
+  }
+  const session = sessionStorage.getItem('startng_session');
+  const signin = document.getElementById('signin');
+  signin.href = `https://start.ng/?return_to=${encodeURIComponent(location.origin + location.pathname)}`;
+  signin.hidden = !!session;
+
+  // call this when a round ends, with your startng.json stats, e.g. roundOver({ waves: 5, kills: 10 })
+  window.roundOver = async (stats) => {
+    if (session) {
+      const res = await fetch(`${API}/games/${GAME}/scores`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session}` },
+        body: JSON.stringify({ stats }),
+      });
+      const message = document.getElementById('message');
+      if (res.ok) {
+        const saved = await res.json();
+        message.textContent = saved.improved ? `New best! You're #${saved.rank}` : `Not your best this time (#${saved.rank})`;
+      } else if (res.status === 401) {
+        sessionStorage.removeItem('startng_session');
+        signin.hidden = false;
+      }
+    }
+    const top = await fetch(`${API}/games/${GAME}/leaderboard?limit=10`).then((r) => r.json());
+    const board = document.getElementById('board');
+    board.replaceChildren(...top.map((e) => {
+      const li = document.createElement('li');
+      li.textContent = `#${e.rank} ${e.name}: ${e.stats.waves} waves, ${e.stats.kills} kills`;
+      return li;
+    }));
+  };
+</script>
+```
+
+## Good to know
+
+- **Shared vs personal:** `localStorage` only lives in one browser, so other players never see what's in it. A personal best can live there, but anything other players should see must go to start.ng.
+- **Cheating:** a browser game can never be fully cheat-proof. start.ng only accepts your declared numbers, within limits, from signed-in players. As the owner you can remove a bad score: `DELETE /games/{game}/scores/{player_id}` with your start.ng sign-in.
+- **Testing:** sign-in, scores and multiplayer only work once your game is live at `your-game.start.ng`. Opened as a local file there's no player, so make sure your game still plays without one.
+- **Privacy:** your game never sees the player's email or real sign-in. A game session only works for your game.
 
 ## Checklist before you publish
 
-1. `index.html` is at the top of the repo, or in `dist/`, `build/`, `docs/` or `out/`, and runs without a build step.
-2. Paths are relative, and every file type you need is on the served list.
-3. The game asks start.ng who's playing (`startng:whoami`), and checks `e.origin`.
+1. A built `index.html` is committed, at the top of the repo or in `dist/`, `build/`, `docs/` or `out/`, and runs without a build step.
+2. Paths are relative, every file type you need is on the served list, and there are no secrets.
+3. The game finds out who's playing (`startng:whoami`, checking `e.origin`; or `GET /games/{game}/player` with a session).
 4. It shows the player's start.ng character, or a profile card if the game has no character.
 5. Guests see the guest look and a way to sign in.
-6. Scores, if any, go through `startng:score`; the leaderboard comes from `startng:leaderboard`.
+6. Want a leaderboard? A `startng.json` if you want your own columns, then save runs and read the board through start.ng.
 7. There's a `cover.png` (16:10) next to `index.html`.
 8. The repo is public on GitHub and pushed.
-9. Publish, then open the `approve_url` the first time. After that, pushing to the branch is enough.
+9. Put it live (**Your games** on your profile, or the publish API and its `approve_url`). After that, pushing to the branch is enough.

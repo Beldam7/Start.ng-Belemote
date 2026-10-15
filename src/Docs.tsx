@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Markdown, slug } from "./markdown";
+import ScrollJump from "./ScrollJump";
 
 // start.ng/docs: the builder docs. The words live in public/docs.md (also served as-is at
 // start.ng/docs.md for AI tools), so the page and the file never disagree.
@@ -70,6 +71,7 @@ export default function Docs() {
         <span>start<span>.ng</span></span>
         <span>Built by the HNG community</span>
       </footer>
+      <ScrollJump />
     </>
   );
 }
