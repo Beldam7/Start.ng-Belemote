@@ -61,7 +61,7 @@ export default function App() {
       <main>
         <section className="container hero">
           <p className="eyebrow">Made in Nigeria. Played everywhere.</p>
-          <h1>{user ? <>Welcome back,<br /><mark>{firstName}.</mark></> : <>Built here.<br /><mark>Played everywhere.</mark></>}</h1>
+          <h1>{user ? <>Welcome back,<br /><mark>{firstName}.</mark></> : <>Good vibes.<br /><mark>Good games.</mark></>}</h1>
           <p className="lead">
             Games made by builders in the community.{" "}<br />
             Each one lives at its own address, like <code>relichunter.start.ng</code>.{" "}<br />
