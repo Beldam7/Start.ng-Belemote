@@ -91,12 +91,10 @@ export default function MyGames() {
     }
   }
 
-  // This sits inside the profile form, so Enter uploads instead of saving the profile.
+  // This sits inside the profile form, so Enter must not save the profile. It doesn't upload either
+  // while the Upload button is disabled.
   const onKey = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      upload();
-    }
+    if (e.key === "Enter") e.preventDefault();
   };
 
   return (
@@ -113,10 +111,12 @@ export default function MyGames() {
           value={url}
           onChange={(e) => { setUrl(e.target.value); setError(""); }}
           onKeyDown={onKey}
+          placeholder="Looking for an easy way out, huh?"
           aria-label="GitHub repo link"
           aria-invalid={!!error}
         />
-        <button type="button" onClick={upload} disabled={busy || !url.trim()}>{busy ? "Uploading..." : "Upload"}</button>
+        {/* Uploading from the profile is switched off for now: the button stays disabled. */}
+        <button type="button" onClick={upload} disabled>{busy ? "Uploading..." : "Upload"}</button>
       </div>
       {error && <p className="error">{error}</p>}
       {notice && <p className="ok">{notice}</p>}
