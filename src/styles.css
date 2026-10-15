@@ -46,13 +46,27 @@ mark { background: linear-gradient(transparent 62%, var(--lime) 62%, var(--lime)
 .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
 .game { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 10px; display: flex; flex-direction: column; gap: 12px; min-width: 0; transition: transform .15s, border-color .15s, box-shadow .15s; }
 .game:hover { transform: translateY(-2px); border-color: var(--ink); box-shadow: 4px 4px 0 var(--lime); }
+/* The Hangout is start.ng's own game, so its card is a legendary one: a glowing lime edge and a slow shine. */
+.game.legendary { position: relative; overflow: hidden; background: linear-gradient(180deg, #fafff0, var(--card)); border-color: #b5e63d; box-shadow: 0 0 0 1px rgba(216, 253, 113, .9), 0 0 16px 2px rgba(216, 253, 113, .6), 0 0 40px 6px rgba(216, 253, 113, .3); animation: legendary-glow 2.8s ease-in-out infinite; }
+.game.legendary:hover { border-color: #8fc41a; }
+.game.legendary::before { content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none; background: linear-gradient(115deg, transparent 38%, rgba(255, 255, 255, .6) 50%, transparent 62%); transform: translateX(-130%); animation: legendary-shine 12s ease-in-out infinite; }
+.game.legendary .art { position: relative; box-shadow: inset 0 0 0 2px rgba(216, 253, 113, .85); }
+.game.legendary .art span { color: var(--lime); text-shadow: 0 0 22px rgba(216, 253, 113, .85); }
+@keyframes legendary-glow {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(216, 253, 113, .9), 0 0 14px 2px rgba(216, 253, 113, .5), 0 0 34px 4px rgba(216, 253, 113, .25); }
+  50% { box-shadow: 0 0 0 1px #d8fd71, 0 0 24px 5px rgba(216, 253, 113, .85), 0 0 60px 14px rgba(216, 253, 113, .45); }
+}
+@keyframes legendary-shine { 0%, 88% { transform: translateX(-130%); } 100% { transform: translateX(130%); } }
+@media (prefers-reduced-motion: reduce) { .game.legendary, .game.legendary::before { animation: none; } }
+
 .art { width: 100%; aspect-ratio: 16 / 10; flex: none; border-radius: 12px; display: grid; place-items: center; overflow: hidden; }
 .art img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .art span { font-size: 3.4rem; font-weight: 900; color: rgba(255, 255, 255, .92); text-shadow: 0 4px 18px rgba(0, 0, 0, .3); }
-.info { flex: 1; min-width: 0; display: flex; flex-direction: column; padding: 0 6px 6px; }
+.game-link { display: flex; flex-direction: column; gap: 12px; flex: 1; min-width: 0; }
+.info { flex: 1; min-width: 0; display: flex; flex-direction: column; padding: 0 6px; }
 .info h3 { margin: 0 0 2px; font-size: 1.15rem; letter-spacing: -.02em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .info p { margin: 0 0 10px; color: var(--muted); font-family: var(--mono); font-size: .78rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.meta { display: flex; gap: 10px; align-items: center; font-size: .82rem; color: var(--muted); margin-top: auto; min-width: 0; }
+.meta { display: flex; gap: 10px; align-items: center; font-size: .82rem; color: var(--muted); margin-top: auto; min-width: 0; padding: 0 6px 6px; }
 .meta span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .meta .play { flex: none; }
 .tag { font-family: var(--mono); font-size: .72rem; text-transform: uppercase; letter-spacing: .12em; background: var(--lime); color: var(--ink); padding: 3px 8px; border-radius: 6px; }
@@ -203,6 +217,27 @@ input:focus { outline: 2px solid var(--ink); outline-offset: -1px; }
   .game-card { grid-template-columns: 96px 1fr; }
   .game-card img, .game-card .art { width: 96px; height: 72px; }
 }
+
+/* shared leaderboards */
+.board-btn { flex: none; font-size: .82rem; font-weight: 600; color: var(--muted); text-decoration: underline; text-underline-offset: 3px; }
+.board-btn:hover { color: var(--ink); }
+.by { font-size: .85rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: -4px; }
+.board { gap: 10px; }
+.board-sub { margin: -6px 0 4px; color: var(--muted); font-size: .9rem; }
+.board-empty { margin: 0; padding: 20px; border: 1px dashed var(--line); border-radius: 14px; color: var(--muted); text-align: center; }
+.board { max-width: 560px; }
+.board-table { display: grid; gap: 4px; font-variant-numeric: tabular-nums; overflow-x: auto; }
+.board-row { display: grid; gap: 12px; align-items: center; padding: 9px 12px; border-radius: 10px; background: var(--bg); min-width: 0; }
+.board-head { background: none; padding-top: 0; padding-bottom: 2px; font-family: var(--mono); font-size: .68rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+.board-row:nth-child(2) .rk { background: var(--lime); }
+.board-row.me { outline: 2px solid var(--ink); }
+.board-row .rk { font-family: var(--mono); font-size: .8rem; text-align: center; border-radius: 6px; padding: 2px 0; }
+.board-row .nm { display: flex; align-items: center; gap: 8px; font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.board-row .nm em { font-style: normal; color: var(--muted); font-weight: 500; }
+.board-row .dot { flex: none; width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgba(0, 0, 0, .15); }
+.board-row .num { text-align: right; white-space: nowrap; }
+.board-row .sc { font-family: var(--mono); font-weight: 700; }
+.board-play { text-align: center; margin-top: 6px; }
 /* "Sign in or play as a guest?" when a signed-out player picks a game */
 .card.choose { gap: 12px; }
 .choice { display: grid; gap: 4px; text-align: left; padding: 14px 16px; }
