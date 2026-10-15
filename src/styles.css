@@ -127,3 +127,14 @@ input:focus { outline: 2px solid var(--ink); outline-offset: -1px; }
   .creator-preview svg { width: 140px; height: 224px; }
   .creator-controls { padding: 22px 20px; }
 }
+
+/* female / male */
+.creator-pick { display: grid; grid-template-columns: 1fr; gap: 12px; padding: 36px; max-width: 560px; text-align: center; justify-items: center; }
+.creator-pick h2 { margin: 0; font-size: 2rem; letter-spacing: -.04em; }
+.creator-pick .eyebrow { margin: 0; }
+.body-options { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%; margin-top: 8px; }
+.body-option { background: var(--bg); color: var(--ink); border: 2px solid var(--line); border-radius: 18px; padding: 20px 12px 16px; display: grid; justify-items: center; gap: 10px; font-size: 1.15rem; font-weight: 800; }
+.body-option:hover { background: var(--lime); border-color: var(--ink); }
+.segmented { display: inline-flex; background: var(--bg); border: 1px solid var(--line); border-radius: 999px; padding: 4px; justify-self: start; }
+.segmented button { background: none; color: var(--muted); border-radius: 999px; padding: 7px 18px; font-size: .92rem; }
+.segmented button.on { background: var(--ink); color: #fff; }
