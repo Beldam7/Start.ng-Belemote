@@ -198,6 +198,7 @@ export default function App() {
         <nav>
           <a href="#games">Games</a>
           <a href="#how">How it works</a>
+          <a href="/docs">Docs</a>
           {user ? (
             <div className="me" ref={menuRef}>
               <button className="me-button" onClick={() => setMenuOpen((o) => !o)} aria-haspopup="menu" aria-expanded={menuOpen} aria-label="Your account">
@@ -279,10 +280,15 @@ export default function App() {
         <section id="how" className="container how">
           <h2>Got a game? Put it on start.ng</h2>
           <ol>
-            <li><b>Build it</b><span>Any browser game works: HTML, JavaScript, three.js, anything static.</span></li>
-            <li><b>Upload it</b><span>Put your built files in a folder named after your game, with index.html at the top.</span></li>
-            <li><b>It's live</b><span>Your game appears at <code>yourgame.start.ng</code> for everyone to play.</span></li>
+            <li><b>Build it</b><span>Any static browser game: HTML, JavaScript, three.js, Phaser. Players bring their start.ng character, scores and friends.</span></li>
+            <li><b>Push it to GitHub</b><span>A public repo with a ready-to-play <code>index.html</code> at the top or in <code>dist/</code>, plus a <code>cover.png</code> for its card.</span></li>
+            <li><b>Publish it</b><span>One API call with your repo link, no key needed. Or hand your AI <code>start.ng/docs</code> and let it do the lot.</span></li>
+            <li><b>Approve it once</b><span>Open the link you get back and it's live at <code>yourgame.start.ng</code>. After that, every push updates it.</span></li>
           </ol>
+          <div className="how-actions">
+            <a className="btn" href="/docs">Read the docs</a>
+            <a className="btn ghost" href="/docs.md" download="startng-docs.md">Docs for your AI (.md)</a>
+          </div>
         </section>
       </main>
 

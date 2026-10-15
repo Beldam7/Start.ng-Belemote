@@ -60,11 +60,13 @@ mark { background: linear-gradient(transparent 62%, var(--lime) 62%, var(--lime)
 
 /* how it works */
 .how { padding: 96px 24px 72px; }
-.how ol { list-style: none; padding: 0; margin: 28px 0 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; counter-reset: step; }
+.how ol { list-style: none; padding: 0; margin: 28px 0 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; counter-reset: step; }
 .how li { counter-increment: step; background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 22px; display: grid; gap: 8px; align-content: start; }
 .how li::before { content: "0" counter(step); font-family: var(--mono); font-size: .8rem; background: var(--lime); justify-self: start; padding: 3px 8px; border-radius: 6px; }
 .how li b { font-size: 1.15rem; }
 .how li span { color: var(--muted); line-height: 1.55; }
+.how li code { font-size: .85em; }
+.how-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
 
 .footer { display: flex; justify-content: space-between; padding: 28px 24px 40px; border-top: 1px solid var(--line); color: var(--muted); font-size: .9rem; }
 .footer > span:first-child { color: var(--ink); font-weight: 800; }

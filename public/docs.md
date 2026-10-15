@@ -87,7 +87,9 @@ Publishing a repo that's already live updates the game immediately, on its owner
 }
 ```
 
-So the everyday loop is: change the game, push to GitHub, call publish. A repo can only update the game it's linked to; asking for a different `name` gives **409**.
+You don't usually need to call it again, though: **start.ng watches the branch it published from and updates the game by itself after every push**, usually within a minute or two (games that haven't changed in a while are checked less often, up to once an hour). So the everyday loop is just: change the game, push to GitHub. If a push doesn't publish (say `index.html` went missing), the game stays as it was until a push that works.
+
+Calling publish yourself updates the game right away. A repo can only update the game it's linked to; asking for a different `name` gives **409**.
 
 Signed-in requests (`Authorization: Bearer <start.ng token>`, as the start.ng website sends) skip the approve step and go live on that account straight away.
 
@@ -315,4 +317,4 @@ Players are `{ id, name, style, seat, x, z, ry, moving }`, with names and looks 
 6. Scores, if any, go through `startng:score`; the leaderboard comes from `startng:leaderboard`.
 7. There's a `cover.png` (16:10) next to `index.html`.
 8. The repo is public on GitHub and pushed.
-9. Publish, then open the `approve_url` the first time.
+9. Publish, then open the `approve_url` the first time. After that, pushing to the branch is enough.
