@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { me, User } from "./api";
+import AccountMenu from "./AccountMenu";
 import { Markdown, slug } from "./markdown";
 import ScrollJump from "./ScrollJump";
 
@@ -8,6 +10,18 @@ export default function Docs() {
   const [source, setSource] = useState<string | null>(null);
   const [failed, setFailed] = useState(false);
   const [copied, setCopied] = useState(false);
+  // Who's signed in, for the same top bar as the homepage.
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) me(token).then(setUser).catch(() => {});
+  }, []);
+
+  function signOut() {
+    localStorage.removeItem("token");
+    setUser(null);
+  }
 
   useEffect(() => {
     document.title = "Docs · start.ng";
@@ -40,7 +54,13 @@ export default function Docs() {
         <a className="logo" href="/"><b>start<span>.ng</span></b></a>
         <nav>
           <a href="/#games">Games</a>
+          <a href="/#how">How it works</a>
           <a href="/docs">Docs</a>
+          {user ? (
+            <AccountMenu user={user} onProfile={() => location.assign("/?profile")} onSignOut={signOut} />
+          ) : (
+            <button onClick={() => location.assign("/?signin")}>Sign in</button>
+          )}
         </nav>
       </header>
       <main className="container docs">

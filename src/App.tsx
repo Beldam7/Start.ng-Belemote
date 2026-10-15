@@ -1,7 +1,7 @@
 import { FormEvent, lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { GoogleLogin } from "@react-oauth/google";
 import { approvePendingGame, getPendingGame, googleLogin, listGames, login, me, myGames, PendingGameInfo, register, saveCharacter, TokenResponse, User } from "./api";
-import { AvatarFace } from "./Avatar";
+import AccountMenu from "./AccountMenu";
 import ScrollJump from "./ScrollJump";
 import { Character, styleFor } from "./character";
 // The creator (and three.js) loads only when someone opens it.
@@ -12,6 +12,11 @@ import { Game, gameReturnUrl, HANGOUT, playableUrl, toCard, withHangoutFirst } f
 const returnTo = gameReturnUrl();
 // Set on /approve/<code>: a game published through the API without signing in, waiting to go live.
 const approveCode = location.pathname.match(/^\/approve\/([\w-]{8,40})\/?$/)?.[1] ?? null;
+// Other pages (the docs) link here with ?profile or ?signin to open the profile or sign-in.
+const opening = new URLSearchParams(location.search);
+const openProfile = opening.has("profile");
+const openSignIn = opening.has("signin");
+if (openProfile || openSignIn) history.replaceState(null, "", location.pathname + location.hash);
 
 type Approval =
   | { step: "loading" }
@@ -25,16 +30,14 @@ export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [checking, setChecking] = useState(() => !!localStorage.getItem("token"));
   // Google sign-in; the first Google sign-in creates the account.
-  const [signInOpen, setSignInOpen] = useState(!!returnTo);
+  const [signInOpen, setSignInOpen] = useState(!!returnTo || openSignIn);
   const [error, setError] = useState("");
   // TEMPORARY, for testing: email sign-in next to Google. Remove before the final launch.
   const [emailMode, setEmailMode] = useState<"login" | "register">("login");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [editing, setEditing] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
+  const [editing, setEditing] = useState(openProfile);
   // Published games from the API; null while loading.
   const [games, setGames] = useState<Game[] | null>(null);
   const [approval, setApproval] = useState<Approval | null>(approveCode ? { step: "loading" } : null);
@@ -79,16 +82,6 @@ export default function App() {
   const example = myLatest ?? games?.[0] ?? null;
   // The homepage list: the Hangout pinned first, then everything published.
   const listed = withHangoutFirst(games ?? []);
-
-  // Close the profile menu on an outside click or Escape.
-  useEffect(() => {
-    if (!menuOpen) return;
-    const onClick = (e: MouseEvent) => { if (!menuRef.current?.contains(e.target as Node)) setMenuOpen(false); };
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setMenuOpen(false); };
-    document.addEventListener("mousedown", onClick);
-    document.addEventListener("keydown", onKey);
-    return () => { document.removeEventListener("mousedown", onClick); document.removeEventListener("keydown", onKey); };
-  }, [menuOpen]);
 
   // Restore the session from the saved token, so a refresh keeps you signed in.
   useEffect(() => {
@@ -182,7 +175,6 @@ export default function App() {
     localStorage.removeItem("token");
     setUser(null);
     setEditing(false);
-    setMenuOpen(false);
   }
 
   async function onSaveCharacter(c: Character) {
@@ -201,24 +193,7 @@ export default function App() {
           <a href="#how">How it works</a>
           <a href="/docs">Docs</a>
           {user ? (
-            <div className="me" ref={menuRef}>
-              <button className="me-button" onClick={() => setMenuOpen((o) => !o)} aria-haspopup="menu" aria-expanded={menuOpen} aria-label="Your account">
-                <AvatarFace style={user.character?.style ?? styleFor(user.id)} size={40} />
-              </button>
-              {menuOpen && (
-                <div className="menu" role="menu">
-                  <div className="menu-head">
-                    <AvatarFace style={user.character?.style ?? styleFor(user.id)} size={44} />
-                    <div>
-                      <strong>{user.character?.name ?? firstName}</strong>
-                      <span>{user.email}</span>
-                    </div>
-                  </div>
-                  <button role="menuitem" onClick={() => { setEditing(true); setMenuOpen(false); }}>View profile</button>
-                  <button role="menuitem" onClick={signOut}>Sign out</button>
-                </div>
-              )}
-            </div>
+            <AccountMenu user={user} onProfile={() => setEditing(true)} onSignOut={signOut} />
           ) : (
             <button onClick={() => setSignInOpen(true)}>Sign in</button>
           )}
