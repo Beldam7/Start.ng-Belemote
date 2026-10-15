@@ -73,9 +73,25 @@ npm run dev
 - Files are never cached, so refresh the page after you edit a game.
 - If your browser will not open `*.localhost`, add the name to your hosts file, e.g. `127.0.0.1 dave.localhost`.
 
+## Publish a game from a GitHub repo
+
+`scripts/publish-game.js` downloads a repo, finds the built game and publishes it as `<name>.start.ng`.
+
+```
+npm run publish-game -- https://github.com/<owner>/<repo>                  # into ./local-games, for dev-server.js
+npm run publish-game -- https://github.com/<owner>/<repo> --name my-game   # pick the subdomain
+npm run publish-game -- https://github.com/<owner>/<repo> --target r2      # upload to the R2 bucket (needs wrangler login)
+```
+
+- It looks for a ready-to-run `index.html` in `dist/`, `build/`, `docs/`, `out/` or the repo root. A source `index.html` that loads `/src/*.ts` doesn't count.
+- No built game: it stops and says so. Ask the owner to commit their built files. `--build` runs `npm install` and `npm run build` instead, which runs the repo's own code: only use it for repos you trust.
+- It skips hidden files and `node_modules`, refuses reserved names, and limits a game to 2000 files and 100 MB (25 MB per file).
+- To try the local copy: `GAMES_DIR=./local-games npm run dev`, then open `http://<name>.localhost:8787`.
+- `--target r2` is untested until the bucket exists. Files an older version had and the new one dropped stay in the bucket.
+
 ## Test
 
-Locally, no Cloudflare needed: `npm test` (fake bucket, 9 tests).
+Locally, no Cloudflare needed: `npm test` (fake bucket; Worker and publish-script tests).
 
 Live:
 ```

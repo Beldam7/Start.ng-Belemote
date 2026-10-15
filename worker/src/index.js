@@ -1,7 +1,7 @@
 // start.ng game host: serves static games from an R2 bucket.
 // Rule: the subdomain is the folder name. dave.start.ng/x -> dave/x
 
-const CONTENT_TYPES = {
+export const CONTENT_TYPES = {
   html: "text/html; charset=utf-8",
   htm: "text/html; charset=utf-8",
   css: "text/css; charset=utf-8",
