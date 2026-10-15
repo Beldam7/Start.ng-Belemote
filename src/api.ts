@@ -37,6 +37,27 @@ export async function listGames(): Promise<PublishedGame[]> {
   return res.json();
 }
 
+// Scores: games send them through /connect (see games.ts), which adds the player's sign-in.
+export type ScoreResult = { best: number; improved: boolean; rank: number };
+export type LeaderboardEntry = { rank: number; player_id: number; name: string; color: string | null; score: number };
+
+export async function submitScore(token: string | null, game: string, score: number): Promise<ScoreResult> {
+  const res = await fetch(`${API_URL}/games/${encodeURIComponent(game)}/scores`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ score }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Could not save the score");
+  return data;
+}
+
+export async function getLeaderboard(game: string, limit = 10): Promise<LeaderboardEntry[]> {
+  const res = await fetch(`${API_URL}/games/${encodeURIComponent(game)}/leaderboard?limit=${limit}`);
+  if (!res.ok) throw new Error("Could not load the leaderboard");
+  return res.json();
+}
+
 export async function saveCharacter(token: string | null, character: Character): Promise<User> {
   const res = await fetch(`${API_URL}/auth/me/character`, {
     method: "PUT",
