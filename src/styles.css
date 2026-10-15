@@ -12,7 +12,7 @@ code { font-family: var(--mono); font-size: .88em; background: var(--lime); padd
 /* nav */
 .nav { display: flex; justify-content: space-between; align-items: center; padding: 22px 24px; }
 .logo { font-weight: 800; font-size: 1.3rem; letter-spacing: -.03em; display: flex; align-items: center; gap: 8px; }
-.logo::before { content: ""; width: 22px; height: 22px; border-radius: 6px; background: var(--lime); border: 2px solid var(--ink); }
+.logo::before { content: ""; width: 26px; height: 26px; background: url(/favicon.svg) center / contain no-repeat; }
 .logo b { font-weight: 800; }
 .logo span { color: var(--muted); }
 .nav nav { display: flex; align-items: center; gap: 24px; }
