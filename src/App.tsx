@@ -1,6 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { GoogleLogin } from "@react-oauth/google";
-import { googleLogin, me, TokenResponse, User } from "./api";
+import { googleLogin, me, saveCharacter, TokenResponse, User } from "./api";
+import { AvatarFace } from "./Avatar";
+import { Character, styleFor } from "./character";
+import CharacterCreator from "./CharacterCreator";
 import { gameReturnUrl, gameUrl, games } from "./games";
 
 // Set when a game sent the user here to sign in: we send them back afterwards.
@@ -155,6 +158,16 @@ export default function App() {
         <span>start<span>.ng</span></span>
         <span>Built by the HNG community</span>
       </footer>
+
+      {user && (!user.character || editing) && (
+        <CharacterCreator
+          initial={user.character ?? { name: firstName.slice(0, 24) || "Player", style: styleFor(user.id) }}
+          editing={!!user.character}
+          email={user.email}
+          onSave={onSaveCharacter}
+          onCancel={() => setEditing(false)}
+        />
+      )}
 
       {signInOpen && !user && !checking && (
         <div className="overlay" onClick={() => setSignInOpen(false)}>
