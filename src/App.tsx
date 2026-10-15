@@ -5,7 +5,7 @@ import { AvatarFace } from "./Avatar";
 import { Character, styleFor } from "./character";
 // The creator (and three.js) loads only when someone opens it.
 const CharacterCreator = lazy(() => import("./CharacterCreator"));
-import { Game, gameReturnUrl, toCard } from "./games";
+import { Game, gameReturnUrl, HANGOUT, toCard, withHangoutFirst } from "./games";
 
 // Set when a game sent the user here to sign in: we send them back afterwards.
 const returnTo = gameReturnUrl();
@@ -65,6 +65,8 @@ export default function App() {
 
   // A real address for the hero: your own newest game, else the newest game on start.ng.
   const example = myLatest ?? games?.[0] ?? null;
+  // The homepage list: the Hangout pinned first, then everything published.
+  const listed = withHangoutFirst(games ?? []);
 
   // Close the profile menu on an outside click or Escape.
   useEffect(() => {
@@ -208,31 +210,35 @@ export default function App() {
         <section id="games" className="container">
           <div className="section-head">
             <h2>Games</h2>
-            {games && <span className="count">{games.length} to play</span>}
+            {games && <span className="count">{listed.length} to play</span>}
+          </div>
+          <div className="grid">
+            {listed.map((g) => {
+              const pinned = g.slug === HANGOUT;
+              return (
+                <a key={g.slug} className={pinned ? "game featured" : "game"} href={g.url} target="_blank" rel="noreferrer" onClick={(e) => pickGame(e, g)}>
+                  <div className="art" style={pinned ? undefined : { background: `linear-gradient(135deg, ${g.colors[0]}, ${g.colors[1]})` }}>
+                    {g.cover ? <img src={g.cover} alt="" loading="lazy" /> : <span>{g.title.charAt(0)}</span>}
+                  </div>
+                  <div className="info">
+                    {pinned && <span className="badge">start.ng original</span>}
+                    <h3>{g.title}</h3>
+                    <p>{g.host}</p>
+                    <div className="meta">
+                      <span>{pinned ? "Hang out with everyone, live" : `by ${g.by}`}</span>
+                      <span className="play">{pinned ? "Enter ↗" : "Play ↗"}</span>
+                    </div>
+                  </div>
+                </a>
+              );
+            })}
           </div>
           {games === null && <p className="empty">Loading games…</p>}
-          {games?.length === 0 && (
+          {games?.filter((g) => g.slug !== HANGOUT).length === 0 && (
             <p className="empty">
-              No games yet. The first ones from the community are on their way. <a href="#how">Put yours here.</a>
+              No community games yet. The first ones are on their way. <a href="#how">Put yours here.</a>
             </p>
           )}
-          <div className="grid">
-            {games?.map((g) => (
-              <a key={g.slug} className="game" href={g.url} target="_blank" rel="noreferrer" onClick={(e) => pickGame(e, g)}>
-                <div className="art" style={{ background: `linear-gradient(135deg, ${g.colors[0]}, ${g.colors[1]})` }}>
-                  {g.cover ? <img src={g.cover} alt="" loading="lazy" /> : <span>{g.title.charAt(0)}</span>}
-                </div>
-                <div className="info">
-                  <h3>{g.title}</h3>
-                  <p>{g.host}</p>
-                  <div className="meta">
-                    <span>by {g.by}</span>
-                    <span className="play">Play ↗</span>
-                  </div>
-                </div>
-              </a>
-            ))}
-          </div>
         </section>
 
         <section id="how" className="container how">
@@ -271,12 +277,19 @@ export default function App() {
             </div>
             <button type="button" className="choice" onClick={() => signInFor(chosen)}>
               <b>Sign in</b>
-              <span>Save your high scores and play as your own character. You can change it any time.</span>
+              <span>
+                {chosen.slug === HANGOUT
+                  ? "The Hangout is for start.ng members: come in as your own character and meet everyone."
+                  : "Save your high scores and play as your own character. You can change it any time."}
+              </span>
             </button>
-            <button type="button" className="choice ghost" onClick={() => playAsGuest(chosen)}>
-              <b>Play as a guest</b>
-              <span>Jump straight in. Your high score won't be saved.</span>
-            </button>
+            {/* The Hangout needs an account: everyone in it is a real start.ng member. */}
+            {chosen.slug !== HANGOUT && (
+              <button type="button" className="choice ghost" onClick={() => playAsGuest(chosen)}>
+                <b>Play as a guest</b>
+                <span>Jump straight in. Your high score won't be saved.</span>
+              </button>
+            )}
           </div>
         </div>
       )}

@@ -210,3 +210,12 @@ input:focus { outline: 2px solid var(--ink); outline-offset: -1px; }
 .choice span { font-weight: 400; font-size: .88rem; line-height: 1.4; opacity: .85; }
 .choice.ghost { background: var(--card); color: var(--ink); border: 1px solid var(--line); }
 .choice.ghost:hover { border-color: var(--ink); background: var(--card); }
+
+/* The Hangout: start.ng's own game, pinned first, in start.ng's colours */
+.game.featured { background: var(--lime); border: 1.5px solid var(--ink); }
+.game.featured .art { background: var(--bg); border: 1px solid var(--ink); }
+.game.featured .info p, .game.featured .meta { color: #3d4a12; }
+.game.featured .badge { align-self: flex-start; margin-bottom: 8px; font-family: var(--mono); font-size: .68rem; text-transform: uppercase; letter-spacing: .12em; background: var(--ink); color: var(--lime); padding: 3px 8px; border-radius: 6px; }
+.game.featured:hover { transform: translateY(-4px) rotate(-1deg); border-color: var(--ink); box-shadow: 6px 6px 0 var(--ink); }
+.game.featured:hover .art img { transform: scale(1.04); }
+.game.featured .art img { transition: transform .25s; }

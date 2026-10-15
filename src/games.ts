@@ -39,6 +39,30 @@ export function toCard(game: PublishedGame): Game {
   };
 }
 
+// The Hangout: start.ng's own game, pinned first on the homepage, even before it's published.
+// If GET /games lists it too, it's shown once, here, with the published address and cover.
+export const HANGOUT = "hangout";
+
+function hangoutCard(published: Game | undefined): Game {
+  // Locally, games run on the Worker's dev server: http://<name>.start.localhost:8787
+  const local = location.hostname.endsWith("localhost");
+  const url = local ? `http://${HANGOUT}.${location.hostname}:8787` : published?.url ?? `https://${HANGOUT}.start.ng`;
+  return {
+    slug: HANGOUT,
+    title: "The Hangout",
+    url,
+    host: new URL(url).host,
+    by: "start.ng",
+    colors: ["#d8fd71", "#f6f5ee"],
+    cover: published?.cover ?? "/games/hangout-cover.webp",
+  };
+}
+
+/** The homepage list: the Hangout first, then the community's games. */
+export function withHangoutFirst(games: Game[]): Game[] {
+  return [hangoutCard(games.find((g) => g.slug === HANGOUT)), ...games.filter((g) => g.slug !== HANGOUT)];
+}
+
 // Games are static sites on <name>.start.ng. This is how start.ng shares the signed-in
 // user with them: a game loads /connect in a hidden iframe and asks who is signed in.
 // Games get the user's id, character name and style only, never the token or email.
