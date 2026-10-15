@@ -78,7 +78,7 @@ export default function App() {
           <h1>{user ? <>Welcome back,<br /><mark>{firstName}.</mark></> : <>Good vibes.<br /><mark>Good games.</mark></>}</h1>
           <p className="lead">
             Games made by builders in the community.{" "}<br />
-            Each one lives at its own address, like <code>relichunter.start.ng</code>.{" "}<br />
+            Each one lives at its own address, like <code>yourgame.start.ng</code>.{" "}<br />
             Pick one and play right in your browser.
           </p>
           <div className="actions">
@@ -92,6 +92,11 @@ export default function App() {
             <h2>Games</h2>
             <span className="count">{games.length} to play</span>
           </div>
+          {games.length === 0 && (
+            <p className="empty">
+              No games yet. The first ones from the community are on their way. <a href="#how">Put yours here.</a>
+            </p>
+          )}
           <div className="grid">
             {games.map((g) => (
               <a key={g.slug} className="game" href={gameUrl(g.slug)} target="_blank" rel="noreferrer">
