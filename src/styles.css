@@ -263,3 +263,11 @@ input:focus { outline: 2px solid var(--ink); outline-offset: -1px; }
 .scroll-jump:hover { transform: translateY(-2px); }
 .scroll-jump svg { transition: transform .2s; }
 @media (max-width: 600px) { .scroll-jump { right: 16px; bottom: 16px; width: 44px; height: 44px; } }
+
+/* what start.ng found in a game (MyGames.tsx) */
+.problems { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: .86rem; line-height: 1.45; color: #c0392b; overflow-wrap: anywhere; }
+.warnings { display: grid; gap: 4px; padding: 10px 12px; border-radius: 12px; background: #fff7d6; border: 1px solid #f0d77a; font-size: .86rem; }
+.warnings .problems { color: var(--ink); }
+.update-problem { grid-column: 1 / -1; display: grid; gap: 4px; padding: 10px 12px; border-radius: 12px; background: #fdecea; border: 1px solid #f3b8b0; font-size: .84rem; line-height: 1.45; }
+.update-problem b { color: #a93226; }
+.update-problem code { font-size: .8rem; }

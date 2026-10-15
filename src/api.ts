@@ -29,7 +29,14 @@ export async function me(token: string | null): Promise<User | null> {
 }
 
 // A game published with POST /games/publish. cover_url is its card picture (null = none yet).
-export type PublishedGame = { name: string; url: string; repo_url: string; by: string; updated_at: string; cover_url: string | null };
+// Something start.ng found while checking a game: code is for scripts, message for people.
+export type Problem = { code: string; message: string; file: string | null };
+// Why the latest push to a live game didn't go live (only in myGames, for the owner).
+export type UpdateProblem = { commit: string; at: string; detail: string; errors: Problem[] };
+export type PublishedGame = {
+  name: string; url: string; repo_url: string; by: string; updated_at: string; cover_url: string | null;
+  update_problem?: UpdateProblem | null;
+};
 
 export async function listGames(): Promise<PublishedGame[]> {
   const res = await fetch(`${API_URL}/games`);
@@ -85,16 +92,25 @@ export async function saveCharacter(token: string | null, character: Character):
 /** Only public GitHub repo links (same rule as the backend): https://github.com/<owner>/<repo>, optionally /tree/<branch>. */
 export const GITHUB_REPO_RE = /^https:\/\/github\.com\/[\w.-]+\/[\w.-]+?(?:\.git)?(?:\/tree\/[\w./-]+?)?\/?$/;
 
+/** A publish start.ng refused, with every problem it found. */
+export class PublishFailed extends Error {
+  constructor(message: string, readonly problems: Problem[]) {
+    super(message);
+  }
+}
+
 /** Publish (or update) a game from a public GitHub repo. It goes live at <name>.start.ng. */
-export async function publishGame(token: string | null, repoUrl: string): Promise<{ name: string; url: string; created: boolean }> {
+export async function publishGame(token: string | null, repoUrl: string): Promise<{ name: string; url: string; created: boolean; warnings: Problem[] }> {
   const res = await fetch(`${API_URL}/games/publish`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
     body: JSON.stringify({ repo_url: repoUrl }),
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Could not upload that game");
-  return data;
+  if (!res.ok) {
+    throw new PublishFailed(typeof data.detail === "string" ? data.detail : "Could not upload that game", Array.isArray(data.errors) ? data.errors : []);
+  }
+  return { ...data, warnings: data.warnings ?? [] };
 }
 
 // ---- approve links: a game published through the API without signing in waits for one of these

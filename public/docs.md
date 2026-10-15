@@ -4,7 +4,7 @@ start.ng is a home for small browser games made by the community. Every game liv
 
 This page is everything you need to build a start.ng game and put it live, by hand or with your AI. If you're using an AI, give it this page as plain text: **https://start.ng/docs.md**.
 
-> **For AI assistants:** follow this page exactly. Build a static game, push it to a public GitHub repo, call `POST https://api.start.ng/games/publish`, and show the human the `approve_url` from the reply if there is one. Everything you need is below.
+> **For AI assistants:** follow this page exactly. Build a static game, push it to a public GitHub repo, call `POST https://api.start.ng/games/check` and fix anything it reports, then call `POST https://api.start.ng/games/publish`, and show the human the `approve_url` from the reply if there is one. Everything you need is below.
 
 ## How it works
 
@@ -103,7 +103,7 @@ The first time you publish a repo, start.ng downloads it, checks it, and replies
 **Open `approve_url`** (AI assistants: show it to the human and ask them to open it). It signs you in to start.ng, which creates your account if you're new, and asks "Put tower-stack live?". Say yes and it's live at `https://tower-stack.start.ng` on your account. That repo is now linked to your account for good.
 
 - The link works **once** and lasts **30 days**. If it runs out, publish again for a new one.
-- Problems with the game (no `index.html`, too big, a broken `startng.json`…) come back **before** the link, so you never approve something that doesn't work.
+- Problems with the game come back **before** the link, so you never approve something that doesn't work (see [Checks before anything goes live](#checks-before-anything-goes-live)).
 - New games published without signing in are limited to 20 an hour per address.
 
 Signed-in requests (`Authorization: Bearer <start.ng token>`, as the start.ng website sends) skip the approve step and go live on that account straight away.
@@ -133,17 +133,65 @@ However you put your game live, **start.ng watches the branch it came from and u
 
 If a push doesn't publish (say `index.html` went missing), the game stays as it was until a push that works. Uploading the same link again on the website, or calling publish, updates it right away.
 
+### Checks before anything goes live
+
+Every time a game is published or updated (from the website, the API, or a push), start.ng downloads the repo and checks it **before** anything goes live. It reports **every** problem at once, so you can fix them in one go.
+
+- **Errors** stop the game going live: it doesn't meet the rules above, or something in it could harm players.
+- **Warnings** don't stop it, but are worth fixing. They come back in `warnings` when a game goes live.
+
+To check a repo without publishing anything, call `POST https://api.start.ng/games/check` with the same body as publish. It replies **200** if the game would go live (with any `warnings`), or **422** with every problem. AI assistants: check first, fix what it finds, then publish.
+
+```json
+{
+  "ok": false,
+  "detail": "src/game.js looks like a crypto miner (and 1 more problem)",
+  "errors": [
+    { "code": "crypto_miner", "message": "src/game.js looks like a crypto miner", "file": "src/game.js" },
+    { "code": "password_field", "message": "index.html asks for a password. Games never do: start.ng handles sign-in (see the docs, Sign in)", "file": "index.html" }
+  ],
+  "warnings": [
+    { "code": "no_cover", "message": "No cover.png next to index.html, so your card shows a letter. Add a 16:10 picture", "file": null }
+  ]
+}
+```
+
+Every refusal from publish and check has this shape: `detail` for people, and `errors` and `warnings`, each with a `code` for scripts and AI tools, a `message`, and the `file` when there is one.
+
 ### Errors
 
-| Status | When | What to do |
-| --- | --- | --- |
-| 400 | The link isn't a public GitHub repo link, or the name can't be used | Fix `repo_url` or `name` |
-| 409 | The name is taken, or this repo is live under another name | Pick another `name`, or leave it out to update the linked game |
-| 422 | Something's wrong with the game: no `index.html`, needs building, too big, a mistake in `startng.json`, repo not found or not public… | Read `detail`, fix the repo, push, publish again |
-| 429 | Too many new games from your address | Try again in an hour |
-| 502 / 503 | start.ng couldn't upload right now, or publishing isn't set up | Try again later |
+| Status | Code | When | What to do |
+| --- | --- | --- | --- |
+| 400 | `bad_link` | The link isn't a GitHub repo link | Use `https://github.com/<owner>/<repo>` |
+| 400 | `bad_branch`, `bad_name`, `reserved_name` | The branch or name can't be used | Fix `branch` or `name` |
+| 409 | `name_taken` | Someone else has that name | Pick another `name` |
+| 409 | `repo_linked` | This repo is live under another name, or on another account | Leave out `name` to update the linked game |
+| 422 | `repo_not_found` | The repo or branch doesn't exist, or isn't public | Make the repo public, check the branch |
+| 422 | `no_index` | No `index.html` at the top or in `dist/`, `build/`, `docs/`, `out/` | Commit a ready-to-play `index.html` |
+| 422 | `needs_build` | The `index.html` is source code that needs building | Build it and commit the built folder |
+| 422 | `file_too_big`, `game_too_big`, `too_many_files`, `repo_too_big` | Over the size rules | Make it smaller |
+| 422 | `malware` | A file matches a known malware pattern | Remove the file, and check your packages |
+| 422 | `crypto_miner` | A file looks like a crypto miner | Remove it |
+| 422 | `obfuscated_code` | A file runs code hidden in an encoded string, or is obfuscated so it can't be checked | Publish the readable code (normal minified builds are fine) |
+| 422 | `password_field` | The game asks for a password | Remove it: start.ng handles sign-in |
+| 422 | `redirect` | A page sends players to another site as soon as it opens | Remove the redirect |
+| 422 | `hidden_program` | A file is really a program (for example an `.exe` renamed to `.png`), or carries one as text | Remove it |
+| 429 | `rate_limited` | Too many new games or checks from your address | Try again in an hour |
+| 502 / 503 | `download_failed`, `upload_failed`, `not_set_up` | GitHub or start.ng had a hiccup | Try again later |
 
-Every error has a `detail` message written for people.
+### Warnings
+
+| Code | When |
+| --- | --- |
+| `external_script` | A script comes from a site other than start.ng or a well-known CDN (jsDelivr, unpkg, cdnjs, esm.sh…). Whatever is there runs in your game, so copy it into your repo |
+| `insecure_link` | Something loads over `http://`, which browsers block on https sites |
+| `leaves_start_ng` | The game sends players to another site |
+| `no_cover` | No `cover.png` next to `index.html` |
+| `no_start_ng_player` | The game doesn't ask start.ng who's playing (see the character rule) |
+
+### When an update doesn't pass
+
+If a push has errors, the game **stays on its last good version** and players notice nothing. The owner sees why on the game's card in **Your games** on their profile ("Your latest push didn't go live"), with every problem listed. Fix them and push again; the note goes away once a push goes live. If GitHub has a hiccup, start.ng simply tries the same push again on its next check.
 
 ### A cover picture
 
@@ -455,6 +503,7 @@ Base URL: `https://api.start.ng`. Games on `*.start.ng` can call it straight fro
 | Endpoint | Sign-in | What it does |
 | --- | --- | --- |
 | `POST /games/publish` | None (or a start.ng sign-in) | Put a game live or update it. See [With the API](#with-the-api) |
+| `POST /games/check` | None | Every check publishing does, without publishing. See [Checks before anything goes live](#checks-before-anything-goes-live) |
 | `GET /games/publish/{code}` | None | What's waiting at an approve link |
 | `GET /games` | None | Every live game: `[{ name, url, repo_url, by, updated_at, cover_url, leaderboard }]`. `leaderboard` is its columns, or `null` |
 | `GET /games/{game}/player` | Game session | Who's playing: `{ id, name, style }` |
@@ -537,4 +586,5 @@ A game using the HTTP API: a sign-in link, saving a run, and showing the board.
 6. Want a leaderboard? A `startng.json` if you want your own columns, then save runs and read the board through start.ng.
 7. There's a `cover.png` (16:10) next to `index.html`.
 8. The repo is public on GitHub and pushed.
-9. Put it live (**Your games** on your profile, or the publish API and its `approve_url`). After that, pushing to the branch is enough.
+9. `POST /games/check` passes with no errors (and you've looked at the warnings).
+10. Put it live (**Your games** on your profile, or the publish API and its `approve_url`). After that, pushing to the branch is enough.

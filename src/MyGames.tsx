@@ -1,6 +1,6 @@
 import { ChangeEvent, KeyboardEvent, useEffect, useState } from "react";
 import {
-  COVER_TYPES, GITHUB_REPO_RE, MAX_COVER_BYTES, myGames, publishGame, PublishedGame, removeCover, unpublishGame, uploadCover,
+  COVER_TYPES, GITHUB_REPO_RE, MAX_COVER_BYTES, myGames, Problem, publishGame, PublishedGame, PublishFailed, removeCover, unpublishGame, uploadCover,
 } from "./api";
 import { toCard } from "./games";
 
@@ -9,12 +9,24 @@ const isUploaded = (g: PublishedGame) => !!g.cover_url && new URL(g.cover_url).p
 
 const dateOf = (iso: string) => new Date(iso).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
 
+/** What start.ng found in a game, one line each. */
+function ProblemList({ problems }: { problems: Problem[] }) {
+  return (
+    <ul className="problems">
+      {problems.map((p, i) => <li key={i}>{p.message}</li>)}
+    </ul>
+  );
+}
+
 /** "Your games" in the profile: paste a GitHub repo link to put your game on start.ng, and manage your games. */
 export default function MyGames() {
   const [games, setGames] = useState<PublishedGame[] | null>(null);
   const [url, setUrl] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  // Every problem from a refused upload, or the warnings from one that went live.
+  const [problems, setProblems] = useState<Problem[]>([]);
+  const [warnings, setWarnings] = useState<Problem[]>([]);
   const [busy, setBusy] = useState(false);
   const [coverBusy, setCoverBusy] = useState<string | null>(null); // the game whose picture is uploading
   const token = localStorage.getItem("token");
@@ -33,13 +45,21 @@ export default function MyGames() {
     setBusy(true);
     setError("");
     setNotice("");
+    setProblems([]);
+    setWarnings([]);
     try {
       const res = await publishGame(token, link);
       setNotice(`${res.created ? "Live" : "Updated"} at ${new URL(res.url).host}`);
+      setWarnings(res.warnings);
       setUrl("");
       await refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not upload that game");
+      if (err instanceof PublishFailed && err.problems.length > 1) {
+        setError("start.ng found some problems. Fix them, push to GitHub, and upload again:");
+        setProblems(err.problems);
+      } else {
+        setError(err instanceof Error ? err.message : "Could not upload that game");
+      }
     } finally {
       setBusy(false);
     }
@@ -119,7 +139,14 @@ export default function MyGames() {
         <button type="button" onClick={upload} disabled={busy || !url.trim()}>{busy ? "Uploading..." : "Upload"}</button>
       </div>
       {error && <p className="error">{error}</p>}
+      {problems.length > 0 && <ProblemList problems={problems} />}
       {notice && <p className="ok">{notice}</p>}
+      {warnings.length > 0 && (
+        <div className="warnings">
+          <b>Worth fixing</b>
+          <ProblemList problems={warnings} />
+        </div>
+      )}
 
       <div className="game-cards">
         {games?.map((g) => {
@@ -151,6 +178,17 @@ export default function MyGames() {
                   )}
                 </div>
               </div>
+              {/* The latest push didn't pass the checks: the game kept its last version. */}
+              {g.update_problem && (
+                <div className="update-problem" role="status">
+                  <b>Your latest push didn't go live</b>
+                  <span>
+                    Commit <code>{g.update_problem.commit.slice(0, 7)}</code>, {dateOf(g.update_problem.at)}. Players still get the
+                    last version. Fix this and push again:
+                  </span>
+                  <ProblemList problems={g.update_problem.errors.length ? g.update_problem.errors : [{ code: "invalid", message: g.update_problem.detail, file: null }]} />
+                </div>
+              )}
             </article>
           );
         })}
