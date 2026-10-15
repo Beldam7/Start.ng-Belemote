@@ -5,7 +5,7 @@ import { AvatarFace } from "./Avatar";
 import { Character, styleFor } from "./character";
 // The creator (and three.js) loads only when someone opens it.
 const CharacterCreator = lazy(() => import("./CharacterCreator"));
-import { Game, gameReturnUrl, toCard } from "./games";
+import { Game, gameReturnUrl, HANGOUT, isInAppGame, toCard } from "./games";
 
 // Set when a game sent the user here to sign in: we send them back afterwards.
 const returnTo = gameReturnUrl();
@@ -63,8 +63,12 @@ export default function App() {
     };
   }, [refreshGames]);
 
+  // The Hangout is always first; the rest come from the API.
+  const community = (games ?? []).filter((g) => g.slug !== HANGOUT.slug);
+  const cards = [HANGOUT, ...community];
+
   // A real address for the hero: your own newest game, else the newest game on start.ng.
-  const example = myLatest ?? games?.[0] ?? null;
+  const example = myLatest ?? community[0] ?? null;
 
   // Close the profile menu on an outside click or Escape.
   useEffect(() => {
@@ -88,10 +92,40 @@ export default function App() {
       .finally(() => setChecking(false));
   }, [checking]);
 
+  // A game picked while signed out: ask "sign in or play as a guest?" (null = not asking).
+  const [chosen, setChosen] = useState<Game | null>(null);
+  // The game to go to once signed in (and the character exists): from a game's
+  // ?return_to=, or a game picked here and then "Sign in".
+  const [goTo, setGoTo] = useState<string | null>(returnTo);
+
   useEffect(() => {
-    // Back to the game once signed in and the character exists.
-    if (user?.character && returnTo) location.replace(returnTo);
-  }, [user]);
+    if (user?.character && goTo) location.assign(goTo);
+  }, [user, goTo]);
+
+  function pickGame(e: React.MouseEvent, g: Game) {
+    if (user || checking || isInAppGame(g)) return; // signed in: the link opens the game as usual (the Hangout asks for sign-in itself)
+    e.preventDefault();
+    setChosen(g);
+  }
+
+  function playAsGuest(g: Game) {
+    // ?guest tells games that support it to skip their own "sign in or guest?" question.
+    const url = new URL(g.url);
+    url.searchParams.set("guest", "1");
+    window.open(url.href, "_blank", "noreferrer");
+    setChosen(null);
+  }
+
+  function signInFor(g: Game) {
+    setGoTo(g.url);
+    setChosen(null);
+    setSignInOpen(true);
+  }
+
+  function closeSignIn() {
+    setSignInOpen(false);
+    if (goTo !== returnTo) setGoTo(null);
+  }
 
   function onSuccess(res: TokenResponse) {
     localStorage.setItem("token", res.access_token);
@@ -178,17 +212,17 @@ export default function App() {
         <section id="games" className="container">
           <div className="section-head">
             <h2>Games</h2>
-            {games && <span className="count">{games.length} to play</span>}
+            {games && <span className="count">{cards.length} to play</span>}
           </div>
           {games === null && <p className="empty">Loading games…</p>}
-          {games?.length === 0 && (
+          {games && community.length === 0 && (
             <p className="empty">
-              No games yet. The first ones from the community are on their way. <a href="#how">Put yours here.</a>
+              No community games yet. The first ones are on their way. <a href="#how">Put yours here.</a>
             </p>
           )}
           <div className="grid">
-            {games?.map((g) => (
-              <a key={g.slug} className="game" href={g.url} target="_blank" rel="noreferrer">
+            {cards.map((g) => (
+              <a key={g.slug} className={g.slug === HANGOUT.slug ? "game legendary" : "game"} href={g.url} {...(isInAppGame(g) ? {} : { target: "_blank", rel: "noreferrer" })} onClick={(e) => pickGame(e, g)}>
                 <div className="art" style={{ background: `linear-gradient(135deg, ${g.colors[0]}, ${g.colors[1]})` }}>
                   {g.cover ? <img src={g.cover} alt="" loading="lazy" /> : <span>{g.title.charAt(0)}</span>}
                 </div>
@@ -197,7 +231,7 @@ export default function App() {
                   <p>{g.host}</p>
                   <div className="meta">
                     <span>by {g.by}</span>
-                    <span className="play">Play ↗</span>
+                    <span className="play">{isInAppGame(g) ? "Play" : "Play ↗"}</span>
                   </div>
                 </div>
               </a>
@@ -232,15 +266,34 @@ export default function App() {
         </Suspense>
       )}
 
+      {chosen && !user && (
+        <div className="overlay" onClick={() => setChosen(null)}>
+          <div className="card choose" role="dialog" aria-modal="true" aria-labelledby="choose-title" onClick={(e) => e.stopPropagation()}>
+            <div className="card-head">
+              <h3 id="choose-title">Play {chosen.title}</h3>
+              <button type="button" className="link close" aria-label="Close" onClick={() => setChosen(null)}>✕</button>
+            </div>
+            <button type="button" className="choice" onClick={() => signInFor(chosen)}>
+              <b>Sign in</b>
+              <span>Save your high scores and play as your own character. You can change it any time.</span>
+            </button>
+            <button type="button" className="choice ghost" onClick={() => playAsGuest(chosen)}>
+              <b>Play as a guest</b>
+              <span>Jump straight in. Your high score won't be saved.</span>
+            </button>
+          </div>
+        </div>
+      )}
+
       {signInOpen && !user && !checking && (
-        <div className="overlay" onClick={() => setSignInOpen(false)}>
+        <div className="overlay" onClick={closeSignIn}>
           <div className="card" role="dialog" aria-modal="true" aria-labelledby="sign-in-title" onClick={(e) => e.stopPropagation()}>
             <div className="card-head">
               <h3 id="sign-in-title">Sign in to start.ng</h3>
-              <button type="button" className="link close" aria-label="Close" onClick={() => setSignInOpen(false)}>✕</button>
+              <button type="button" className="link close" aria-label="Close" onClick={closeSignIn}>✕</button>
             </div>
             <p className="note">
-              {returnTo ? `Sign in to continue to ${new URL(returnTo).host}.` : "Use your Google account. New here? Signing in creates your account."}
+              {goTo ? (new URL(goTo).origin === location.origin ? "Sign in to join the Hangout." : `Sign in to continue to ${new URL(goTo).host}.`) : "Use your Google account. New here? Signing in creates your account."}
             </p>
             {error && <p className="error">{error}</p>}
             <div className="google">
