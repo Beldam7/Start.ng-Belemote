@@ -203,3 +203,10 @@ input:focus { outline: 2px solid var(--ink); outline-offset: -1px; }
   .game-card { grid-template-columns: 96px 1fr; }
   .game-card img, .game-card .art { width: 96px; height: 72px; }
 }
+/* "Sign in or play as a guest?" when a signed-out player picks a game */
+.card.choose { gap: 12px; }
+.choice { display: grid; gap: 4px; text-align: left; padding: 14px 16px; }
+.choice b { font-size: 1rem; }
+.choice span { font-weight: 400; font-size: .88rem; line-height: 1.4; opacity: .85; }
+.choice.ghost { background: var(--card); color: var(--ink); border: 1px solid var(--line); }
+.choice.ghost:hover { border-color: var(--ink); background: var(--card); }
