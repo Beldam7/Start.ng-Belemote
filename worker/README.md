@@ -5,14 +5,14 @@ One Cloudflare Worker serves every game from one R2 bucket.
 
 ## Plan
 
-1. Create an R2 bucket (name: `<YOUR_BUCKET_NAME>`, placeholder).
+1. Create an R2 bucket (`startng-games`).
 2. Add one proxied wildcard DNS record `*.start.ng`.
 3. Deploy this Worker with the bucket bound and the route `*.start.ng/*`.
 4. Upload `sample-game/dave/` to the bucket as the folder `dave/`.
 5. Open `https://dave.start.ng` and run the checks below.
 6. Deploy the new homepage (separate PR in this repo).
 
-Steps 1 to 3 need Cloudflare access. Whoever has it (Sadiq today) runs them.
+Steps 1 to 5 were done by Sadiq on 2026-10-15 and the new homepage is live, so Phase 1 is done.
 
 ## Cloudflare setup
 
@@ -51,7 +51,7 @@ Also add the variables `BASE_DOMAIN` and `RESERVED_NAMES` from `wrangler.toml`.)
 ```
 cd sample-game
 for f in $(find dave -type f); do
-  wrangler r2 object put "<YOUR_BUCKET_NAME>/$f" --file "$f" --remote
+  wrangler r2 object put "startng-games/$f" --file "$f" --remote
 done
 ```
 (or drag the `dave` folder into the bucket in the dashboard).
@@ -113,21 +113,17 @@ Then open `https://dave.start.ng` in a browser: the page should say "It works".
 - Names in `RESERVED_NAMES` are passed on to the normal origin, never read from the bucket.
 
 ## Phase 1 done checklist
-- [ ] R2 bucket exists, private, name set in `wrangler.toml`
-- [ ] `*.start.ng` DNS record exists and is proxied
-- [ ] Worker deployed with route `*.start.ng/*` and binding `GAMES_BUCKET`
-- [ ] `dave/` uploaded; `https://dave.start.ng` plays/loads the sample game
-- [ ] `/save`, `/style.css`, `/game.js` load; unknown name gives 404
-- [ ] `api.start.ng`, `www`, `3rdmainland`, `start.ng` still work as before
-- [ ] New homepage merged and deployed
+- [x] R2 bucket exists, private, name set in `wrangler.toml`
+- [x] `*.start.ng` DNS record exists and is proxied
+- [x] Worker deployed with route `*.start.ng/*` and binding `GAMES_BUCKET`
+- [x] `dave/` uploaded; `https://dave.start.ng` plays/loads the sample game
+- [x] `/save`, `/style.css`, `/game.js` load; unknown name gives 404
+- [x] `api.start.ng`, `www`, `3rdmainland`, `start.ng` still work as before
+- [x] New homepage merged and deployed
 
 ## Open questions
-1. R2 bucket name, and who creates it? (`<YOUR_BUCKET_NAME>`)
-2. Who has Cloudflare access to do the DNS record, route and deploy?
-3. Is `start.ng` itself on Cloudflare, and are `api`, `www`, `3rdmainland` real records there?
-   Is `3rdmainland` the only other live subdomain? (It is in the default reserved list.)
-4. Final reserved names and the bucket exclusion list (the code uses api, auth, login, www, 3rdmainland).
-5. Folder naming rules: the code uses lowercase letters, digits and hyphens. Length limit?
-6. Nested pages: `/save` serves the page without redirecting to `/save/`, so relative links inside it
+1. Final reserved names and the bucket exclusion list (the code uses api, auth, login, www, 3rdmainland).
+2. Folder naming rules: the code uses lowercase letters, digits and hyphens. Length limit?
+3. Nested pages: `/save` serves the page without redirecting to `/save/`, so relative links inside it
    may break. Games should use absolute paths (`/style.css`). Redirect instead?
-7. Cache time (`CACHE_CONTROL`, now 60 seconds) after a game is updated.
+4. Cache time (`CACHE_CONTROL`, now 60 seconds) after a game is updated.
