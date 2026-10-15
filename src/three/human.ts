@@ -68,6 +68,7 @@ export function buildHuman(s: CharacterStyle): Human {
     geos.push(geo);
     const o = new THREE.Mesh(geo, m);
     o.position.set(x, y, z);
+    o.castShadow = true;
     return o;
   };
   const ball = (r: number, m: THREE.Material, x = 0, y = 0, z = 0, sx = 1, sy = 1, sz = 1) => {
@@ -130,7 +131,7 @@ export function buildHuman(s: CharacterStyle): Human {
   spine.add(lathe([[0.05, neckTop - 0.16], [0.047, neckTop - 0.08], [0.044, neckTop - 0.02], [0.03, neckTop]], skin, 0.95));
 
   // ---- arms: shoulder > elbow > hand
-  const arms: { sh: THREE.Group; elbow: THREE.Group }[] = [];
+  const arms: { sh: THREE.Group; elbow: THREE.Group; hand: THREE.Group }[] = [];
   for (const side of [-1, 1]) {
     const sh = group(spine, side * (female ? 0.158 : 0.188), shoulderY, 0);
     sh.add(ball(female ? 0.054 : 0.062, top, 0, -0.012, 0, 1, 1, 0.92)); // shoulder under the sleeve
@@ -143,7 +144,7 @@ export function buildHuman(s: CharacterStyle): Human {
     const thumb = ball(0.012, skin, side * -0.022, -0.02, 0.012, 1, 2, 1);
     thumb.rotation.z = side * 0.4;
     hand.add(thumb);
-    arms.push({ sh, elbow });
+    arms.push({ sh, elbow, hand });
   }
 
   // ---- head
@@ -152,21 +153,34 @@ export function buildHuman(s: CharacterStyle): Human {
   const sx = female ? 0.84 : 0.88;
   head.add(ball(0.1, skin, 0, 0, 0, sx, 1.13, 1));
   head.add(ball(0.07, skin, 0, -0.05, 0.016, female ? 0.9 : 1.0, 0.74, 0.95)); // jaw and chin
+  const eyes: THREE.Mesh[] = []; // whites and pupils, squashed to blink
+  const lids: THREE.Mesh[] = [];
+  const brows: THREE.Mesh[] = [];
   for (const side of [-1, 1]) {
     head.add(ball(0.022, skin, side * 0.087 * (sx / 0.88), -0.005, -0.004, 0.45, 1, 0.75)); // ears
-    head.add(ball(0.0145, mat("#f4efe7", 0, 0.25), side * 0.034, 0.012, 0.082, 1.3, 0.75, 0.6));
-    head.add(ball(0.0085, mat("#2a1a10", 0, 0.15), side * 0.034, 0.012, 0.09));
-    head.add(ball(0.016, skin, side * 0.034, 0.02, 0.08, 1.35, 0.5, 0.7)); // upper eyelid
+    eyes.push(ball(0.0145, mat("#f4efe7", 0, 0.25), side * 0.034, 0.012, 0.082, 1.3, 0.75, 0.6));
+    eyes.push(ball(0.0085, mat("#2a1a10", 0, 0.15), side * 0.034, 0.012, 0.09));
+    lids.push(ball(0.016, skin, side * 0.034, 0.02, 0.08, 1.35, 0.5, 0.7)); // upper eyelid
     const brow = ball(0.018, hair, side * 0.036, 0.04, 0.088, 1.25, female ? 0.22 : 0.32, 0.4);
     brow.rotation.z = side * (female ? -0.18 : -0.06);
-    head.add(brow);
+    brows.push(brow);
   }
+  head.add(...eyes, ...lids, ...brows);
+  const eyeScaleY = eyes.map((e) => e.scale.y);
   head.add(ball(0.016, skin, 0, -0.01, 0.098, 0.85, 1.5, 1.1)); // nose
   head.add(ball(0.012, skin, 0, -0.028, 0.104, 1.2, 0.7, 0.9)); // nose tip
   const lipM = mat(female ? "#a5525a" : new THREE.Color(s.skinColor).multiplyScalar(0.74).getStyle(), 0, 0.4);
   const lipZ = s.accessory === "beard" ? 0.096 : 0.09;
   head.add(ball(0.019, lipM, 0, -0.045, lipZ, 1, 0.3, 0.55));
-  head.add(ball(0.017, lipM, 0, -0.054, lipZ - 0.002, 1, 0.35, 0.55));
+  const lowerLip = ball(0.017, lipM, 0, -0.054, lipZ - 0.002, 1, 0.35, 0.55);
+  head.add(lowerLip);
+  // closed smile for the wave: lip corners that curl up, hidden until then
+  const corners = [-1, 1].map((side) => {
+    const c = ball(0.008, lipM, side * 0.02, -0.053, lipZ - 0.006, 1.8, 0.35, 0.6);
+    c.rotation.z = side * 0.75; // sloping up toward the cheek
+    head.add(c);
+    return c;
+  });
 
   // hair
   const sw: THREE.Object3D[] = []; // parts that sway
@@ -303,6 +317,13 @@ export function buildHuman(s: CharacterStyle): Human {
   const WAVE = 1.8; // seconds
   let waveStart = -10;
   let now = 0;
+  let blinkAt = 2.5;
+  const BLINK = 0.16; // seconds
+  /** 0 to 1 with a small overshoot at the end, for the arm swinging up. */
+  const easeBack = (x: number) => {
+    const u = Math.min(1, x) - 1;
+    return 1 + 2.2 * u * u * u + 1.2 * u * u;
+  };
   function update(t: number) {
     now = t;
     const shift = Math.sin(t * 0.7);
@@ -326,21 +347,41 @@ export function buildHuman(s: CharacterStyle): Human {
       sh.rotation.x = Math.sin(t * 0.7 + i * PI) * 0.05;
       elbow.rotation.x = -0.14 - Math.sin(t * 0.9 + i) * 0.04;
     });
-    // click reaction: right arm up and waving, a small bounce, head tilts toward you
+    // blink every few seconds
+    if (t > blinkAt + BLINK) blinkAt = t + 2 + Math.random() * 3;
+    const shut = t > blinkAt ? Math.sin(((t - blinkAt) / BLINK) * PI) : 0;
+    eyes.forEach((e, i) => (e.scale.y = eyeScaleY[i] * (1 - 0.9 * shut)));
+    lids.forEach((l) => (l.position.y = 0.02 - 0.007 * shut));
+    // click reaction: right hand up, forearm swinging side to side from the elbow, a small bounce, head tilts toward you
     const w = (t - waveStart) / WAVE;
     if (w >= 0 && w < 1) {
-      const ease = Math.sin(Math.min(1, w * 4) * PI / 2) * Math.sin(Math.min(1, (1 - w) * 4) * PI / 2);
-      const { sh, elbow } = arms[1];
-      sh.rotation.z = THREE.MathUtils.lerp(sh.rotation.z, 2.5, ease);
-      sh.rotation.x = THREE.MathUtils.lerp(sh.rotation.x, -0.25, ease);
+      const ease = easeBack(w * 4) * Math.sin(Math.min(1, (1 - w) * 4) * PI / 2);
+      const { sh, elbow, hand } = arms[0]; // the character faces +z, so its right arm is on the -x side
+      const raise = 1.35; // upper arm out to the side, elbow just below the shoulder
+      sh.rotation.z = THREE.MathUtils.lerp(sh.rotation.z, -raise, ease);
+      sh.rotation.x = THREE.MathUtils.lerp(sh.rotation.x, 0.15, ease); // hand slightly in front of the body
       elbow.rotation.x = THREE.MathUtils.lerp(elbow.rotation.x, 0, ease);
-      elbow.rotation.z = Math.sin(t * 11) * 0.45 * ease;
+      // forearm upright (upper arm + forearm = PI), leaning out a little and swinging like a wiper
+      elbow.rotation.z = -(PI - raise - 0.1 + Math.sin(t * 10) * 0.35) * ease;
+      hand.rotation.z = -Math.sin(t * 10 - 0.9) * 0.3 * ease; // the wrist trails the forearm, so the hand flicks
+      // brows up and a wider mouth while waving
+      brows.forEach((b) => (b.position.y = 0.04 + 0.006 * ease));
+      lowerLip.scale.x = 1 + 0.3 * ease;
+      corners.forEach((c, i) => {
+        const side = i === 0 ? -1 : 1;
+        c.visible = ease > 0.01;
+        c.position.set(side * (0.02 + 0.004 * ease), -0.053 + 0.005 * ease, lipZ - 0.006);
+      });
       head.rotation.y *= 1 - ease;
       head.rotation.z = 0.12 * ease;
       const bounce = Math.max(0, Math.sin(w * PI * 2)) * 0.03 * (1 - w);
       hips.position.y = hipY + bounce;
     } else {
-      arms[1].elbow.rotation.z = 0;
+      arms[0].elbow.rotation.z = 0;
+      arms[0].hand.rotation.z = 0;
+      brows.forEach((b) => (b.position.y = 0.04));
+      lowerLip.scale.x = 1;
+      corners.forEach((c) => (c.visible = false));
       hips.position.y = hipY;
     }
     for (let i = 0; i < sw.length; i++) sw[i].rotation.x = -0.08 + Math.sin(t * 1.3 + i * 0.3) * 0.04 - head.rotation.x;
@@ -366,6 +407,13 @@ export function addLights(scene: THREE.Scene) {
   scene.add(new THREE.HemisphereLight("#ffffff", "#8b8f6e", 1.4));
   const key = new THREE.DirectionalLight("#fff6e8", 2.3);
   key.position.set(1.5, 2.5, 2.5);
+  // soft shadow on the floor (only drawn where the renderer has shadows turned on)
+  key.castShadow = true;
+  key.shadow.mapSize.set(1024, 1024);
+  key.shadow.radius = 6;
+  key.shadow.normalBias = 0.02;
+  Object.assign(key.shadow.camera, { left: -1, right: 1, top: 1.2, bottom: -1.2, near: 1, far: 8 });
+  key.shadow.camera.updateProjectionMatrix();
   scene.add(key);
   const fill = new THREE.DirectionalLight("#ffffff", 0.6);
   fill.position.set(-2, 1, 2);
