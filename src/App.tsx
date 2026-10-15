@@ -60,6 +60,7 @@ export default function App() {
 
       <main>
         <section className="container hero">
+          <p className="eyebrow">Big imagination. Played everywhere.</p>
           <h1>{user ? <>Welcome back,<br /><mark>{firstName}.</mark></> : <>Good vibes.<br /><mark>Good games.</mark></>}</h1>
           <p className="lead">
             Games made by builders in the community.{" "}<br />
