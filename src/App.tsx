@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { GoogleLogin } from "@react-oauth/google";
-import { googleLogin, me, saveCharacter, TokenResponse, User } from "./api";
+import { googleLogin, login, me, register, saveCharacter, TokenResponse, User } from "./api";
 import { AvatarFace } from "./Avatar";
 import { Character, styleFor } from "./character";
 import CharacterCreator from "./CharacterCreator";
@@ -12,9 +12,14 @@ const returnTo = gameReturnUrl();
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [checking, setChecking] = useState(() => !!localStorage.getItem("token"));
-  // Sign-in is Google only; the first Google sign-in creates the account.
+  // Google sign-in; the first Google sign-in creates the account.
   const [signInOpen, setSignInOpen] = useState(!!returnTo);
   const [error, setError] = useState("");
+  // TEMPORARY, for testing: email sign-in next to Google. Remove before the final launch.
+  const [emailMode, setEmailMode] = useState<"login" | "register">("login");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [editing, setEditing] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -51,6 +56,16 @@ export default function App() {
     setUser(res.user);
     setSignInOpen(false);
     setError("");
+  }
+
+  // TEMPORARY, for testing: remove with the email form before the final launch.
+  async function submitEmail(e: FormEvent) {
+    e.preventDefault();
+    try {
+      onSuccess(emailMode === "register" ? await register(email, password, name || undefined) : await login(email, password));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong");
+    }
   }
 
   function signOut() {
@@ -189,6 +204,17 @@ export default function App() {
                 onError={() => setError("Google sign-in failed")}
               />
             </div>
+            {/* TEMPORARY, for testing: email sign-in. Remove before the final launch. */}
+            <div className="divider">or, for testing</div>
+            <form className="email-form" onSubmit={submitEmail}>
+              {emailMode === "register" && <input placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} />}
+              <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+              <input type="password" placeholder="Password (min 8 chars)" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} />
+              <button type="submit">{emailMode === "register" ? "Create account" : "Sign in with email"}</button>
+              <button type="button" className="link" onClick={() => { setEmailMode(emailMode === "login" ? "register" : "login"); setError(""); }}>
+                {emailMode === "login" ? "No account? Register" : "Have an account? Sign in"}
+              </button>
+            </form>
           </div>
         </div>
       )}
