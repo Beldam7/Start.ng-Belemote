@@ -1,0 +1,10 @@
+{
+  "name": "startng-games-worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test \"test/*.test.js\"",
+    "dev": "node dev-server.js",
+    "publish-game": "node scripts/publish-game.js"
+  }
+}

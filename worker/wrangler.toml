@@ -1,0 +1,21 @@
+# Cloudflare Worker for start.ng game hosting.
+# Values in <ANGLE_BRACKETS> are placeholders to fill in. Do not commit real secrets here.
+name = "startng-games"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+
+# Route: every subdomain of the base domain. Needs the *.start.ng DNS record to be proxied.
+routes = [
+  { pattern = "*.start.ng/*", zone_name = "start.ng" }
+]
+
+[vars]
+BASE_DOMAIN = "start.ng"
+# Names that must never be served from the bucket (comma separated).
+# "3rdmainland" already exists as a start.ng subdomain: confirm with Sadiq.
+RESERVED_NAMES = "api,auth,login,www,3rdmainland"
+CACHE_CONTROL = "public, max-age=60"
+
+[[r2_buckets]]
+binding = "GAMES_BUCKET"            # name used in the code, keep as is
+bucket_name = "startng-games"
