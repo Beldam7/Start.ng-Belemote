@@ -1,5 +1,5 @@
 import { FormEvent, useState } from "react";
-import { AvatarBody } from "./Avatar";
+import Viewer from "./three/Viewer";
 import { Body, BOTTOMS, Character, CharacterStyle, HAIR_COLORS, HATS, SECTIONS, SKINS, TOPS, withBody } from "./character";
 
 type Props = {
@@ -22,6 +22,11 @@ export default function CharacterCreator({ initial, editing, email, onSave, onCa
   const set = <K extends keyof CharacterStyle>(k: K, v: CharacterStyle[K]) => setStyle((s) => ({ ...s, [k]: v }));
   // First pick starts with that section's main hairstyle; switching later keeps what still fits.
   const startAs = (b: Body) => ({ ...withBody(style, b), hair: SECTIONS[b].hair[0] });
+  // Stable looks for the two pick cards (so they aren't rebuilt on every render).
+  const [pickStyles] = useState(() => ({
+    female: { ...startAs("female"), hat: "none" as const, accessory: "none" as const },
+    male: { ...startAs("male"), hat: "none" as const, accessory: "none" as const },
+  }));
   const pickBody = (b: Body) => { setStyle(picked ? (s) => withBody(s, b) : startAs(b)); setPicked(true); };
 
   async function submit(e: FormEvent) {
@@ -46,7 +51,7 @@ export default function CharacterCreator({ initial, editing, email, onSave, onCa
           <div className="body-options">
             {(["female", "male"] as Body[]).map((b) => (
               <button key={b} type="button" className="body-option" onClick={() => pickBody(b)}>
-                <AvatarBody style={{ ...startAs(b), hat: "none", accessory: "none" }} size={120} />
+                <Viewer style={pickStyles[b]} interactive={false} className="pick-viewer" />
                 <span>{b === "female" ? "Female" : "Male"}</span>
               </button>
             ))}
@@ -76,8 +81,9 @@ export default function CharacterCreator({ initial, editing, email, onSave, onCa
     <div className="overlay creator-overlay">
       <form className="creator" onSubmit={submit}>
         <div className="creator-preview">
-          <AvatarBody style={style} />
+          <Viewer style={style} className="creator-viewer" />
           <strong>{name.trim() || "Your character"}</strong>
+          <span className="viewer-hint">Drag to turn · Click to say hi</span>
         </div>
         <div className="creator-controls">
           <p className="eyebrow">{editing ? "Profile" : style.body === "female" ? "Female" : "Male"}</p>
