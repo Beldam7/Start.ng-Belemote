@@ -133,7 +133,17 @@ However you put your game live, **start.ng watches the branch it came from and u
 
 If a push doesn't publish (say `index.html` went missing), the game stays as it was until a push that works. Uploading the same link again on the website, or calling publish, updates it right away.
 
-### Checks before anything goes live
+### A cover picture
+
+Your game's card on start.ng shows a cover picture. Put **`cover.png`** (or `cover.jpg` / `cover.webp`) next to your `index.html` or at the top of your repo: start.ng picks it up automatically.
+
+- **16:10**, at least **640 × 400** (1600 × 1000 looks sharp). Cards crop to 16:10.
+- PNG, JPEG or WebP, under 2 MB.
+- Make it look like the game, with its title on it. AI assistants: generate one, save it as `cover.png` next to `index.html`, and publish.
+- Or upload one from **Your games** on your start.ng profile; that one wins over the repo's.
+- Without one, the card shows the first letter of the game's name.
+
+## Checks before anything goes live
 
 Every time a game is published or updated (from the website, the API, or a push), start.ng downloads the repo and checks it **before** anything goes live. It reports **every** problem at once, so you can fix them in one go.
 
@@ -158,7 +168,7 @@ To check a repo without publishing anything, call `POST https://api.start.ng/gam
 
 Every refusal from publish and check has this shape: `detail` for people, and `errors` and `warnings`, each with a `code` for scripts and AI tools, a `message`, and the `file` when there is one.
 
-### Errors
+### Error codes
 
 | Status | Code | When | What to do |
 | --- | --- | --- | --- |
@@ -179,7 +189,7 @@ Every refusal from publish and check has this shape: `detail` for people, and `e
 | 429 | `rate_limited` | Too many new games or checks from your address | Try again in an hour |
 | 502 / 503 | `download_failed`, `upload_failed`, `not_set_up` | GitHub or start.ng had a hiccup | Try again later |
 
-### Warnings
+### Warning codes
 
 | Code | When |
 | --- | --- |
@@ -192,16 +202,6 @@ Every refusal from publish and check has this shape: `detail` for people, and `e
 ### When an update doesn't pass
 
 If a push has errors, the game **stays on its last good version** and players notice nothing. The owner sees why on the game's card in **Your games** on their profile ("Your latest push didn't go live"), with every problem listed. Fix them and push again; the note goes away once a push goes live. If GitHub has a hiccup, start.ng simply tries the same push again on its next check.
-
-### A cover picture
-
-Your game's card on start.ng shows a cover picture. Put **`cover.png`** (or `cover.jpg` / `cover.webp`) next to your `index.html` or at the top of your repo: start.ng picks it up automatically.
-
-- **16:10**, at least **640 × 400** (1600 × 1000 looks sharp). Cards crop to 16:10.
-- PNG, JPEG or WebP, under 2 MB.
-- Make it look like the game, with its title on it. AI assistants: generate one, save it as `cover.png` next to `index.html`, and publish.
-- Or upload one from **Your games** on your start.ng profile; that one wins over the repo's.
-- Without one, the card shows the first letter of the game's name.
 
 ## Players and their character
 
