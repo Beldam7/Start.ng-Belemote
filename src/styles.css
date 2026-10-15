@@ -49,10 +49,11 @@ mark { background: linear-gradient(transparent 62%, var(--lime) 62%, var(--lime)
 .art { width: 100%; aspect-ratio: 16 / 10; flex: none; border-radius: 12px; display: grid; place-items: center; overflow: hidden; }
 .art img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .art span { font-size: 3.4rem; font-weight: 900; color: rgba(255, 255, 255, .92); text-shadow: 0 4px 18px rgba(0, 0, 0, .3); }
-.info { flex: 1; min-width: 0; display: flex; flex-direction: column; padding: 0 6px 6px; }
+.game-link { display: flex; flex-direction: column; gap: 12px; flex: 1; min-width: 0; }
+.info { flex: 1; min-width: 0; display: flex; flex-direction: column; padding: 0 6px; }
 .info h3 { margin: 0 0 2px; font-size: 1.15rem; letter-spacing: -.02em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .info p { margin: 0 0 10px; color: var(--muted); font-family: var(--mono); font-size: .78rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.meta { display: flex; gap: 10px; align-items: center; font-size: .82rem; color: var(--muted); margin-top: auto; min-width: 0; }
+.meta { display: flex; gap: 10px; align-items: center; font-size: .82rem; color: var(--muted); margin-top: auto; min-width: 0; padding: 0 6px 6px; }
 .meta span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .meta .play { flex: none; }
 .tag { font-family: var(--mono); font-size: .72rem; text-transform: uppercase; letter-spacing: .12em; background: var(--lime); color: var(--ink); padding: 3px 8px; border-radius: 6px; }
@@ -203,3 +204,21 @@ input:focus { outline: 2px solid var(--ink); outline-offset: -1px; }
   .game-card { grid-template-columns: 96px 1fr; }
   .game-card img, .game-card .art { width: 96px; height: 72px; }
 }
+
+/* shared leaderboards */
+.board-btn { flex: none; font-size: .82rem; font-weight: 600; color: var(--muted); text-decoration: underline; text-underline-offset: 3px; }
+.board-btn:hover { color: var(--ink); }
+.by { font-size: .85rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: -4px; }
+.board { max-width: 440px; gap: 10px; }
+.board-sub { margin: -6px 0 4px; color: var(--muted); font-size: .9rem; }
+.board-empty { margin: 0; padding: 20px; border: 1px dashed var(--line); border-radius: 14px; color: var(--muted); text-align: center; }
+.board-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-variant-numeric: tabular-nums; }
+.board-list li { display: grid; grid-template-columns: 26px 12px 1fr auto; gap: 10px; align-items: center; padding: 9px 12px; border-radius: 10px; background: var(--bg); }
+.board-list li:first-child .rk { background: var(--lime); }
+.board-list li.me { outline: 2px solid var(--ink); }
+.board-list .rk { font-family: var(--mono); font-size: .8rem; text-align: center; border-radius: 6px; padding: 2px 0; }
+.board-list .dot { width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgba(0, 0, 0, .15); }
+.board-list .nm { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.board-list .nm em { font-style: normal; color: var(--muted); font-weight: 500; }
+.board-list .sc { font-family: var(--mono); font-weight: 700; }
+.board-play { text-align: center; margin-top: 6px; }

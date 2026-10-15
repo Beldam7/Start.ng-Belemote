@@ -5,6 +5,7 @@ import { AvatarFace } from "./Avatar";
 import { Character, styleFor } from "./character";
 // The creator (and three.js) loads only when someone opens it.
 const CharacterCreator = lazy(() => import("./CharacterCreator"));
+const GameBoard = lazy(() => import("./GameBoard"));
 import { Game, gameReturnUrl, toCard } from "./games";
 
 // Set when a game sent the user here to sign in: we send them back afterwards.
@@ -26,6 +27,8 @@ export default function App() {
   const menuRef = useRef<HTMLDivElement>(null);
   // Published games from the API; null while loading.
   const [games, setGames] = useState<Game[] | null>(null);
+  // The game whose shared leaderboard is open, if any.
+  const [board, setBoard] = useState<Game | null>(null);
   // The signed-in builder's newest game, for the example address in the hero.
   const [myLatest, setMyLatest] = useState<Game | null>(null);
 
@@ -188,19 +191,22 @@ export default function App() {
           )}
           <div className="grid">
             {games?.map((g) => (
-              <a key={g.slug} className="game" href={g.url} target="_blank" rel="noreferrer">
-                <div className="art" style={{ background: `linear-gradient(135deg, ${g.colors[0]}, ${g.colors[1]})` }}>
-                  {g.cover ? <img src={g.cover} alt="" loading="lazy" /> : <span>{g.title.charAt(0)}</span>}
-                </div>
-                <div className="info">
-                  <h3>{g.title}</h3>
-                  <p>{g.host}</p>
-                  <div className="meta">
-                    <span>by {g.by}</span>
-                    <span className="play">Play ↗</span>
+              <article key={g.slug} className="game">
+                <a className="game-link" href={g.url} target="_blank" rel="noreferrer">
+                  <div className="art" style={{ background: `linear-gradient(135deg, ${g.colors[0]}, ${g.colors[1]})` }}>
+                    {g.cover ? <img src={g.cover} alt="" loading="lazy" /> : <span>{g.title.charAt(0)}</span>}
                   </div>
+                  <div className="info">
+                    <h3>{g.title}</h3>
+                    <p>{g.host}</p>
+                    <span className="by">by {g.by}</span>
+                  </div>
+                </a>
+                <div className="meta">
+                  <button type="button" className="link board-btn" onClick={() => setBoard(g)}>Leaderboard</button>
+                  <a className="play" href={g.url} target="_blank" rel="noreferrer">Play ↗</a>
                 </div>
-              </a>
+              </article>
             ))}
           </div>
         </section>
@@ -229,6 +235,12 @@ export default function App() {
           onSave={onSaveCharacter}
           onCancel={() => setEditing(false)}
         />
+        </Suspense>
+      )}
+
+      {board && (
+        <Suspense fallback={null}>
+          <GameBoard game={board} playerId={user?.id ?? null} onClose={() => setBoard(null)} />
         </Suspense>
       )}
 
