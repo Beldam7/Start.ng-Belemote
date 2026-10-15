@@ -1,6 +1,6 @@
-import { FormEvent, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { GoogleLogin } from "@react-oauth/google";
-import { googleLogin, login, me, register, TokenResponse, User } from "./api";
+import { googleLogin, me, TokenResponse, User } from "./api";
 import { gameReturnUrl, gameUrl, games } from "./games";
 
 // Set when a game sent the user here to sign in: we send them back afterwards.
@@ -9,10 +9,8 @@ const returnTo = gameReturnUrl();
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [checking, setChecking] = useState(() => !!localStorage.getItem("token"));
-  const [mode, setMode] = useState<"login" | "register" | null>(returnTo ? "login" : null);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  // Sign-in is Google only; the first Google sign-in creates the account.
+  const [signInOpen, setSignInOpen] = useState(!!returnTo);
   const [error, setError] = useState("");
 
   // Restore the session from the saved token, so a refresh keeps you signed in.
@@ -34,17 +32,8 @@ export default function App() {
   function onSuccess(res: TokenResponse) {
     localStorage.setItem("token", res.access_token);
     setUser(res.user);
-    setMode(null);
+    setSignInOpen(false);
     setError("");
-  }
-
-  async function submit(e: FormEvent) {
-    e.preventDefault();
-    try {
-      onSuccess(mode === "register" ? await register(email, password, name || undefined) : await login(email, password));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
-    }
   }
 
   function signOut() {
@@ -67,7 +56,7 @@ export default function App() {
               <button className="link" onClick={signOut}>Sign out</button>
             </span>
           ) : (
-            <button onClick={() => setMode("login")}>Sign in</button>
+            <button onClick={() => setSignInOpen(true)}>Sign in</button>
           )}
         </nav>
       </header>
@@ -83,7 +72,7 @@ export default function App() {
           </p>
           <div className="actions">
             <a className="btn" href="#games">Play now</a>
-            {!user && <button className="ghost" onClick={() => setMode("register")}>Create free account</button>}
+            {!user && <button className="ghost" onClick={() => setSignInOpen(true)}>Create free account</button>}
           </div>
         </section>
 
@@ -132,23 +121,17 @@ export default function App() {
         <span>Built by the HNG community</span>
       </footer>
 
-      {mode && !user && !checking && (
-        <div className="overlay" onClick={() => setMode(null)}>
-          <form className="card" onSubmit={submit} onClick={(e) => e.stopPropagation()}>
+      {signInOpen && !user && !checking && (
+        <div className="overlay" onClick={() => setSignInOpen(false)}>
+          <div className="card" role="dialog" aria-modal="true" aria-labelledby="sign-in-title" onClick={(e) => e.stopPropagation()}>
             <div className="card-head">
-              <h3>{mode === "register" ? "Create your account" : "Welcome back"}</h3>
-              <button type="button" className="link close" aria-label="Close" onClick={() => setMode(null)}>✕</button>
+              <h3 id="sign-in-title">Sign in to start.ng</h3>
+              <button type="button" className="link close" aria-label="Close" onClick={() => setSignInOpen(false)}>✕</button>
             </div>
-            {returnTo && <p className="note">Sign in to continue to {new URL(returnTo).host}.</p>}
-            {mode === "register" && <input placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} />}
-            <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-            <input type="password" placeholder="Password (min 8 chars)" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} />
+            <p className="note">
+              {returnTo ? `Sign in to continue to ${new URL(returnTo).host}.` : "Use your Google account. New here? Signing in creates your account."}
+            </p>
             {error && <p className="error">{error}</p>}
-            <button type="submit">{mode === "register" ? "Create account" : "Sign in"}</button>
-            <button type="button" className="link" onClick={() => { setMode(mode === "login" ? "register" : "login"); setError(""); }}>
-              {mode === "login" ? "No account? Register" : "Have an account? Sign in"}
-            </button>
-            <div className="divider">or</div>
             <div className="google">
               <GoogleLogin
                 onSuccess={async (c) => {
@@ -158,7 +141,7 @@ export default function App() {
                 onError={() => setError("Google sign-in failed")}
               />
             </div>
-          </form>
+          </div>
         </div>
       )}
     </>
