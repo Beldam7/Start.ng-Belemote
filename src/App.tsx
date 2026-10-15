@@ -1,14 +1,35 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { GoogleLogin } from "@react-oauth/google";
-import { googleLogin, login, register, TokenResponse, User } from "./api";
+import { googleLogin, login, me, register, TokenResponse, User } from "./api";
+import { gameReturnUrl } from "./games";
+
+// Set when a game sent the user here to sign in: we send them back afterwards.
+const returnTo = gameReturnUrl();
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
-  const [mode, setMode] = useState<"login" | "register" | null>(null);
+  const [checking, setChecking] = useState(() => !!localStorage.getItem("token"));
+  const [mode, setMode] = useState<"login" | "register" | null>(returnTo ? "login" : null);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+
+  // Restore the session from the saved token, so a refresh keeps you signed in.
+  useEffect(() => {
+    if (!checking) return;
+    me(localStorage.getItem("token"))
+      .then((u) => {
+        if (u) setUser(u);
+        else localStorage.removeItem("token");
+      })
+      .catch(() => {})
+      .finally(() => setChecking(false));
+  }, [checking]);
+
+  useEffect(() => {
+    if (user && returnTo) location.replace(returnTo);
+  }, [user]);
 
   function onSuccess(res: TokenResponse) {
     localStorage.setItem("token", res.access_token);
@@ -42,10 +63,11 @@ export default function App() {
       <section className="hero">
         <h1>Welcome to Start.ng</h1>
         <p>Your starting point for building in Nigeria. Sign in to get going.</p>
+        {returnTo && !user && <p>Sign in to continue to {new URL(returnTo).host}.</p>}
         {user && <p>You are signed in as {user.name ?? user.email}.</p>}
       </section>
 
-      {mode && !user && (
+      {mode && !user && !checking && (
         <form className="card" onSubmit={submit}>
           {mode === "register" && <input placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} />}
           <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
