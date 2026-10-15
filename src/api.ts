@@ -18,3 +18,10 @@ export const register = (email: string, password: string, name?: string) =>
   post("/auth/register", { email, password, name });
 export const login = (email: string, password: string) => post("/auth/login", { email, password });
 export const googleLogin = (idToken: string) => post("/auth/google", { id_token: idToken });
+
+// The user for a saved token, or null if the token is missing, expired or invalid.
+export async function me(token: string | null): Promise<User | null> {
+  if (!token) return null;
+  const res = await fetch(`${API_URL}/auth/me`, { headers: { Authorization: `Bearer ${token}` } });
+  return res.ok ? res.json() : null;
+}

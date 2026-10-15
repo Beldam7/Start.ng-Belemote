@@ -1,6 +1,8 @@
 # startng-fe
 
-React + Vite + TypeScript frontend for start.ng. Landing page with email/password and Google sign-in against startng-be.
+React + Vite + TypeScript frontend for start.ng. Homepage with the games list, plus email/password and Google sign-in against startng-be.
+
+To add a game to the homepage, add it to `src/games.ts` (it links to `https://<slug>.start.ng`).
 
 ```bash
 cp .env.example .env   # set VITE_API_URL and VITE_GOOGLE_CLIENT_ID
