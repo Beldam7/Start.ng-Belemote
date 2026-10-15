@@ -1,6 +1,6 @@
-import { FormEvent, lazy, Suspense, useEffect, useRef, useState } from "react";
+import { FormEvent, lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { GoogleLogin } from "@react-oauth/google";
-import { googleLogin, listGames, login, me, register, saveCharacter, TokenResponse, User } from "./api";
+import { googleLogin, listGames, login, me, myGames, register, saveCharacter, TokenResponse, User } from "./api";
 import { AvatarFace } from "./Avatar";
 import { Character, styleFor } from "./character";
 // The creator (and three.js) loads only when someone opens it.
@@ -26,12 +26,45 @@ export default function App() {
   const menuRef = useRef<HTMLDivElement>(null);
   // Published games from the API; null while loading.
   const [games, setGames] = useState<Game[] | null>(null);
+  // The signed-in builder's newest game, for the example address in the hero.
+  const [myLatest, setMyLatest] = useState<Game | null>(null);
 
-  useEffect(() => {
+  // Keep the games current without a page refresh: on load, when the profile closes
+  // (after an upload or a new cover), when you come back to the tab, and every 30 seconds.
+  const refreshGames = useCallback(() => {
     listGames()
       .then((list) => setGames(list.map(toCard)))
-      .catch(() => setGames([]));
-  }, []);
+      .catch(() => setGames((g) => g ?? []));
+    const token = localStorage.getItem("token");
+    if (user && token) myGames(token).then((mine) => setMyLatest(mine[0] ? toCard(mine[0]) : null));
+    else setMyLatest(null);
+  }, [user]);
+
+  useEffect(() => {
+    refreshGames();
+  }, [refreshGames]);
+
+  const profileOpen = !!user && (!user.character || editing);
+  const wasOpen = useRef(profileOpen);
+  useEffect(() => {
+    if (wasOpen.current && !profileOpen) refreshGames();
+    wasOpen.current = profileOpen;
+  }, [profileOpen, refreshGames]);
+
+  useEffect(() => {
+    const onVisible = () => { if (document.visibilityState === "visible") refreshGames(); };
+    const timer = window.setInterval(() => { if (document.visibilityState === "visible") refreshGames(); }, 30000);
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onVisible);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", onVisible);
+    };
+  }, [refreshGames]);
+
+  // A real address for the hero: your own newest game, else the newest game on start.ng.
+  const example = myLatest ?? games?.[0] ?? null;
 
   // Close the profile menu on an outside click or Escape.
   useEffect(() => {
@@ -129,7 +162,11 @@ export default function App() {
           <h1>Good vibes.<br /><mark>Good games.</mark></h1>
           <p className="lead">
             Games made by builders in the community.{" "}<br />
-            Each one lives at its own address, like <code>yourgame.start.ng</code>.{" "}<br />
+            {example ? (
+              <>Each one lives at its own address, like <a href={example.url} target="_blank" rel="noreferrer"><code>{example.host}</code></a>.{" "}</>
+            ) : (
+              <>Each one lives at its own start.ng address.{" "}</>
+            )}<br />
             Pick one and play right in your browser.
           </p>
           <div className="actions">
@@ -183,7 +220,7 @@ export default function App() {
         <span>Built by the HNG community</span>
       </footer>
 
-      {user && (!user.character || editing) && (
+      {profileOpen && (
         <Suspense fallback={null}>
         <CharacterCreator
           initial={user.character ?? { name: firstName.slice(0, 24) || "Player", style: styleFor(user.id) }}
