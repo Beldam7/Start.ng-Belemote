@@ -74,6 +74,7 @@ mark { background: linear-gradient(transparent 62%, var(--lime) 62%, var(--lime)
 input { padding: 13px 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: inherit; font-size: 1rem; }
 input:focus { outline: 2px solid var(--ink); outline-offset: -1px; }
 .error { color: #c0392b; margin: 0; }
+.note { margin: 0; font-size: .9rem; opacity: .8; }
 .divider { text-align: center; color: var(--muted); font-size: .85rem; }
 .google { display: flex; justify-content: center; }
 

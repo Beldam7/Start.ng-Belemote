@@ -19,8 +19,9 @@ export const register = (email: string, password: string, name?: string) =>
 export const login = (email: string, password: string) => post("/auth/login", { email, password });
 export const googleLogin = (idToken: string) => post("/auth/google", { id_token: idToken });
 
-export async function me(token: string): Promise<User> {
+// The user for a saved token, or null if the token is missing, expired or invalid.
+export async function me(token: string | null): Promise<User | null> {
+  if (!token) return null;
   const res = await fetch(`${API_URL}/auth/me`, { headers: { Authorization: `Bearer ${token}` } });
-  if (!res.ok) throw new Error("Session expired");
-  return res.json();
+  return res.ok ? res.json() : null;
 }
