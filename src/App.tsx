@@ -1,6 +1,6 @@
 import { FormEvent, lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { GoogleLogin } from "@react-oauth/google";
-import { googleLogin, listGames, login, me, myGames, register, saveCharacter, TokenResponse, User } from "./api";
+import { getGameSession, googleLogin, listGames, login, me, myGames, register, saveCharacter, TokenResponse, User } from "./api";
 import { AvatarFace } from "./Avatar";
 import { Character, styleFor } from "./character";
 // The creator (and three.js) loads only when someone opens it.
@@ -93,7 +93,16 @@ export default function App() {
 
   useEffect(() => {
     // Back to the game once signed in and the character exists.
-    if (user?.character && returnTo) location.replace(returnTo);
+    if (!(user?.character && returnTo)) return;
+    // Hand the game a game session in the address (#startng_session=...): it only works for that
+    // game's player API and expires; the game never sees the sign-in token.
+    const back = new URL(returnTo);
+    const token = localStorage.getItem("token");
+    const game = back.hostname.split(".")[0];
+    (token ? getGameSession(token, game).catch(() => null) : Promise.resolve(null)).then((s) => {
+      if (s) back.hash = `startng_session=${encodeURIComponent(s.session)}&expires_in=${s.expires_in}`;
+      location.replace(back.href);
+    });
   }, [user]);
 
   function onSuccess(res: TokenResponse) {
@@ -203,7 +212,7 @@ export default function App() {
                   </div>
                 </a>
                 <div className="meta">
-                  <button type="button" className="link board-btn" onClick={() => setBoard(g)}>Leaderboard</button>
+                  {g.board && <button type="button" className="link board-btn" onClick={() => setBoard(g)}>Leaderboard</button>}
                   <a className="play" href={g.url} target="_blank" rel="noreferrer">Play ↗</a>
                 </div>
               </article>

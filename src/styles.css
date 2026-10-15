@@ -209,16 +209,19 @@ input:focus { outline: 2px solid var(--ink); outline-offset: -1px; }
 .board-btn { flex: none; font-size: .82rem; font-weight: 600; color: var(--muted); text-decoration: underline; text-underline-offset: 3px; }
 .board-btn:hover { color: var(--ink); }
 .by { font-size: .85rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: -4px; }
-.board { max-width: 440px; gap: 10px; }
+.board { gap: 10px; }
 .board-sub { margin: -6px 0 4px; color: var(--muted); font-size: .9rem; }
 .board-empty { margin: 0; padding: 20px; border: 1px dashed var(--line); border-radius: 14px; color: var(--muted); text-align: center; }
-.board-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-variant-numeric: tabular-nums; }
-.board-list li { display: grid; grid-template-columns: 26px 12px 1fr auto; gap: 10px; align-items: center; padding: 9px 12px; border-radius: 10px; background: var(--bg); }
-.board-list li:first-child .rk { background: var(--lime); }
-.board-list li.me { outline: 2px solid var(--ink); }
-.board-list .rk { font-family: var(--mono); font-size: .8rem; text-align: center; border-radius: 6px; padding: 2px 0; }
-.board-list .dot { width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgba(0, 0, 0, .15); }
-.board-list .nm { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.board-list .nm em { font-style: normal; color: var(--muted); font-weight: 500; }
-.board-list .sc { font-family: var(--mono); font-weight: 700; }
+.board { max-width: 560px; }
+.board-table { display: grid; gap: 4px; font-variant-numeric: tabular-nums; overflow-x: auto; }
+.board-row { display: grid; gap: 12px; align-items: center; padding: 9px 12px; border-radius: 10px; background: var(--bg); min-width: 0; }
+.board-head { background: none; padding-top: 0; padding-bottom: 2px; font-family: var(--mono); font-size: .68rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+.board-row:nth-child(2) .rk { background: var(--lime); }
+.board-row.me { outline: 2px solid var(--ink); }
+.board-row .rk { font-family: var(--mono); font-size: .8rem; text-align: center; border-radius: 6px; padding: 2px 0; }
+.board-row .nm { display: flex; align-items: center; gap: 8px; font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.board-row .nm em { font-style: normal; color: var(--muted); font-weight: 500; }
+.board-row .dot { flex: none; width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgba(0, 0, 0, .15); }
+.board-row .num { text-align: right; white-space: nowrap; }
+.board-row .sc { font-family: var(--mono); font-weight: 700; }
 .board-play { text-align: center; margin-top: 6px; }

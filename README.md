@@ -14,10 +14,10 @@ Dockerfile build pack (nginx, port 80). VITE_API_URL and VITE_GOOGLE_CLIENT_ID a
 Build Variables in Coolify. GitHub secrets: COOLIFY_WEBHOOK_URL (optional COOLIFY_TOKEN); the
 Deploy (Coolify) workflow runs only after Malware Scan (CI Gate) passes on main.
 
-## Shared leaderboards for games
+## Leaderboards for games (opt-in, game-defined)
 
-Every game on start.ng has one shared leaderboard, stored in start.ng's database (each player's best
-score). The homepage shows it under **Leaderboard** on each game card. Games send scores and read the
-board through the API (`POST /games/{name}/scores`, `GET /games/{name}/leaderboard`): see the builder
-documentation and the startng-be README. A personal best can stay in the browser, but scores other
-players should see must go through the API.
+A game gets a leaderboard by shipping a `startng.json` that lists its own stats (for example waves and kills,
+or gems and time). The homepage shows a **Leaderboard** button only on games that have one, with that game's
+columns. Games save runs and read the board through the API with a game session: after
+`start.ng/?return_to=<game url>`, start.ng sends the player back with `#startng_session=...`.
+See the builder documentation and the startng-be README.

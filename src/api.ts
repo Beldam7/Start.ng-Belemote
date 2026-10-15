@@ -29,7 +29,12 @@ export async function me(token: string | null): Promise<User | null> {
 }
 
 // A game published with POST /games/publish. cover_url is its card picture (null = none yet).
-export type PublishedGame = { name: string; url: string; repo_url: string; by: string; updated_at: string; cover_url: string | null };
+// A leaderboard column, from the game's startng.json (or the plain "score").
+export type BoardStat = { key: string; label: string; order: "highest" | "lowest"; format: "number" | "time" };
+export type PublishedGame = {
+  name: string; url: string; repo_url: string; by: string; updated_at: string; cover_url: string | null;
+  leaderboard: BoardStat[] | null; // null: this game has no leaderboard
+};
 
 export async function listGames(): Promise<PublishedGame[]> {
   const res = await fetch(`${API_URL}/games`);
@@ -38,18 +43,25 @@ export async function listGames(): Promise<PublishedGame[]> {
 }
 
 // Scores: games send them through /connect (see games.ts), which adds the player's sign-in.
-export type ScoreResult = { best: number; improved: boolean; rank: number };
-export type LeaderboardEntry = { rank: number; player_id: number; name: string; color: string | null; score: number };
+export type ScoreResult = { best: number; improved: boolean; rank: number; stats: Record<string, number | null> };
+export type LeaderboardEntry = { rank: number; player_id: number; name: string; color: string | null; score: number; stats: Record<string, number | null> };
 
-export async function submitScore(token: string | null, game: string, score: number): Promise<ScoreResult> {
+/** A game's run: a plain score, or its own stats from startng.json ({ stats: { waves: 5, kills: 10 } }). */
+export async function submitScore(token: string | null, game: string, run: { score?: number; stats?: Record<string, unknown> }): Promise<ScoreResult> {
   const res = await fetch(`${API_URL}/games/${encodeURIComponent(game)}/scores`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ score }),
+    body: JSON.stringify(run),
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Could not save the score");
   return data;
+}
+
+/** A game session for the signed-in player: the key a game uses to call its player API. */
+export async function getGameSession(token: string, game: string): Promise<{ session: string; expires_in: number } | null> {
+  const res = await fetch(`${API_URL}/games/${encodeURIComponent(game)}/session`, { method: "POST", headers: { Authorization: `Bearer ${token}` } });
+  return res.ok ? res.json() : null;
 }
 
 export async function getLeaderboard(game: string, limit = 10): Promise<LeaderboardEntry[]> {
