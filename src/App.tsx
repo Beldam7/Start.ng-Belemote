@@ -5,7 +5,7 @@ import { AvatarFace } from "./Avatar";
 import { Character, styleFor } from "./character";
 // The creator (and three.js) loads only when someone opens it.
 const CharacterCreator = lazy(() => import("./CharacterCreator"));
-import { Game, gameReturnUrl, toCard } from "./games";
+import { Game, gameReturnUrl, HANGOUT, isInAppGame, toCard } from "./games";
 
 // Set when a game sent the user here to sign in: we send them back afterwards.
 const returnTo = gameReturnUrl();
@@ -63,6 +63,9 @@ export default function App() {
     };
   }, [refreshGames]);
 
+  // The Hangout is always first; the rest come from the API.
+  const cards = [HANGOUT, ...(games ?? []).filter((g) => g.slug !== HANGOUT.slug)];
+
   // A real address for the hero: your own newest game, else the newest game on start.ng.
   const example = myLatest ?? games?.[0] ?? null;
 
@@ -99,7 +102,7 @@ export default function App() {
   }, [user, goTo]);
 
   function pickGame(e: React.MouseEvent, g: Game) {
-    if (user || checking) return; // signed in: the link opens the game as usual
+    if (user || checking || isInAppGame(g)) return; // signed in: the link opens the game as usual (the Hangout asks for sign-in itself)
     e.preventDefault();
     setChosen(g);
   }
@@ -208,17 +211,17 @@ export default function App() {
         <section id="games" className="container">
           <div className="section-head">
             <h2>Games</h2>
-            {games && <span className="count">{games.length} to play</span>}
+            {games && <span className="count">{cards.length} to play</span>}
           </div>
           {games === null && <p className="empty">Loading games…</p>}
           {games?.length === 0 && (
             <p className="empty">
-              No games yet. The first ones from the community are on their way. <a href="#how">Put yours here.</a>
+              No community games yet. The first ones are on their way. <a href="#how">Put yours here.</a>
             </p>
           )}
           <div className="grid">
-            {games?.map((g) => (
-              <a key={g.slug} className="game" href={g.url} target="_blank" rel="noreferrer" onClick={(e) => pickGame(e, g)}>
+            {cards.map((g) => (
+              <a key={g.slug} className="game" href={g.url} {...(isInAppGame(g) ? {} : { target: "_blank", rel: "noreferrer" })} onClick={(e) => pickGame(e, g)}>
                 <div className="art" style={{ background: `linear-gradient(135deg, ${g.colors[0]}, ${g.colors[1]})` }}>
                   {g.cover ? <img src={g.cover} alt="" loading="lazy" /> : <span>{g.title.charAt(0)}</span>}
                 </div>
@@ -227,7 +230,7 @@ export default function App() {
                   <p>{g.host}</p>
                   <div className="meta">
                     <span>by {g.by}</span>
-                    <span className="play">Play ↗</span>
+                    <span className="play">{isInAppGame(g) ? "Play" : "Play ↗"}</span>
                   </div>
                 </div>
               </a>
@@ -289,7 +292,7 @@ export default function App() {
               <button type="button" className="link close" aria-label="Close" onClick={closeSignIn}>✕</button>
             </div>
             <p className="note">
-              {goTo ? `Sign in to continue to ${new URL(goTo).host}.` : "Use your Google account. New here? Signing in creates your account."}
+              {goTo ? (new URL(goTo).origin === location.origin ? "Sign in to join the Hangout." : `Sign in to continue to ${new URL(goTo).host}.`) : "Use your Google account. New here? Signing in creates your account."}
             </p>
             {error && <p className="error">{error}</p>}
             <div className="google">

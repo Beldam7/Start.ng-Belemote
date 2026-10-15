@@ -16,6 +16,22 @@ const CARD_COLORS: [string, string][] = [
   ["#fd9644", "#eb3b5a"],
 ];
 
+// The Hangout is start.ng's own game. It lives inside this app at /hangout instead of on a
+// hangout.start.ng address, so the homepage always shows it. If the API ever lists a game
+// with the same name, this card is the one that's shown.
+export const HANGOUT: Game = {
+  slug: "hangout",
+  title: "The Hangout",
+  url: "/hangout",
+  host: "start.ng/hangout",
+  by: "start.ng",
+  colors: ["#d8fd71", "#292a23"],
+  cover: null,
+};
+
+/** A game that lives inside this app (opens in the same tab) rather than on its own start.ng address. */
+export const isInAppGame = (game: Game) => game.url.startsWith("/");
+
 // The API writes game addresses as https://, which is right on start.ng. Locally the Worker's
 // dev server is plain http, so local *.localhost games are linked over http.
 function playableUrl(url: string) {
@@ -52,13 +68,14 @@ export function isGameOrigin(origin: string) {
   return GAME_ORIGINS.some((re) => re.test(origin));
 }
 
-/** The ?return_to= URL if it points at a game, otherwise null (so it can't redirect anywhere else). */
+/** The ?return_to= URL if it points at a game (or the Hangout), otherwise null (so it can't redirect anywhere else). */
 export function gameReturnUrl(): string | null {
   const raw = new URLSearchParams(location.search).get("return_to");
   if (!raw) return null;
   try {
     const url = new URL(raw);
-    return isGameOrigin(url.origin) ? url.href : null;
+    const isHangout = url.origin === location.origin && url.pathname === HANGOUT.url;
+    return isGameOrigin(url.origin) || isHangout ? url.href : null;
   } catch {
     return null;
   }
