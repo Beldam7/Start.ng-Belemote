@@ -1,14 +1,32 @@
-import { me } from "./api";
+import { me, PublishedGame } from "./api";
 import { CharacterStyle, styleFor } from "./character";
 
-// Games shown on the homepage. Each one is served from its own folder at https://<slug>.start.ng
-// Add a game by adding an entry; the homepage card styling applies to every entry, e.g.
-// { slug: "mygame", title: "My Game", tagline: "One line about it.", genre: "Action", by: "githubname", colors: ["#ffd400", "#e10600"] }
-export type Game = { slug: string; title: string; tagline: string; genre: string; by: string; colors: [string, string] };
+// A homepage card for a game from GET /games (games published with POST /games/publish).
+// The API only knows the name, so the title and colours are worked out from it:
+// the same game always gets the same colours.
+export type Game = { slug: string; title: string; url: string; host: string; by: string; colors: [string, string] };
 
-export const games: Game[] = [];
+const CARD_COLORS: [string, string][] = [
+  ["#ffd400", "#e10600"],
+  ["#1dd1a1", "#0c6e5a"],
+  ["#a55eea", "#4b7bec"],
+  ["#ff6b6b", "#f7b731"],
+  ["#45aaf2", "#2b2f4a"],
+  ["#fd9644", "#eb3b5a"],
+];
 
-export const gameUrl = (slug: string) => `https://${slug}.start.ng`;
+export function toCard(game: PublishedGame): Game {
+  let hash = 0;
+  for (const ch of game.name) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
+  return {
+    slug: game.name,
+    title: game.name.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" "),
+    url: game.url,
+    host: new URL(game.url).host,
+    by: game.by,
+    colors: CARD_COLORS[hash % CARD_COLORS.length],
+  };
+}
 
 // Games are static sites on <name>.start.ng. This is how start.ng shares the signed-in
 // user with them: a game loads /connect in a hidden iframe and asks who is signed in.

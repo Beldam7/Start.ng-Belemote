@@ -28,6 +28,15 @@ export async function me(token: string | null): Promise<User | null> {
   return res.ok ? res.json() : null;
 }
 
+// A game published with POST /games/publish.
+export type PublishedGame = { name: string; url: string; repo_url: string; by: string; updated_at: string };
+
+export async function listGames(): Promise<PublishedGame[]> {
+  const res = await fetch(`${API_URL}/games`);
+  if (!res.ok) throw new Error("Could not load the games");
+  return res.json();
+}
+
 export async function saveCharacter(token: string | null, character: Character): Promise<User> {
   const res = await fetch(`${API_URL}/auth/me/character`, {
     method: "PUT",
