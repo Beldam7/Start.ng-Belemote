@@ -1,7 +1,17 @@
+import { me } from "./api";
+
+// Games shown on the homepage. Each one is served from its own folder at https://<slug>.start.ng
+// Add a game by adding an entry; the homepage card styling applies to every entry, e.g.
+// { slug: "mygame", title: "My Game", tagline: "One line about it.", genre: "Action", by: "githubname", colors: ["#ffd400", "#e10600"] }
+export type Game = { slug: string; title: string; tagline: string; genre: string; by: string; colors: [string, string] };
+
+export const games: Game[] = [];
+
+export const gameUrl = (slug: string) => `https://${slug}.start.ng`;
+
 // Games are static sites on <name>.start.ng. This is how start.ng shares the signed-in
 // user with them: a game loads /connect in a hidden iframe and asks who is signed in.
 // Games get the user's id, name and style only, never the token or email.
-import { me } from "./api";
 
 const GAME_ORIGINS = [
   /^https:\/\/[a-z0-9-]+\.start\.ng$/,
