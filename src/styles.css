@@ -24,8 +24,8 @@ code { font-family: var(--mono); font-size: .88em; background: var(--lime); padd
 /* buttons */
 button, .btn { background: var(--ink); color: #fff; border: 0; border-radius: 10px; padding: 12px 22px; font: 700 1rem "Helvetica Neue", Helvetica, Arial, sans-serif; cursor: pointer; display: inline-block; }
 button:hover, .btn:hover { background: #000; }
-button.ghost { background: var(--card); color: var(--ink); border: 1px solid var(--line); }
-button.ghost:hover { border-color: var(--ink); }
+button.ghost, .btn.ghost { background: var(--card); color: var(--ink); border: 1px solid var(--line); }
+button.ghost:hover, .btn.ghost:hover { border-color: var(--ink); }
 button.link { background: none; color: var(--muted); padding: 0; font-weight: 500; }
 button.link:hover { color: var(--ink); }
 
@@ -42,15 +42,19 @@ mark { background: linear-gradient(transparent 62%, var(--lime) 62%, var(--lime)
 .section-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 22px; }
 .section-head h2, .how h2 { font-size: 2.1rem; letter-spacing: -.035em; margin: 0; }
 .count { font-family: var(--mono); font-size: .85rem; color: var(--muted); }
-.grid { display: grid; gap: 16px; }
-.game { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 18px; display: flex; gap: 22px; align-items: center; transition: transform .15s, border-color .15s, box-shadow .15s; }
+/* 4 cards a row on desktop, 3 on tablets, 2 on phones */
+.grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+.game { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 10px; display: flex; flex-direction: column; gap: 12px; min-width: 0; transition: transform .15s, border-color .15s, box-shadow .15s; }
 .game:hover { transform: translateY(-2px); border-color: var(--ink); box-shadow: 4px 4px 0 var(--lime); }
-.art { width: 150px; height: 112px; flex: none; border-radius: 12px; display: grid; place-items: center; }
+.art { width: 100%; aspect-ratio: 16 / 10; flex: none; border-radius: 12px; display: grid; place-items: center; overflow: hidden; }
+.art img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .art span { font-size: 3.4rem; font-weight: 900; color: rgba(255, 255, 255, .92); text-shadow: 0 4px 18px rgba(0, 0, 0, .3); }
-.info { flex: 1; min-width: 0; }
-.info h3 { margin: 0 0 6px; font-size: 1.5rem; letter-spacing: -.02em; }
-.info p { margin: 0 0 14px; color: var(--muted); font-size: 1.02rem; line-height: 1.55; }
-.meta { display: flex; gap: 16px; align-items: center; font-size: .88rem; color: var(--muted); }
+.info { flex: 1; min-width: 0; display: flex; flex-direction: column; padding: 0 6px 6px; }
+.info h3 { margin: 0 0 2px; font-size: 1.15rem; letter-spacing: -.02em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.info p { margin: 0 0 10px; color: var(--muted); font-family: var(--mono); font-size: .78rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.meta { display: flex; gap: 10px; align-items: center; font-size: .82rem; color: var(--muted); margin-top: auto; min-width: 0; }
+.meta span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.meta .play { flex: none; }
 .tag { font-family: var(--mono); font-size: .72rem; text-transform: uppercase; letter-spacing: .12em; background: var(--lime); color: var(--ink); padding: 3px 8px; border-radius: 6px; }
 .play { margin-left: auto; color: var(--ink); font-weight: 700; }
 
@@ -85,8 +89,11 @@ input:focus { outline: 2px solid var(--ink); outline-offset: -1px; }
   .nav nav a { display: none; }
   .hero { padding: 48px 20px 56px; }
   .lead br { display: none; }
-  .game { flex-direction: column; align-items: stretch; }
-  .art { width: 100%; height: 130px; }
+  .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .game { padding: 8px; gap: 10px; }
+  .info { padding: 0 4px 4px; }
+  .info h3 { font-size: 1rem; }
+  .art span { font-size: 2.4rem; }
 }
 
 /* character in the top bar, with its menu */
@@ -122,6 +129,10 @@ input:focus { outline: 2px solid var(--ink); outline-offset: -1px; }
 .chips button:hover { background: var(--bg); border-color: var(--ink); }
 .chips button.on { background: var(--lime); border-color: var(--ink); }
 .creator-actions { display: flex; gap: 10px; margin-top: 6px; }
+/* profile: the right side scrolls on its own, Save stays in reach */
+.creator-profile { height: calc(100vh - 48px); max-height: 900px; }
+.creator-profile .creator-controls { overflow-y: auto; overscroll-behavior: contain; padding-bottom: 0; }
+.creator-profile .creator-actions { position: sticky; bottom: 0; background: var(--card); margin: 0 -30px; padding: 14px 30px 22px; border-top: 1px solid var(--line); }
 .creator-actions button:disabled { opacity: .6; cursor: default; }
 
 @media (max-width: 720px) {
@@ -151,4 +162,44 @@ input:focus { outline: 2px solid var(--ink); outline-offset: -1px; }
 @media (max-width: 720px) {
   .creator-viewer { height: 300px; }
   .pick-viewer { height: 210px; }
+}
+
+/* your games */
+.my-games { display: grid; gap: 12px; margin-top: 14px; padding-top: 20px; border-top: 1px solid var(--line); }
+.my-games-head { display: flex; justify-content: space-between; align-items: baseline; }
+.my-games-head h3 { margin: 0; font-size: 1.4rem; letter-spacing: -.03em; }
+.my-games-head span { font-family: var(--mono); font-size: .78rem; color: var(--muted); }
+.my-games .lead-sm { margin: -4px 0 0; }
+.upload-row { display: flex; gap: 8px; }
+.upload-row input { flex: 1; min-width: 0; }
+.upload-row input[aria-invalid="true"] { border-color: #c0392b; }
+.upload-row button:disabled { opacity: .55; cursor: default; }
+.game-cards { display: grid; gap: 12px; }
+.game-card { display: grid; grid-template-columns: 132px 1fr; gap: 14px; padding: 10px; border: 1px solid var(--line); border-radius: 16px; background: var(--bg); }
+.game-card.no-shot { grid-template-columns: 1fr; padding: 14px 16px; }
+.game-card img { width: 132px; height: 92px; object-fit: cover; border-radius: 10px; background: var(--line); display: block; }
+.game-card .art { width: 132px; height: 92px; border-radius: 10px; }
+.game-card .art span { font-size: 2.4rem; }
+.cover-pick { position: relative; font-weight: 700; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.cover-pick.busy { color: var(--muted); cursor: default; text-decoration: none; }
+.cover-pick input { position: absolute; inset: 0; opacity: 0; width: 100%; cursor: inherit; }
+.cover-pick:focus-within { outline: 2px solid var(--ink); outline-offset: 2px; border-radius: 4px; }
+.cover-links button.link { font-size: .82rem; }
+.game-card-body { display: grid; gap: 4px; min-width: 0; align-content: start; }
+.game-card h4 { margin: 0; font-size: 1.05rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.game-card p { margin: 0; color: var(--muted); font-size: .88rem; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.game-card-meta { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; font-size: .8rem; color: var(--muted); margin-top: 2px; }
+.game-card-meta .tag { text-transform: capitalize; }
+.game-card-links { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; font-size: .82rem; margin-top: 2px; }
+.game-card-links a { font-weight: 700; white-space: nowrap; }
+.game-card-links span { font-family: var(--mono); color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.game-card-links .remove { margin-left: auto; font-size: .82rem; color: #b03a2e; }
+.game-card-links .remove:hover { color: #7d2017; }
+.ok { margin: 0; color: #2e7d32; font-weight: 600; }
+@media (max-width: 720px) {
+  .creator-profile { height: auto; max-height: none; }
+  .creator-profile .creator-controls { overflow: visible; padding-bottom: 0; }
+  .creator-profile .creator-actions { margin: 0 -20px; padding: 14px 20px 20px; }
+  .game-card { grid-template-columns: 96px 1fr; }
+  .game-card img, .game-card .art { width: 96px; height: 72px; }
 }

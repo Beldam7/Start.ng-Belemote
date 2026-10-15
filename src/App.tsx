@@ -153,7 +153,7 @@ export default function App() {
             {games?.map((g) => (
               <a key={g.slug} className="game" href={g.url} target="_blank" rel="noreferrer">
                 <div className="art" style={{ background: `linear-gradient(135deg, ${g.colors[0]}, ${g.colors[1]})` }}>
-                  <span>{g.title.charAt(0)}</span>
+                  {g.cover ? <img src={g.cover} alt="" loading="lazy" /> : <span>{g.title.charAt(0)}</span>}
                 </div>
                 <div className="info">
                   <h3>{g.title}</h3>
