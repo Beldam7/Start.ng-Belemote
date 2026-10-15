@@ -1,9 +1,10 @@
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { FormEvent, lazy, Suspense, useEffect, useRef, useState } from "react";
 import { GoogleLogin } from "@react-oauth/google";
 import { googleLogin, login, me, register, saveCharacter, TokenResponse, User } from "./api";
 import { AvatarFace } from "./Avatar";
 import { Character, styleFor } from "./character";
-import CharacterCreator from "./CharacterCreator";
+// The creator (and three.js) loads only when someone opens it.
+const CharacterCreator = lazy(() => import("./CharacterCreator"));
 import { gameReturnUrl, gameUrl, games } from "./games";
 
 // Set when a game sent the user here to sign in: we send them back afterwards.
@@ -175,6 +176,7 @@ export default function App() {
       </footer>
 
       {user && (!user.character || editing) && (
+        <Suspense fallback={null}>
         <CharacterCreator
           initial={user.character ?? { name: firstName.slice(0, 24) || "Player", style: styleFor(user.id) }}
           editing={!!user.character}
@@ -182,6 +184,7 @@ export default function App() {
           onSave={onSaveCharacter}
           onCancel={() => setEditing(false)}
         />
+        </Suspense>
       )}
 
       {signInOpen && !user && !checking && (
