@@ -1,10 +1,11 @@
 import { FormEvent, lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { GoogleLogin } from "@react-oauth/google";
-import { googleLogin, listGames, login, me, myGames, register, saveCharacter, TokenResponse, User } from "./api";
+import { getGameSession, googleLogin, listGames, login, me, myGames, register, saveCharacter, TokenResponse, User } from "./api";
 import { AvatarFace } from "./Avatar";
 import { Character, styleFor } from "./character";
 // The creator (and three.js) loads only when someone opens it.
 const CharacterCreator = lazy(() => import("./CharacterCreator"));
+const GameBoard = lazy(() => import("./GameBoard"));
 import { Game, gameReturnUrl, HANGOUT, isInAppGame, toCard } from "./games";
 
 // Set when a game sent the user here to sign in: we send them back afterwards.
@@ -26,6 +27,8 @@ export default function App() {
   const menuRef = useRef<HTMLDivElement>(null);
   // Published games from the API; null while loading.
   const [games, setGames] = useState<Game[] | null>(null);
+  // The game whose shared leaderboard is open, if any.
+  const [board, setBoard] = useState<Game | null>(null);
   // The signed-in builder's newest game, for the example address in the hero.
   const [myLatest, setMyLatest] = useState<Game | null>(null);
 
@@ -99,7 +102,22 @@ export default function App() {
   const [goTo, setGoTo] = useState<string | null>(returnTo);
 
   useEffect(() => {
-    if (user?.character && goTo) location.assign(goTo);
+    // Back to the game once signed in and the character exists.
+    if (!(user?.character && goTo)) return;
+    const back = new URL(goTo, location.href);
+    // The Hangout lives in this app and has no game session of its own.
+    if (back.origin === location.origin) {
+      location.assign(back.href);
+      return;
+    }
+    // Hand the game a game session in the address (#startng_session=...): it only works for that
+    // game's player API and expires; the game never sees the sign-in token.
+    const token = localStorage.getItem("token");
+    const game = back.hostname.split(".")[0];
+    (token ? getGameSession(token, game).catch(() => null) : Promise.resolve(null)).then((s) => {
+      if (s) back.hash = `startng_session=${encodeURIComponent(s.session)}&expires_in=${s.expires_in}`;
+      location.replace(back.href);
+    });
   }, [user, goTo]);
 
   function pickGame(e: React.MouseEvent, g: Game) {
@@ -222,19 +240,22 @@ export default function App() {
           )}
           <div className="grid">
             {cards.map((g) => (
-              <a key={g.slug} className={g.slug === HANGOUT.slug ? "game legendary" : "game"} href={g.url} {...(isInAppGame(g) ? {} : { target: "_blank", rel: "noreferrer" })} onClick={(e) => pickGame(e, g)}>
-                <div className="art" style={{ background: `linear-gradient(135deg, ${g.colors[0]}, ${g.colors[1]})` }}>
-                  {g.cover ? <img src={g.cover} alt="" loading="lazy" /> : <span>{g.title.charAt(0)}</span>}
-                </div>
-                <div className="info">
-                  <h3>{g.title}</h3>
-                  <p>{g.host}</p>
-                  <div className="meta">
-                    <span>by {g.by}</span>
-                    <span className="play">{isInAppGame(g) ? "Play" : "Play ↗"}</span>
+              <article key={g.slug} className={g.slug === HANGOUT.slug ? "game legendary" : "game"}>
+                <a className="game-link" href={g.url} {...(isInAppGame(g) ? {} : { target: "_blank", rel: "noreferrer" })} onClick={(e) => pickGame(e, g)}>
+                  <div className="art" style={{ background: `linear-gradient(135deg, ${g.colors[0]}, ${g.colors[1]})` }}>
+                    {g.cover ? <img src={g.cover} alt="" loading="lazy" /> : <span>{g.title.charAt(0)}</span>}
                   </div>
+                  <div className="info">
+                    <h3>{g.title}</h3>
+                    <p>{g.host}</p>
+                    <span className="by">by {g.by}</span>
+                  </div>
+                </a>
+                <div className="meta">
+                  {g.board && <button type="button" className="link board-btn" onClick={() => setBoard(g)}>Leaderboard</button>}
+                  <a className="play" href={g.url} {...(isInAppGame(g) ? {} : { target: "_blank", rel: "noreferrer" })} onClick={(e) => pickGame(e, g)}>{isInAppGame(g) ? "Play" : "Play ↗"}</a>
                 </div>
-              </a>
+              </article>
             ))}
           </div>
         </section>
@@ -263,6 +284,12 @@ export default function App() {
           onSave={onSaveCharacter}
           onCancel={() => setEditing(false)}
         />
+        </Suspense>
+      )}
+
+      {board && (
+        <Suspense fallback={null}>
+          <GameBoard game={board} playerId={user?.id ?? null} onClose={() => setBoard(null)} />
         </Suspense>
       )}
 

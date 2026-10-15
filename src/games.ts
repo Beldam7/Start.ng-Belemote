@@ -1,11 +1,11 @@
-import { getLeaderboard, getLiveTicket, me, PublishedGame, submitScore } from "./api";
+import { BoardStat, getLeaderboard, getLiveTicket, me, PublishedGame, submitScore } from "./api";
 import { CharacterStyle, styleFor } from "./character";
 
 // A homepage card for a game from GET /games (games published with POST /games/publish).
 // The API only knows the name, so the title and colours are worked out from it:
 // the same game always gets the same colours.
 // cover is the game's picture; without one the card shows the title's first letter on the colours.
-export type Game = { slug: string; title: string; url: string; host: string; by: string; colors: [string, string]; cover: string | null };
+export type Game = { slug: string; title: string; url: string; host: string; by: string; colors: [string, string]; cover: string | null; board: BoardStat[] | null };
 
 const CARD_COLORS: [string, string][] = [
   ["#ffd400", "#e10600"],
@@ -27,6 +27,7 @@ export const HANGOUT: Game = {
   by: "start.ng",
   colors: ["#292a23", "#5b7d0d"],
   cover: null,
+  board: null, // the Hangout has no leaderboard
 };
 
 /** A game that lives inside this app (opens in the same tab) rather than on its own start.ng address. */
@@ -52,6 +53,7 @@ export function toCard(game: PublishedGame): Game {
     by: game.by,
     colors: CARD_COLORS[hash % CARD_COLORS.length],
     cover: game.cover_url,
+    board: game.leaderboard ?? null,
   };
 }
 
@@ -92,7 +94,7 @@ const gameFromOrigin = (origin: string) => new URL(origin).hostname.split(".")[0
 const errorText = (err: unknown, fallback: string) => (err instanceof Error ? err.message : fallback);
 
 // What /connect answers. Every reply echoes the request's requestId.
-type Message = { type: string; requestId?: unknown; score?: unknown; limit?: unknown };
+type Message = { type: string; requestId?: unknown; score?: unknown; stats?: unknown; limit?: unknown };
 const handlers: Record<string, (msg: Message, game: string) => Promise<object>> = {
   // { type: "startng:whoami" } -> { type: "startng:user", user: { id, name, style } | null }
   "startng:whoami": async () => {
@@ -107,15 +109,17 @@ const handlers: Record<string, (msg: Message, game: string) => Promise<object>> 
     };
   },
 
-  // { type: "startng:score", score } -> { type: "startng:scoreSaved", ok, result: { best, improved, rank } | error }
+  // { type: "startng:score", score } or { type: "startng:score", stats: { ... } } (the game's startng.json stats)
+  //   -> { type: "startng:scoreSaved", ok, result: { best, improved, rank, stats } | error }
   "startng:score": async (msg, game) => {
     const token = localStorage.getItem("token");
     if (!token) return { type: "startng:scoreSaved", ok: false, error: "Sign in to save your score" };
-    if (!Number.isSafeInteger(msg.score) || (msg.score as number) < 0) {
+    const run = msg.stats !== undefined ? { stats: msg.stats as Record<string, unknown> } : { score: msg.score as number };
+    if (run.score !== undefined && (!Number.isSafeInteger(run.score) || run.score < 0)) {
       return { type: "startng:scoreSaved", ok: false, error: "A score must be a whole number, 0 or more" };
     }
     try {
-      return { type: "startng:scoreSaved", ok: true, result: await submitScore(token, game, msg.score as number) };
+      return { type: "startng:scoreSaved", ok: true, result: await submitScore(token, game, run) };
     } catch (err) {
       return { type: "startng:scoreSaved", ok: false, error: errorText(err, "Could not save the score") };
     }
