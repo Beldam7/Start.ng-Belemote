@@ -1,11 +1,11 @@
 import { FormEvent, lazy, Suspense, useEffect, useRef, useState } from "react";
 import { GoogleLogin } from "@react-oauth/google";
-import { googleLogin, login, me, register, saveCharacter, TokenResponse, User } from "./api";
+import { googleLogin, listGames, login, me, register, saveCharacter, TokenResponse, User } from "./api";
 import { AvatarFace } from "./Avatar";
 import { Character, styleFor } from "./character";
 // The creator (and three.js) loads only when someone opens it.
 const CharacterCreator = lazy(() => import("./CharacterCreator"));
-import { gameReturnUrl, gameUrl, games } from "./games";
+import { Game, gameReturnUrl, toCard } from "./games";
 
 // Set when a game sent the user here to sign in: we send them back afterwards.
 const returnTo = gameReturnUrl();
@@ -24,6 +24,14 @@ export default function App() {
   const [editing, setEditing] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  // Published games from the API; null while loading.
+  const [games, setGames] = useState<Game[] | null>(null);
+
+  useEffect(() => {
+    listGames()
+      .then((list) => setGames(list.map(toCard)))
+      .catch(() => setGames([]));
+  }, []);
 
   // Close the profile menu on an outside click or Escape.
   useEffect(() => {
@@ -133,24 +141,24 @@ export default function App() {
         <section id="games" className="container">
           <div className="section-head">
             <h2>Games</h2>
-            <span className="count">{games.length} to play</span>
+            {games && <span className="count">{games.length} to play</span>}
           </div>
-          {games.length === 0 && (
+          {games === null && <p className="empty">Loading games…</p>}
+          {games?.length === 0 && (
             <p className="empty">
               No games yet. The first ones from the community are on their way. <a href="#how">Put yours here.</a>
             </p>
           )}
           <div className="grid">
-            {games.map((g) => (
-              <a key={g.slug} className="game" href={gameUrl(g.slug)} target="_blank" rel="noreferrer">
+            {games?.map((g) => (
+              <a key={g.slug} className="game" href={g.url} target="_blank" rel="noreferrer">
                 <div className="art" style={{ background: `linear-gradient(135deg, ${g.colors[0]}, ${g.colors[1]})` }}>
                   <span>{g.title.charAt(0)}</span>
                 </div>
                 <div className="info">
                   <h3>{g.title}</h3>
-                  <p>{g.tagline}</p>
+                  <p>{g.host}</p>
                   <div className="meta">
-                    <span className="tag">{g.genre}</span>
                     <span>by {g.by}</span>
                     <span className="play">Play ↗</span>
                   </div>
