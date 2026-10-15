@@ -78,6 +78,7 @@ input:focus { outline: 2px solid var(--ink); outline-offset: -1px; }
 .empty { margin: 8px 0 0; padding: 28px; border: 1px dashed var(--line); border-radius: 18px; color: var(--muted); text-align: center; }
 .empty a { color: inherit; font-weight: 600; }
 .divider { text-align: center; color: var(--muted); font-size: .85rem; }
+.email-form { display: grid; gap: 12px; } /* TEMPORARY: email sign-in for testing */
 .google { display: flex; justify-content: center; }
 
 @media (max-width: 600px) {
