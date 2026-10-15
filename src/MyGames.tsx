@@ -1,6 +1,11 @@
-import { KeyboardEvent, useEffect, useState } from "react";
-import { GITHUB_REPO_RE, myGames, publishGame, PublishedGame, unpublishGame } from "./api";
+import { ChangeEvent, KeyboardEvent, useEffect, useState } from "react";
+import {
+  COVER_TYPES, GITHUB_REPO_RE, MAX_COVER_BYTES, myGames, publishGame, PublishedGame, removeCover, unpublishGame, uploadCover,
+} from "./api";
 import { toCard } from "./games";
+
+// A picture the owner uploaded (not the game's own cover.png), so it can be removed.
+const isUploaded = (g: PublishedGame) => !!g.cover_url && new URL(g.cover_url).pathname === "/startng-cover.webp";
 
 const dateOf = (iso: string) => new Date(iso).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
 
@@ -11,6 +16,7 @@ export default function MyGames() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
+  const [coverBusy, setCoverBusy] = useState<string | null>(null); // the game whose picture is uploading
   const token = localStorage.getItem("token");
 
   const refresh = () => myGames(token).then(setGames);
@@ -51,6 +57,40 @@ export default function MyGames() {
     }
   }
 
+  const replace = (game: PublishedGame) => setGames((list) => (list ?? []).map((g) => (g.name === game.name ? game : g)));
+
+  async function changeCover(name: string, e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // so picking the same file again still uploads
+    if (!file) return;
+    setError("");
+    setNotice("");
+    if (!COVER_TYPES.includes(file.type)) return setError("Use a PNG, JPEG or WebP picture");
+    if (file.size > MAX_COVER_BYTES) return setError("The picture must be 2 MB or less");
+    setCoverBusy(name);
+    try {
+      replace(await uploadCover(token, name, file));
+      setNotice("Cover updated. It shows on the homepage too.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not upload that picture");
+    } finally {
+      setCoverBusy(null);
+    }
+  }
+
+  async function dropCover(name: string) {
+    setError("");
+    setNotice("");
+    setCoverBusy(name);
+    try {
+      replace(await removeCover(token, name));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not remove the picture");
+    } finally {
+      setCoverBusy(null);
+    }
+  }
+
   // This sits inside the profile form, so Enter uploads instead of saving the profile.
   const onKey = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
@@ -85,7 +125,10 @@ export default function MyGames() {
         {games?.map((g) => {
           const card = toCard(g);
           return (
-            <article key={g.name} className="game-card no-shot">
+            <article key={g.name} className="game-card">
+              <div className="art" style={{ background: `linear-gradient(135deg, ${card.colors[0]}, ${card.colors[1]})` }}>
+                {card.cover ? <img src={card.cover} alt={`${card.title} cover`} /> : <span>{card.title.charAt(0)}</span>}
+              </div>
               <div className="game-card-body">
                 <h4>{card.title}</h4>
                 <div className="game-card-meta">
@@ -97,6 +140,15 @@ export default function MyGames() {
                   <a href={g.repo_url} target="_blank" rel="noreferrer">GitHub ↗</a>
                   <span>{card.host}</span>
                   <button type="button" className="link remove" onClick={() => remove(g.name)}>Remove</button>
+                </div>
+                <div className="game-card-links cover-links">
+                  <label className={coverBusy === g.name ? "cover-pick busy" : "cover-pick"}>
+                    {coverBusy === g.name ? "Saving picture..." : card.cover ? "Change cover" : "Add cover"}
+                    <input type="file" accept={COVER_TYPES.join(",")} disabled={coverBusy !== null} onChange={(e) => changeCover(g.name, e)} />
+                  </label>
+                  {isUploaded(g) && (
+                    <button type="button" className="link" disabled={coverBusy !== null} onClick={() => dropCover(g.name)}>Remove cover</button>
+                  )}
                 </div>
               </div>
             </article>

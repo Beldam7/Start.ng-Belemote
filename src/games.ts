@@ -4,7 +4,8 @@ import { CharacterStyle, styleFor } from "./character";
 // A homepage card for a game from GET /games (games published with POST /games/publish).
 // The API only knows the name, so the title and colours are worked out from it:
 // the same game always gets the same colours.
-export type Game = { slug: string; title: string; url: string; host: string; by: string; colors: [string, string] };
+// cover is the game's picture; without one the card shows the title's first letter on the colours.
+export type Game = { slug: string; title: string; url: string; host: string; by: string; colors: [string, string]; cover: string | null };
 
 const CARD_COLORS: [string, string][] = [
   ["#ffd400", "#e10600"],
@@ -25,6 +26,7 @@ export function toCard(game: PublishedGame): Game {
     host: new URL(game.url).host,
     by: game.by,
     colors: CARD_COLORS[hash % CARD_COLORS.length],
+    cover: game.cover_url,
   };
 }
 
