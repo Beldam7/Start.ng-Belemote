@@ -230,7 +230,8 @@ input:focus { outline: 2px solid var(--ink); outline-offset: -1px; }
 .docs-side { position: sticky; top: 16px; display: grid; gap: 20px; }
 .ai-box { display: grid; gap: 8px; padding: 16px; background: var(--lime); border: 1.5px solid var(--ink); border-radius: 14px; font-size: .9rem; }
 .ai-box code { background: var(--card); word-break: break-all; }
-.ai-box button { font-size: .9rem; padding: 10px 14px; }
+.ai-box button, .ai-box .btn { font-size: .9rem; padding: 10px 14px; text-align: center; }
+.ai-box .btn.ghost { border-color: var(--ink); }
 .toc { display: grid; gap: 4px; font-size: .9rem; }
 .toc a { color: var(--muted); padding: 3px 0; }
 .toc a:hover { color: var(--ink); }

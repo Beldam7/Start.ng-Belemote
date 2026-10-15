@@ -49,6 +49,8 @@ export default function Docs() {
             <span>Give it this page as plain text:</span>
             <code>{docsUrl.replace(/^https?:\/\//, "")}</code>
             <button type="button" onClick={copyForAi}>{copied ? "Copied" : "Copy a prompt for your AI"}</button>
+            {/* For AI tools that take a file upload instead of a link. */}
+            <a className="btn ghost" href="/docs.md" download="startng-docs.md">Download as .md</a>
           </div>
           {sections.length > 0 && (
             <nav className="toc" aria-label="On this page">
