@@ -28,8 +28,8 @@ export async function me(token: string | null): Promise<User | null> {
   return res.ok ? res.json() : null;
 }
 
-// A game published with POST /games/publish.
-export type PublishedGame = { name: string; url: string; repo_url: string; by: string; updated_at: string };
+// A game published with POST /games/publish. cover_url is its card picture (null = none yet).
+export type PublishedGame = { name: string; url: string; repo_url: string; by: string; updated_at: string; cover_url: string | null };
 
 export async function listGames(): Promise<PublishedGame[]> {
   const res = await fetch(`${API_URL}/games`);
@@ -98,4 +98,28 @@ export async function unpublishGame(token: string | null, name: string): Promise
     const data = await res.json().catch(() => ({}));
     throw new Error(typeof data.detail === "string" ? data.detail : "Could not remove that game");
   }
+}
+
+// Same limits as the backend (app/covers.py). It crops the picture to 640 x 400.
+export const COVER_TYPES = ["image/png", "image/jpeg", "image/webp"];
+export const MAX_COVER_BYTES = 2 * 1024 * 1024;
+
+/** Set your game's card picture (the file is sent as is). Returns the game with its new cover_url. */
+export async function uploadCover(token: string | null, name: string, file: File): Promise<PublishedGame> {
+  const res = await fetch(`${API_URL}/games/${encodeURIComponent(name)}/cover`, {
+    method: "PUT",
+    headers: { "Content-Type": file.type, Authorization: `Bearer ${token}` },
+    body: file,
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Could not upload that picture");
+  return data;
+}
+
+/** Remove the picture you uploaded; the game's own cover.png (if any) or the letter shows again. */
+export async function removeCover(token: string | null, name: string): Promise<PublishedGame> {
+  const res = await fetch(`${API_URL}/games/${encodeURIComponent(name)}/cover`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Could not remove the picture");
+  return data;
 }
