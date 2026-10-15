@@ -88,10 +88,40 @@ export default function App() {
       .finally(() => setChecking(false));
   }, [checking]);
 
+  // A game picked while signed out: ask "sign in or play as a guest?" (null = not asking).
+  const [chosen, setChosen] = useState<Game | null>(null);
+  // The game to go to once signed in (and the character exists): from a game's
+  // ?return_to=, or a game picked here and then "Sign in".
+  const [goTo, setGoTo] = useState<string | null>(returnTo);
+
   useEffect(() => {
-    // Back to the game once signed in and the character exists.
-    if (user?.character && returnTo) location.replace(returnTo);
-  }, [user]);
+    if (user?.character && goTo) location.assign(goTo);
+  }, [user, goTo]);
+
+  function pickGame(e: React.MouseEvent, g: Game) {
+    if (user || checking) return; // signed in: the link opens the game as usual
+    e.preventDefault();
+    setChosen(g);
+  }
+
+  function playAsGuest(g: Game) {
+    // ?guest tells games that support it to skip their own "sign in or guest?" question.
+    const url = new URL(g.url);
+    url.searchParams.set("guest", "1");
+    window.open(url.href, "_blank", "noreferrer");
+    setChosen(null);
+  }
+
+  function signInFor(g: Game) {
+    setGoTo(g.url);
+    setChosen(null);
+    setSignInOpen(true);
+  }
+
+  function closeSignIn() {
+    setSignInOpen(false);
+    if (goTo !== returnTo) setGoTo(null);
+  }
 
   function onSuccess(res: TokenResponse) {
     localStorage.setItem("token", res.access_token);
@@ -188,7 +218,7 @@ export default function App() {
           )}
           <div className="grid">
             {games?.map((g) => (
-              <a key={g.slug} className="game" href={g.url} target="_blank" rel="noreferrer">
+              <a key={g.slug} className="game" href={g.url} target="_blank" rel="noreferrer" onClick={(e) => pickGame(e, g)}>
                 <div className="art" style={{ background: `linear-gradient(135deg, ${g.colors[0]}, ${g.colors[1]})` }}>
                   {g.cover ? <img src={g.cover} alt="" loading="lazy" /> : <span>{g.title.charAt(0)}</span>}
                 </div>
@@ -232,15 +262,34 @@ export default function App() {
         </Suspense>
       )}
 
+      {chosen && !user && (
+        <div className="overlay" onClick={() => setChosen(null)}>
+          <div className="card choose" role="dialog" aria-modal="true" aria-labelledby="choose-title" onClick={(e) => e.stopPropagation()}>
+            <div className="card-head">
+              <h3 id="choose-title">Play {chosen.title}</h3>
+              <button type="button" className="link close" aria-label="Close" onClick={() => setChosen(null)}>✕</button>
+            </div>
+            <button type="button" className="choice" onClick={() => signInFor(chosen)}>
+              <b>Sign in</b>
+              <span>Save your high scores and play as your own character. You can change it any time.</span>
+            </button>
+            <button type="button" className="choice ghost" onClick={() => playAsGuest(chosen)}>
+              <b>Play as a guest</b>
+              <span>Jump straight in. Your high score won't be saved.</span>
+            </button>
+          </div>
+        </div>
+      )}
+
       {signInOpen && !user && !checking && (
-        <div className="overlay" onClick={() => setSignInOpen(false)}>
+        <div className="overlay" onClick={closeSignIn}>
           <div className="card" role="dialog" aria-modal="true" aria-labelledby="sign-in-title" onClick={(e) => e.stopPropagation()}>
             <div className="card-head">
               <h3 id="sign-in-title">Sign in to start.ng</h3>
-              <button type="button" className="link close" aria-label="Close" onClick={() => setSignInOpen(false)}>✕</button>
+              <button type="button" className="link close" aria-label="Close" onClick={closeSignIn}>✕</button>
             </div>
             <p className="note">
-              {returnTo ? `Sign in to continue to ${new URL(returnTo).host}.` : "Use your Google account. New here? Signing in creates your account."}
+              {goTo ? `Sign in to continue to ${new URL(goTo).host}.` : "Use your Google account. New here? Signing in creates your account."}
             </p>
             {error && <p className="error">{error}</p>}
             <div className="google">

@@ -16,14 +16,23 @@ const CARD_COLORS: [string, string][] = [
   ["#fd9644", "#eb3b5a"],
 ];
 
+// The API writes game addresses as https://, which is right on start.ng. Locally the Worker's
+// dev server is plain http, so local *.localhost games are linked over http.
+function playableUrl(url: string) {
+  const u = new URL(url);
+  if (u.hostname.endsWith(".localhost")) u.protocol = "http:";
+  return u.href.replace(/\/$/, "");
+}
+
 export function toCard(game: PublishedGame): Game {
   let hash = 0;
   for (const ch of game.name) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
+  const url = playableUrl(game.url);
   return {
     slug: game.name,
     title: game.name.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" "),
-    url: game.url,
-    host: new URL(game.url).host,
+    url,
+    host: new URL(url).host,
     by: game.by,
     colors: CARD_COLORS[hash % CARD_COLORS.length],
     cover: game.cover_url,
