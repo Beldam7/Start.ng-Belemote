@@ -1,4 +1,4 @@
-import { getLeaderboard, me, PublishedGame, submitScore } from "./api";
+import { getLeaderboard, getLiveTicket, me, PublishedGame, submitScore } from "./api";
 import { CharacterStyle, styleFor } from "./character";
 
 // A homepage card for a game from GET /games (games published with POST /games/publish).
@@ -113,9 +113,22 @@ const handlers: Record<string, (msg: Message, game: string) => Promise<object>> 
       return { type: "startng:leaderboardData", ok: false, error: errorText(err, "Could not load the leaderboard") };
     }
   },
+
+  // { type: "startng:ticket" } -> { type: "startng:ticketData", ok, ticket, url | error }
+  // For multiplayer games: open `${url}?ticket=${ticket}` within a minute. The ticket only opens
+  // this game's live room; it isn't a sign-in.
+  "startng:ticket": async (_msg, game) => {
+    const token = localStorage.getItem("token");
+    if (!token) return { type: "startng:ticketData", ok: false, error: "Sign in with start.ng to join" };
+    try {
+      return { type: "startng:ticketData", ok: true, ...(await getLiveTicket(token, game)) };
+    } catch (err) {
+      return { type: "startng:ticketData", ok: false, error: errorText(err, "Could not join the game") };
+    }
+  },
 };
 
-/** Runs on /connect: answers games (and nobody else) about the signed-in player and scores. */
+/** Runs on /connect: answers games (and nobody else) about the signed-in player, scores and live rooms. */
 export function serveConnect() {
   window.addEventListener("message", async (e) => {
     const handle = handlers[e.data?.type];

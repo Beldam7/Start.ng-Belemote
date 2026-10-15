@@ -58,6 +58,17 @@ export async function getLeaderboard(game: string, limit = 10): Promise<Leaderbo
   return res.json();
 }
 
+// Multiplayer: a one-minute ticket into a game's live room, and the room's WebSocket address.
+export type LiveTicket = { ticket: string; url: string };
+
+export async function getLiveTicket(token: string | null, game: string): Promise<LiveTicket> {
+  const path = `/games/${encodeURIComponent(game)}`;
+  const res = await fetch(`${API_URL}${path}/ticket`, { method: "POST", headers: { Authorization: `Bearer ${token}` } });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Could not join the game");
+  return { ticket: data.ticket, url: `${API_URL.replace(/^http/, "ws")}${path}/live` };
+}
+
 export async function saveCharacter(token: string | null, character: Character): Promise<User> {
   const res = await fetch(`${API_URL}/auth/me/character`, {
     method: "PUT",
