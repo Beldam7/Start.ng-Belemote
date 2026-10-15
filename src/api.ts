@@ -18,3 +18,9 @@ export const register = (email: string, password: string, name?: string) =>
   post("/auth/register", { email, password, name });
 export const login = (email: string, password: string) => post("/auth/login", { email, password });
 export const googleLogin = (idToken: string) => post("/auth/google", { id_token: idToken });
+
+export async function me(token: string): Promise<User> {
+  const res = await fetch(`${API_URL}/auth/me`, { headers: { Authorization: `Bearer ${token}` } });
+  if (!res.ok) throw new Error("Session expired");
+  return res.json();
+}
