@@ -97,6 +97,28 @@ export async function publishGame(token: string | null, repoUrl: string): Promis
   return data;
 }
 
+// ---- approve links: a game published through the API without signing in waits for one of these
+
+export type PendingGameInfo = { name: string; repo_url: string; expires_at: string; available: boolean };
+
+export async function getPendingGame(code: string): Promise<PendingGameInfo> {
+  const res = await fetch(`${API_URL}/games/publish/${encodeURIComponent(code)}`);
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : "This link has expired or was already used");
+  return data;
+}
+
+/** Puts a waiting game live on your account. */
+export async function approvePendingGame(token: string | null, code: string): Promise<{ name: string; url: string; created: boolean }> {
+  const res = await fetch(`${API_URL}/games/publish/${encodeURIComponent(code)}/approve`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Could not put it live");
+  return data;
+}
+
 export async function myGames(token: string | null): Promise<PublishedGame[]> {
   const res = await fetch(`${API_URL}/games/mine`, { headers: { Authorization: `Bearer ${token}` } });
   return res.ok ? res.json() : [];

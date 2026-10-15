@@ -1,14 +1,24 @@
 import { FormEvent, lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { GoogleLogin } from "@react-oauth/google";
-import { googleLogin, listGames, login, me, myGames, register, saveCharacter, TokenResponse, User } from "./api";
+import { approvePendingGame, getPendingGame, googleLogin, listGames, login, me, myGames, PendingGameInfo, register, saveCharacter, TokenResponse, User } from "./api";
 import { AvatarFace } from "./Avatar";
 import { Character, styleFor } from "./character";
 // The creator (and three.js) loads only when someone opens it.
 const CharacterCreator = lazy(() => import("./CharacterCreator"));
-import { Game, gameReturnUrl, HANGOUT, toCard, withHangoutFirst } from "./games";
+import { Game, gameReturnUrl, HANGOUT, playableUrl, toCard, withHangoutFirst } from "./games";
 
 // Set when a game sent the user here to sign in: we send them back afterwards.
 const returnTo = gameReturnUrl();
+// Set on /approve/<code>: a game published through the API without signing in, waiting to go live.
+const approveCode = location.pathname.match(/^\/approve\/([\w-]{8,40})\/?$/)?.[1] ?? null;
+
+type Approval =
+  | { step: "loading" }
+  | { step: "missing"; message: string }
+  | { step: "ready"; info: PendingGameInfo }
+  | { step: "working"; info: PendingGameInfo }
+  | { step: "done"; name: string; url: string }
+  | { step: "failed"; info: PendingGameInfo; message: string };
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -26,6 +36,7 @@ export default function App() {
   const menuRef = useRef<HTMLDivElement>(null);
   // Published games from the API; null while loading.
   const [games, setGames] = useState<Game[] | null>(null);
+  const [approval, setApproval] = useState<Approval | null>(approveCode ? { step: "loading" } : null);
   // The signed-in builder's newest game, for the example address in the hero.
   const [myLatest, setMyLatest] = useState<Game | null>(null);
 
@@ -140,6 +151,30 @@ export default function App() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     }
+  }
+
+  useEffect(() => {
+    if (!approveCode) return;
+    getPendingGame(approveCode)
+      .then((info) => setApproval({ step: "ready", info }))
+      .catch((err) => setApproval({ step: "missing", message: err instanceof Error ? err.message : "This link has expired or was already used" }));
+  }, []);
+
+  async function approve(info: PendingGameInfo) {
+    if (!approveCode) return;
+    setApproval({ step: "working", info });
+    try {
+      const live = await approvePendingGame(localStorage.getItem("token"), approveCode);
+      setApproval({ step: "done", name: live.name, url: playableUrl(live.url) });
+      refreshGames();
+    } catch (err) {
+      setApproval({ step: "failed", info, message: err instanceof Error ? err.message : "Could not put it live" });
+    }
+  }
+
+  function closeApproval() {
+    setApproval(null);
+    history.replaceState(null, "", "/");
   }
 
   function signOut() {
@@ -266,6 +301,59 @@ export default function App() {
           onCancel={() => setEditing(false)}
         />
         </Suspense>
+      )}
+
+      {approval && !signInOpen && !checking && !(user && (!user.character || editing)) && (
+        <div className="overlay">
+          <div className="card approve" role="dialog" aria-modal="true" aria-labelledby="approve-title">
+            {approval.step === "loading" && <p className="note">Loading…</p>}
+            {approval.step === "missing" && (
+              <>
+                <h3 id="approve-title">This link doesn't work any more</h3>
+                <p className="note">{approval.message}. Publishing the game again gives you a new link.</p>
+                <button type="button" onClick={closeApproval}>Go to start.ng</button>
+              </>
+            )}
+            {(approval.step === "ready" || approval.step === "working" || approval.step === "failed") && (
+              <>
+                <h3 id="approve-title">Put <mark>{approval.info.name}</mark> live?</h3>
+                <p className="note">
+                  From <code>{approval.info.repo_url.replace("https://github.com/", "github.com/")}</code>. It will play at{" "}
+                  <code>{approval.info.name}.start.ng</code>.
+                </p>
+                {!approval.info.available ? (
+                  <p className="error">Someone has taken "{approval.info.name}" since. Publish again with another name.</p>
+                ) : !user ? (
+                  <>
+                    <p className="note">Sign in to put it live on your start.ng account. New here? Signing in creates your account.</p>
+                    <button type="button" onClick={() => setSignInOpen(true)}>Sign in</button>
+                  </>
+                ) : (
+                  <>
+                    <p className="note">
+                      It goes live on your account, <b>{user.character?.name ?? firstName}</b>. After this, publishing the same repo updates
+                      the game straight away.
+                    </p>
+                    {approval.step === "failed" && <p className="error">{approval.message}</p>}
+                    <button type="button" disabled={approval.step === "working"} onClick={() => approve(approval.info)}>
+                      {approval.step === "working" ? "Putting it live…" : "Put it live"}
+                    </button>
+                    <button type="button" className="link" onClick={signOut}>Not you? Use another account</button>
+                  </>
+                )}
+                <button type="button" className="link" onClick={closeApproval}>Not now</button>
+              </>
+            )}
+            {approval.step === "done" && (
+              <>
+                <h3 id="approve-title"><mark>{approval.name}</mark> is live</h3>
+                <p className="note">It's on your account now. Publishing the same repo again updates it straight away.</p>
+                <a className="btn" href={approval.url} target="_blank" rel="noreferrer">Play it ↗</a>
+                <button type="button" className="link" onClick={closeApproval}>Done</button>
+              </>
+            )}
+          </div>
+        </div>
       )}
 
       {chosen && !user && (
