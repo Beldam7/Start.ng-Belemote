@@ -1,6 +1,9 @@
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { GoogleLogin } from "@react-oauth/google";
-import { googleLogin, login, me, register, TokenResponse, User } from "./api";
+import { googleLogin, login, me, register, saveCharacter, TokenResponse, User } from "./api";
+import { AvatarFace } from "./Avatar";
+import { Character, styleFor } from "./character";
+import CharacterCreator from "./CharacterCreator";
 import { gameReturnUrl, gameUrl, games } from "./games";
 
 // Set when a game sent the user here to sign in: we send them back afterwards.
@@ -14,6 +17,19 @@ export default function App() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [editing, setEditing] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Close the profile menu on an outside click or Escape.
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onClick = (e: MouseEvent) => { if (!menuRef.current?.contains(e.target as Node)) setMenuOpen(false); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setMenuOpen(false); };
+    document.addEventListener("mousedown", onClick);
+    document.addEventListener("keydown", onKey);
+    return () => { document.removeEventListener("mousedown", onClick); document.removeEventListener("keydown", onKey); };
+  }, [menuOpen]);
 
   // Restore the session from the saved token, so a refresh keeps you signed in.
   useEffect(() => {
@@ -28,7 +44,8 @@ export default function App() {
   }, [checking]);
 
   useEffect(() => {
-    if (user && returnTo) location.replace(returnTo);
+    // Back to the game once signed in and the character exists.
+    if (user?.character && returnTo) location.replace(returnTo);
   }, [user]);
 
   function onSuccess(res: TokenResponse) {
@@ -50,6 +67,13 @@ export default function App() {
   function signOut() {
     localStorage.removeItem("token");
     setUser(null);
+    setEditing(false);
+    setMenuOpen(false);
+  }
+
+  async function onSaveCharacter(c: Character) {
+    setUser(await saveCharacter(localStorage.getItem("token"), c));
+    setEditing(false);
   }
 
   const firstName = (user?.name ?? user?.email ?? "").split(/[ @]/)[0];
@@ -62,10 +86,24 @@ export default function App() {
           <a href="#games">Games</a>
           <a href="#how">How it works</a>
           {user ? (
-            <span className="me">
-              <span className="avatar">{firstName.charAt(0).toUpperCase()}</span>
-              <button className="link" onClick={signOut}>Sign out</button>
-            </span>
+            <div className="me" ref={menuRef}>
+              <button className="me-button" onClick={() => setMenuOpen((o) => !o)} aria-haspopup="menu" aria-expanded={menuOpen} aria-label="Your account">
+                <AvatarFace style={user.character?.style ?? styleFor(user.id)} size={40} />
+              </button>
+              {menuOpen && (
+                <div className="menu" role="menu">
+                  <div className="menu-head">
+                    <AvatarFace style={user.character?.style ?? styleFor(user.id)} size={44} />
+                    <div>
+                      <strong>{user.character?.name ?? firstName}</strong>
+                      <span>{user.email}</span>
+                    </div>
+                  </div>
+                  <button role="menuitem" onClick={() => { setEditing(true); setMenuOpen(false); }}>View profile</button>
+                  <button role="menuitem" onClick={signOut}>Sign out</button>
+                </div>
+              )}
+            </div>
           ) : (
             <button onClick={() => setMode("login")}>Sign in</button>
           )}
@@ -75,7 +113,7 @@ export default function App() {
       <main>
         <section className="container hero">
           <p className="eyebrow">Big imagination. Played everywhere.</p>
-          <h1>{user ? <>Welcome back,<br /><mark>{firstName}.</mark></> : <>Good vibes.<br /><mark>Good games.</mark></>}</h1>
+          <h1>Good vibes.<br /><mark>Good games.</mark></h1>
           <p className="lead">
             Games made by builders in the community.{" "}<br />
             Each one lives at its own address, like <code>yourgame.start.ng</code>.{" "}<br />
@@ -131,6 +169,16 @@ export default function App() {
         <span>start<span>.ng</span></span>
         <span>Built by the HNG community</span>
       </footer>
+
+      {user && (!user.character || editing) && (
+        <CharacterCreator
+          initial={user.character ?? { name: firstName.slice(0, 24) || "Player", style: styleFor(user.id) }}
+          editing={!!user.character}
+          email={user.email}
+          onSave={onSaveCharacter}
+          onCancel={() => setEditing(false)}
+        />
+      )}
 
       {mode && !user && !checking && (
         <div className="overlay" onClick={() => setMode(null)}>

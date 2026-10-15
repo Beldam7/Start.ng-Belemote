@@ -1,4 +1,5 @@
 import { me } from "./api";
+import { CharacterStyle, styleFor } from "./character";
 
 // Games shown on the homepage. Each one is served from its own folder at https://<slug>.start.ng
 // Add a game by adding an entry; the homepage card styling applies to every entry, e.g.
@@ -11,7 +12,7 @@ export const gameUrl = (slug: string) => `https://${slug}.start.ng`;
 
 // Games are static sites on <name>.start.ng. This is how start.ng shares the signed-in
 // user with them: a game loads /connect in a hidden iframe and asks who is signed in.
-// Games get the user's id, name and style only, never the token or email.
+// Games get the user's id, character name and style only, never the token or email.
 
 const GAME_ORIGINS = [
   /^https:\/\/[a-z0-9-]+\.start\.ng$/,
@@ -34,38 +35,10 @@ export function gameReturnUrl(): string | null {
   }
 }
 
-// Until start.ng stores styles, each account gets a fixed look worked out from its id.
-// These field names and values are what games build against.
-export type GameStyle = {
-  primaryColor: string;
-  secondaryColor: string;
-  skinColor: string;
-  hat: "none" | "cap" | "beanie" | "tophat" | "crown";
-  accessory: "none" | "glasses" | "scarf" | "backpack";
-};
-
-const SHIRTS = ["#ff6b6b", "#1dd1a1", "#a55eea", "#4b7bec", "#f7b731", "#fd9644", "#26de81", "#eb3b5a", "#45aaf2", "#8854d0"];
-const PANTS = ["#2b2f4a", "#222f3e", "#3d3d3d", "#4b6584", "#5f3dc4", "#0c6e5a"];
-const SKIN = ["#8d5524", "#a0662f", "#c68642", "#e0ac69", "#f1c27d"];
-const HATS: GameStyle["hat"][] = ["none", "cap", "beanie", "tophat", "crown"];
-const ACCESSORIES: GameStyle["accessory"][] = ["none", "glasses", "scarf", "backpack"];
-
-function hash(n: number) {
-  n = Math.imul(n ^ (n >>> 16), 0x45d9f3b);
-  n = Math.imul(n ^ (n >>> 16), 0x45d9f3b);
-  return (n ^ (n >>> 16)) >>> 0;
-}
-
-export function styleFor(userId: number): GameStyle {
-  const pick = <T,>(list: T[], salt: number) => list[hash(userId * 31 + salt) % list.length];
-  return {
-    primaryColor: pick(SHIRTS, 1),
-    secondaryColor: pick(PANTS, 2),
-    skinColor: pick(SKIN, 3),
-    hat: pick(HATS, 4),
-    accessory: pick(ACCESSORIES, 5),
-  };
-}
+// What games receive as the player's look. Players make it in the character creator;
+// accounts without one get a starting look worked out from their id.
+export type GameStyle = CharacterStyle;
+export { styleFor };
 
 /** Runs on /connect: answers "who is signed in?" from games, and nobody else. */
 export function serveConnect() {
@@ -75,7 +48,11 @@ export function serveConnect() {
     const reply = {
       type: "startng:user",
       requestId: e.data.requestId,
-      user: user && { id: user.id, name: user.name ?? "Player", style: styleFor(user.id) },
+      user: user && {
+        id: user.id,
+        name: user.character?.name ?? user.name ?? "Player",
+        style: user.character?.style ?? styleFor(user.id),
+      },
     };
     (e.source as Window | null)?.postMessage(reply, e.origin);
   });
