@@ -43,7 +43,7 @@ export default function App() {
   return (
     <>
       <header className="container nav">
-        <a className="logo" href="/">start<span>.ng</span></a>
+        <a className="logo" href="/"><b>start<span>.ng</span></b></a>
         <nav>
           <a href="#games">Games</a>
           <a href="#how">How it works</a>
@@ -60,11 +60,12 @@ export default function App() {
 
       <main>
         <section className="container hero">
-          <p className="eyebrow">Made in Nigeria · Played everywhere</p>
-          <h1>{user ? <>Welcome back, {firstName}.</> : <>Games built by<br /><em>Nigerian builders.</em></>}</h1>
+          <p className="eyebrow">Made in Nigeria. Played everywhere.</p>
+          <h1>{user ? <>Welcome back,<br /><mark>{firstName}.</mark></> : <>Built here.<br /><mark>Played everywhere.</mark></>}</h1>
           <p className="lead">
-            Every game on start.ng is made by a builder in the community and lives at its own address, like
-            <code> relichunter.start.ng</code>. Pick one and play right in your browser.
+            Games made by builders in the community.{" "}<br />
+            Each one lives at its own address, like <code>relichunter.start.ng</code>.{" "}<br />
+            Pick one and play right in your browser.
           </p>
           <div className="actions">
             <a className="btn" href="#games">Play now</a>
@@ -75,21 +76,21 @@ export default function App() {
         <section id="games" className="container">
           <div className="section-head">
             <h2>Games</h2>
-            <span>{games.length} to play</span>
+            <span className="count">{games.length} to play</span>
           </div>
           <div className="grid">
             {games.map((g) => (
               <a key={g.slug} className="game" href={gameUrl(g.slug)} target="_blank" rel="noreferrer">
                 <div className="art" style={{ background: `linear-gradient(135deg, ${g.colors[0]}, ${g.colors[1]})` }}>
                   <span>{g.title.charAt(0)}</span>
-                  <em>{g.genre}</em>
                 </div>
                 <div className="info">
                   <h3>{g.title}</h3>
                   <p>{g.tagline}</p>
                   <div className="meta">
+                    <span className="tag">{g.genre}</span>
                     <span>by {g.by}</span>
-                    <span className="play">Play →</span>
+                    <span className="play">Play ↗</span>
                   </div>
                 </div>
               </a>
