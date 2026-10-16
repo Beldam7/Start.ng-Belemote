@@ -92,3 +92,235 @@
 @media (max-width: 600px) {
   .hangout-hint { white-space: normal; width: calc(100% - 32px); text-align: center; }
 }
+
+/* the clock, in the middle of the top bar */
+.hangout-clock {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--ink);
+  color: var(--lime);
+  border-radius: 999px;
+  padding: 8px 16px;
+  font: 600 15px var(--mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+/* what someone said, above their name: a box with an arrow pointing down at them */
+.hangout-bubble-anchor { width: 0; height: 0; }
+.hangout-bubble {
+  position: absolute;
+  left: 50%;
+  bottom: 27px;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: 220px;
+  padding: 7px 11px;
+  background: #fff;
+  color: var(--ink);
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.35;
+  text-align: left;
+  overflow-wrap: anywhere;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.22);
+}
+.hangout-bubble.you { background: var(--lime); }
+.hangout-bubble::before, .hangout-bubble::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  border-style: solid;
+  border-bottom: 0;
+  border-left-color: transparent;
+  border-right-color: transparent;
+}
+.hangout-bubble::before { bottom: -10px; border-width: 9px 8px 0; border-top-color: var(--ink); }
+.hangout-bubble::after { bottom: -6.5px; border-width: 7px 6px 0; border-top-color: #fff; }
+.hangout-bubble.you::after { border-top-color: var(--lime); }
+/* with the sidebar open, everything said is in the sidebar, so the boxes go */
+.hangout.chat-open .hangout-bubble { display: none !important; }
+
+/* "say something" and the button that opens the sidebar */
+.hangout-say {
+  position: fixed;
+  bottom: 62px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(420px, calc(100% - 32px));
+  display: none;
+  gap: 8px;
+}
+.hangout.chat-ready:not(.chat-open) .hangout-say { display: flex; }
+.hangout-say input, .hangout-chat-form input {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-size: 15px;
+}
+.hangout-say input:focus, .hangout-chat-form input:focus { outline: 2px solid var(--ink); border-color: var(--ink); }
+.hangout-say button, .hangout-chat-form button { padding: 10px 16px; }
+.hangout-say button:disabled, .hangout-chat-form button:disabled { opacity: 0.5; cursor: default; }
+
+.hangout-chat-toggle {
+  position: fixed;
+  top: 62px;
+  right: 16px;
+  display: none;
+  align-items: center;
+  gap: 8px;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 14px;
+}
+.hangout.chat-ready .hangout-chat-toggle { display: flex; }
+.hangout-chat-badge {
+  min-width: 20px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--lime);
+  color: var(--ink);
+  font-size: 12px;
+  text-align: center;
+}
+
+/* the chat sidebar: everyone's messages on the left, yours on the right */
+.hangout-chat {
+  position: fixed;
+  top: 0; right: 0; bottom: 0;
+  z-index: 20;
+  width: min(340px, 100vw);
+  display: flex;
+  flex-direction: column;
+  background: var(--card);
+  border-left: 1px solid var(--line);
+  box-shadow: -6px 0 0 var(--lime);
+  transform: translateX(110%);
+  visibility: hidden;
+  transition: transform 0.22s ease, visibility 0s 0.22s;
+}
+.hangout.chat-open .hangout-chat { transform: none; visibility: visible; transition: transform 0.22s ease; }
+.hangout-chat header { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.hangout-chat h2 { margin: 0; font-size: 1.05rem; letter-spacing: -0.01em; }
+.hangout-chat-close { background: none; color: var(--muted); padding: 4px 8px; font-size: 1rem; }
+.hangout-chat-close:hover { background: none; color: var(--ink); }
+.hangout-chat-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  list-style: none;
+  margin: 0;
+  padding: 14px 14px 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.hangout-chat-empty { position: absolute; top: 50%; left: 0; right: 0; margin: 0; padding: 0 24px; text-align: center; color: var(--muted); }
+.hangout-msg { max-width: 85%; align-self: flex-start; display: grid; gap: 2px; }
+.hangout-msg .who { font-size: 12px; font-weight: 600; color: var(--muted); padding-left: 4px; }
+.hangout-msg p {
+  margin: 0;
+  padding: 8px 12px;
+  background: #efeee4;
+  border-radius: 14px 14px 14px 4px;
+  font-size: 14px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.hangout-msg time { font-size: 11px; color: var(--muted); padding-left: 4px; }
+.hangout-msg.mine { align-self: flex-end; justify-items: end; }
+.hangout-msg.mine p { background: var(--lime); border-radius: 14px 14px 4px 14px; }
+.hangout-msg.mine time { padding: 0 4px 0 0; }
+.hangout-chat-form { display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--line); }
+
+@media (max-width: 600px) {
+  .hangout-clock { top: 48px; }
+  .hangout-chat-toggle { top: 98px; }
+  .hangout-status { top: 100px; }
+  .hangout-say { bottom: 98px; }
+}
+
+/* phones and tablets: an on-screen stick to walk with, a Wave button, and the chat through the sidebar */
+.hangout { touch-action: none; overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
+.hangout-bubble, .hangout-tag, .hangout-hud, .hangout-hint, .hangout-hint-touch, .hangout-joystick, .hangout-wave { -webkit-user-select: none; user-select: none; }
+.hangout input { font-size: 16px; } /* 16px, so phones don't zoom in when you tap it */
+.hangout-joystick, .hangout-wave, .hangout-hint-touch { display: none; }
+.hangout.touch .hangout-hint { display: none !important; }
+.hangout.touch .hangout-say { display: none !important; } /* on a phone the sidebar is where you type */
+.hangout.touch.chat-ready:not(.chat-open) .hangout-joystick, .hangout.touch.chat-ready:not(.chat-open) .hangout-wave { display: block; }
+.hangout.touch:not(.chat-open) .hangout-hint-touch:not([hidden]) { display: block; }
+
+.hangout-joystick {
+  position: fixed;
+  left: max(24px, env(safe-area-inset-left));
+  bottom: max(24px, env(safe-area-inset-bottom));
+  z-index: 5;
+  width: 132px;
+  height: 132px;
+  border-radius: 50%;
+  background: rgba(41, 42, 35, 0.28);
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  touch-action: none;
+}
+.hangout-joystick.held { background: rgba(41, 42, 35, 0.42); }
+.hangout-joystick-knob {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 56px; height: 56px;
+  margin: -28px 0 0 -28px;
+  border-radius: 50%;
+  background: var(--lime);
+  border: 2px solid var(--ink);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+}
+.hangout-wave {
+  position: fixed;
+  right: max(24px, env(safe-area-inset-right));
+  bottom: max(48px, calc(env(safe-area-inset-bottom) + 24px));
+  z-index: 5;
+  width: 68px; height: 68px;
+  padding: 0;
+  border-radius: 50%;
+  background: var(--lime);
+  color: var(--ink);
+  border: 2px solid var(--ink);
+  font-size: 14px;
+  touch-action: none;
+}
+.hangout-wave:hover, .hangout-wave:active { background: #c4e85a; color: var(--ink); }
+.hangout-hint-touch {
+  position: fixed;
+  left: 50%;
+  bottom: calc(max(24px, env(safe-area-inset-bottom)) + 144px);
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(41, 42, 35, 0.8);
+  color: var(--card);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+  .hangout-chat { width: 100vw; }
+}
+/* a phone on its side: smaller controls, and nothing else in the way */
+@media (max-height: 480px) and (orientation: landscape) {
+  .hangout-joystick { width: 108px; height: 108px; bottom: 16px; }
+  .hangout-wave { bottom: 28px; width: 60px; height: 60px; }
+  .hangout-hint-touch { display: none !important; }
+  .hangout-panel { padding: 18px; }
+  .hangout-clock { padding: 6px 14px; }
+}

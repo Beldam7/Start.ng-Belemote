@@ -1,10 +1,7 @@
-// The park: open grass, a sun, trees, flowers and a path. Built from a fixed seed so every
-// player sees exactly the same park.
+// The park: open grass, trees, flowers and a path. Built from a fixed seed so every player sees
+// exactly the same park. The sky, sun and moon are in sky.ts and follow the time of day.
 import * as THREE from "three";
-
-const SKY = "#bfe3f7";
-// Where the sun sits: low enough (about 11 degrees up) to be in view and cast long afternoon shadows.
-export const SUN_DIR = new THREE.Vector3(120, 40, -160).normalize();
+import { buildSky } from "./sky";
 
 function seeded(seed: number) {
   return () => {
@@ -15,32 +12,13 @@ function seeded(seed: number) {
   };
 }
 
-/** Adds the park to the scene. Returns { update(focus) } to keep the sun's shadows around the player. */
-export function buildPark(scene: THREE.Scene) {
+/** Adds the park to the scene. Returns { setTime(hour), update(focus) } for the sky. */
+export function buildPark(scene: THREE.Scene, shadowSize = 2048) {
   const rand = seeded(20261015);
   const between = (a: number, b: number) => a + rand() * (b - a);
   const color = new THREE.Color();
 
-  scene.background = new THREE.Color(SKY);
-  scene.fog = new THREE.Fog("#d4ecf6", 45, 150);
-
-  scene.add(new THREE.HemisphereLight("#e4f4ff", "#6f9a45", 1.15));
-  const sun = new THREE.DirectionalLight("#fff3d6", 2.6);
-  sun.castShadow = true;
-  sun.shadow.mapSize.set(2048, 2048);
-  Object.assign(sun.shadow.camera, { left: -22, right: 22, top: 22, bottom: -22, near: 1, far: 120 });
-  sun.shadow.bias = -0.0005;
-  scene.add(sun, sun.target);
-
-  // The sun you can see, with a soft glow, far away in the same direction the light comes from.
-  const disc = new THREE.Mesh(new THREE.CircleGeometry(9, 48), new THREE.MeshBasicMaterial({ color: "#fff1b0", fog: false }));
-  const glow = new THREE.Mesh(new THREE.CircleGeometry(16, 48), new THREE.MeshBasicMaterial({ color: "#fff6cf", transparent: true, opacity: 0.45, fog: false }));
-  for (const m of [disc, glow]) {
-    m.position.copy(SUN_DIR).multiplyScalar(260);
-    m.lookAt(0, 0, 0);
-    scene.add(m);
-  }
-  glow.position.addScaledVector(SUN_DIR, 1);
+  const sky = buildSky(scene, shadowSize);
 
   // Grass: a big field with gently varying greens.
   const groundGeo = new THREE.PlaneGeometry(420, 420, 140, 140);
@@ -135,11 +113,5 @@ export function buildPark(scene: THREE.Scene) {
   for (const m of [trunks, crowns]) m.castShadow = m.receiveShadow = true;
   scene.add(trunks, crowns);
 
-  return {
-    /** Keeps the sun's shadow area centred on whoever the camera follows. */
-    update(focus: THREE.Vector3) {
-      sun.target.position.copy(focus);
-      sun.position.copy(focus).addScaledVector(SUN_DIR, 60);
-    },
-  };
+  return { setTime: sky.setTime, update: sky.update };
 }
