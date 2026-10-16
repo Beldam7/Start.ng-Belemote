@@ -26,7 +26,7 @@ export const HANGOUT: Game = {
   host: "start.ng/hangout",
   by: "start.ng",
   colors: ["#292a23", "#5b7d0d"],
-  cover: null,
+  cover: "/hangout-cover.jpg", // a screenshot of the park, in public/
   board: null, // the Hangout has no leaderboard
 };
 
@@ -35,7 +35,7 @@ export const isInAppGame = (game: Game) => game.url.startsWith("/");
 
 // The API writes game addresses as https://, which is right on start.ng. Locally the Worker's
 // dev server is plain http, so local *.localhost games are linked over http.
-function playableUrl(url: string) {
+export function playableUrl(url: string) {
   const u = new URL(url);
   if (u.hostname.endsWith(".localhost")) u.protocol = "http:";
   return u.href.replace(/\/$/, "");
@@ -88,6 +88,18 @@ export function gameReturnUrl(): string | null {
 export type GameStyle = CharacterStyle;
 export { styleFor };
 
+/** How players who aren't signed in look in every start.ng game. */
+export const GUEST_STYLE: CharacterStyle = {
+  body: "male",
+  primaryColor: "#9aa3b5",
+  secondaryColor: "#4a4f60",
+  skinColor: "#c68642",
+  hairColor: "#17120f",
+  hair: "short",
+  hat: "none",
+  accessory: "none",
+};
+
 // The game a message came from: lanedash.start.ng -> "lanedash". Taken from the origin the
 // browser reports, never from the message, so a game can only save scores for itself.
 const gameFromOrigin = (origin: string) => new URL(origin).hostname.split(".")[0];
@@ -96,16 +108,24 @@ const errorText = (err: unknown, fallback: string) => (err instanceof Error ? er
 // What /connect answers. Every reply echoes the request's requestId.
 type Message = { type: string; requestId?: unknown; score?: unknown; stats?: unknown; limit?: unknown };
 const handlers: Record<string, (msg: Message, game: string) => Promise<object>> = {
-  // { type: "startng:whoami" } -> { type: "startng:user", user: { id, name, style } | null }
+  // { type: "startng:whoami" }
+  //   -> { type: "startng:user", user: { id, name, account, style, face } | null, guest: { name, style, face } }
+  // face is a picture of the character's face (a PNG data URL) for games that show a profile card.
+  // guest is start.ng's one look for players who aren't signed in, so every game shows the same.
   "startng:whoami": async () => {
     const user = await me(localStorage.getItem("token")).catch(() => null);
+    const { faceImage } = await import("./three/snapshot"); // three.js loads only when a game asks
+    const style = user ? user.character?.style ?? styleFor(user.id) : null;
     return {
       type: "startng:user",
-      user: user && {
+      user: user && style && {
         id: user.id,
         name: user.character?.name ?? user.name ?? "Player",
-        style: user.character?.style ?? styleFor(user.id),
+        account: user.name ?? null,
+        style,
+        face: faceImage(style),
       },
+      guest: { name: "Guest", style: GUEST_STYLE, face: faceImage(GUEST_STYLE) },
     };
   },
 

@@ -1,10 +1,30 @@
-// The park: open grass, a sun, trees, flowers and a path. Built from a fixed seed so every
-// player sees exactly the same park.
+// The park: open grass, trees, flowers and a path. Built from a fixed seed so every player sees
+// exactly the same park. The sky, sun and moon are in sky.ts and follow the time of day.
 import * as THREE from "three";
+import { buildSky } from "./sky";
 
-const SKY = "#bfe3f7";
-// Where the sun sits: low enough (about 11 degrees up) to be in view and cast long afternoon shadows.
-export const SUN_DIR = new THREE.Vector3(120, 40, -160).normalize();
+// ---- seats: 60 places on 20 benches in two rings around the path, all facing the middle.
+// Seat numbers come from the server; everyone computes the same spots from them.
+export const SEAT_HEIGHT = 0.49;
+const BENCH_WIDTH = 2.0;
+const SEATS_PER_BENCH = 3;
+const BENCHES: { position: THREE.Vector3; ry: number }[] = [];
+for (const [count, radius, turn] of [[8, 12.4, 0.2], [12, 16.8, 0]]) {
+  for (let i = 0; i < count; i++) {
+    const a = (i / count) * Math.PI * 2 + turn;
+    const position = new THREE.Vector3(Math.cos(a) * radius, 0, Math.sin(a) * radius);
+    BENCHES.push({ position, ry: Math.atan2(-position.x, -position.z) }); // +z faces the middle
+  }
+}
+export const SEAT_COUNT = BENCHES.length * SEATS_PER_BENCH;
+
+/** Where seat n is: sit (on the bench), stand (just in front of it) and ry (facing the middle). */
+export function seatSpot(n: number) {
+  const b = BENCHES[Math.floor(n / SEATS_PER_BENCH) % BENCHES.length];
+  const slot = ((n % SEATS_PER_BENCH) - 1) * 0.62;
+  const along = (forward: number) => new THREE.Vector3(slot, 0, forward).applyAxisAngle(new THREE.Vector3(0, 1, 0), b.ry).add(b.position);
+  return { sit: along(0.04), stand: along(0.95), ry: b.ry };
+}
 
 function seeded(seed: number) {
   return () => {
@@ -15,32 +35,13 @@ function seeded(seed: number) {
   };
 }
 
-/** Adds the park to the scene. Returns { update(focus) } to keep the sun's shadows around the player. */
-export function buildPark(scene: THREE.Scene) {
+/** Adds the park to the scene. Returns { setTime(hour), update(focus) } for the sky. */
+export function buildPark(scene: THREE.Scene, shadowSize = 2048) {
   const rand = seeded(20261015);
   const between = (a: number, b: number) => a + rand() * (b - a);
   const color = new THREE.Color();
 
-  scene.background = new THREE.Color(SKY);
-  scene.fog = new THREE.Fog("#d4ecf6", 45, 150);
-
-  scene.add(new THREE.HemisphereLight("#e4f4ff", "#6f9a45", 1.15));
-  const sun = new THREE.DirectionalLight("#fff3d6", 2.6);
-  sun.castShadow = true;
-  sun.shadow.mapSize.set(2048, 2048);
-  Object.assign(sun.shadow.camera, { left: -22, right: 22, top: 22, bottom: -22, near: 1, far: 120 });
-  sun.shadow.bias = -0.0005;
-  scene.add(sun, sun.target);
-
-  // The sun you can see, with a soft glow, far away in the same direction the light comes from.
-  const disc = new THREE.Mesh(new THREE.CircleGeometry(9, 48), new THREE.MeshBasicMaterial({ color: "#fff1b0", fog: false }));
-  const glow = new THREE.Mesh(new THREE.CircleGeometry(16, 48), new THREE.MeshBasicMaterial({ color: "#fff6cf", transparent: true, opacity: 0.45, fog: false }));
-  for (const m of [disc, glow]) {
-    m.position.copy(SUN_DIR).multiplyScalar(260);
-    m.lookAt(0, 0, 0);
-    scene.add(m);
-  }
-  glow.position.addScaledVector(SUN_DIR, 1);
+  const sky = buildSky(scene, shadowSize);
 
   // Grass: a big field with gently varying greens.
   const groundGeo = new THREE.PlaneGeometry(420, 420, 140, 140);
@@ -91,35 +92,36 @@ export function buildPark(scene: THREE.Scene) {
   }
   scene.add(flowers);
 
-  // A round path around the middle, with benches facing in.
+  // A round path around the middle, with the benches around it.
   const path = new THREE.Mesh(new THREE.RingGeometry(9, 10.6, 96).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: "#e6dbbd", roughness: 1 }));
   path.position.y = 0.01;
   path.receiveShadow = true;
   scene.add(path);
   const wood = new THREE.MeshStandardMaterial({ color: "#8a5a35", roughness: 0.8 });
   const metal = new THREE.MeshStandardMaterial({ color: "#2f3a2c", roughness: 0.5, metalness: 0.4 });
-  for (let i = 0; i < 6; i++) {
-    const a = (i / 6) * Math.PI * 2 + 0.3;
+  // Benches: one seat for each start.ng user who has one (see seatSpot).
+  for (const b of BENCHES) {
     const bench = new THREE.Group();
-    const seat = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.08, 0.45), wood);
-    seat.position.y = 0.45;
-    const back = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.4, 0.06), wood);
-    back.position.set(0, 0.72, -0.2);
+    const seat = new THREE.Mesh(new THREE.BoxGeometry(BENCH_WIDTH, 0.08, 0.5), wood);
+    seat.position.y = SEAT_HEIGHT - 0.04;
+    const back = new THREE.Mesh(new THREE.BoxGeometry(BENCH_WIDTH, 0.42, 0.06), wood);
+    back.position.set(0, 0.74, -0.24);
+    back.rotation.x = -0.12;
     bench.add(seat, back);
-    for (const side of [-0.7, 0.7]) {
-      const leg = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.45, 0.4), metal);
-      leg.position.set(side, 0.22, 0);
+    for (const side of [-1, 1]) {
+      const leg = new THREE.Mesh(new THREE.BoxGeometry(0.06, SEAT_HEIGHT - 0.04, 0.44), metal);
+      leg.position.set(side * (BENCH_WIDTH / 2 - 0.12), (SEAT_HEIGHT - 0.04) / 2, 0);
       bench.add(leg);
     }
     bench.traverse((o) => { o.castShadow = o.receiveShadow = true; });
-    bench.position.set(Math.cos(a) * 11.6, 0, Math.sin(a) * 11.6);
-    bench.lookAt(0, 0, 0);
+    bench.position.copy(b.position);
+    bench.rotation.y = b.ry;
     scene.add(bench);
   }
 
   // Trees: a few near the path, a loose ring further out, and woods at the edge.
   const spots = [];
-  for (let i = 0; i < 8; i++) spots.push([between(14, 24), rand() * Math.PI * 2]);
+  for (let i = 0; i < 8; i++) spots.push([between(21, 27), rand() * Math.PI * 2]);
   for (let i = 0; i < 45; i++) spots.push([between(28, 55), rand() * Math.PI * 2]);
   for (let i = 0; i < 80; i++) spots.push([between(60, 110), rand() * Math.PI * 2]);
   const trunks = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.16, 0.24, 2.2, 7).translate(0, 1.1, 0), new THREE.MeshStandardMaterial({ color: "#6b4a2f", roughness: 0.9 }), spots.length);
@@ -135,11 +137,5 @@ export function buildPark(scene: THREE.Scene) {
   for (const m of [trunks, crowns]) m.castShadow = m.receiveShadow = true;
   scene.add(trunks, crowns);
 
-  return {
-    /** Keeps the sun's shadow area centred on whoever the camera follows. */
-    update(focus: THREE.Vector3) {
-      sun.target.position.copy(focus);
-      sun.position.copy(focus).addScaledVector(SUN_DIR, 60);
-    },
-  };
+  return { setTime: sky.setTime, update: sky.update };
 }
