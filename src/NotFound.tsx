@@ -11,6 +11,11 @@ export default function NotFound() {
     <>
       <header className="container nav">
         <a className="logo" href="/"><b>start<span>.ng</span></b></a>
+        <nav>
+          <a href="/games">Games</a>
+          <a href="/#how">How it works</a>
+          <a href="/docs">Docs</a>
+        </nav>
       </header>
       <main>
         <section className="container hero">
@@ -22,7 +27,7 @@ export default function NotFound() {
           </p>
           <div className="actions">
             <a className="btn" href="/">Go to the homepage</a>
-            <a className="btn ghost" href="/#games">Browse games</a>
+            <a className="btn ghost" href="/games">Browse games</a>
           </div>
         </section>
       </main>
