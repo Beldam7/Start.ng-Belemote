@@ -326,4 +326,3 @@
 }
 
 /* someone who isn't here: sitting on their bench */
-.hangout-tag.away { background: rgba(255, 254, 250, 0.72); color: var(--muted); font-weight: 500; font-size: 12px; box-shadow: none; }

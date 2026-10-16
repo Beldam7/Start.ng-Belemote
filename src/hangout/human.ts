@@ -1,7 +1,6 @@
 // The start.ng character: the same 3D person as the start.ng profile (src/three/human.ts),
 // plus walking. In metres, about 1.7-1.75 m tall, facing +z. Keep the look in step with start.ng.
 import * as THREE from "three";
-import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import type { CharacterStyle } from "../character";
 
 const PI = Math.PI;
@@ -405,43 +404,4 @@ export function buildHuman(style: Partial<CharacterStyle>, { sitting = false }: 
       mats.forEach((m) => m.dispose());
     },
   };
-}
-
-/**
- * Someone who isn't in the Hangout: their character sitting on a bench, as a still model.
- * It's merged into one mesh per material (a few draw calls instead of ~150), so 60 of them stay
- * fast. Returns a Group; call disposeStatue(group) when removing it.
- */
-export function buildStatue(style: Partial<CharacterStyle>): THREE.Group {
-  const human = buildHuman(style, { sitting: true });
-  human.update(1.3);
-  human.root.updateMatrixWorld(true);
-  const byMaterial = new Map<THREE.Material, THREE.BufferGeometry[]>();
-  human.root.traverse((o) => {
-    if (!(o instanceof THREE.Mesh)) return;
-    const g: THREE.BufferGeometry = o.geometry.index ? o.geometry.toNonIndexed() : o.geometry.clone();
-    for (const name of Object.keys(g.attributes)) if (name !== "position" && name !== "normal") g.deleteAttribute(name);
-    g.applyMatrix4(o.matrixWorld);
-    const material = o.material as THREE.Material;
-    if (!byMaterial.has(material)) byMaterial.set(material, []);
-    byMaterial.get(material)!.push(g);
-  });
-  const group = new THREE.Group();
-  for (const [material, parts] of byMaterial) {
-    const mesh = new THREE.Mesh(mergeGeometries(parts), material.clone());
-    parts.forEach((g) => g.dispose());
-    mesh.castShadow = true;
-    group.add(mesh);
-  }
-  human.dispose();
-  return group;
-}
-
-export function disposeStatue(group: THREE.Group) {
-  group.traverse((o) => {
-    if (o instanceof THREE.Mesh) {
-      o.geometry.dispose();
-      (o.material as THREE.Material).dispose();
-    }
-  });
 }

@@ -3,6 +3,8 @@
 export type Stick = {
   /** How far the stick is pushed, sideways (x, right is +) and up and down (y, down is +), each from -1 to 1. Zero when let go. */
   read: () => { x: number; y: number };
+  /** Lets go of the stick, as if the thumb came off (for when the page is left mid-walk). */
+  release: () => void;
   dispose: () => void;
 };
 
@@ -61,6 +63,9 @@ export function createJoystick(base: HTMLElement): Stick {
 
   return {
     read: () => ({ x, y }),
+    release: () => {
+      if (pointer !== null) release(new PointerEvent("pointercancel", { pointerId: pointer }));
+    },
     dispose: () => {
       base.removeEventListener("pointerdown", down);
       base.removeEventListener("pointermove", drag);
