@@ -38,6 +38,7 @@ export type BoardStat = { key: string; label: string; order: "highest" | "lowest
 export type PublishedGame = {
   name: string; url: string; repo_url: string; by: string; updated_at: string; cover_url: string | null;
   leaderboard: BoardStat[] | null; // null: this game has no leaderboard
+  plays?: number; // opened from start.ng in the last 7 days (the homepage shows the most played)
   update_problem?: UpdateProblem | null;
   // Only for the owner (myGames): how start.ng is keeping the game up to date from its repo.
   checked_at?: string | null; // when the repo was last checked for a push (null: not yet)
@@ -222,4 +223,13 @@ export async function removeIndieGame(token: string | null, id: number): Promise
     const data = await res.json().catch(() => ({}));
     throw new Error(typeof data.detail === "string" ? data.detail : "Could not remove it");
   }
+}
+
+/** Someone opened a game from start.ng: counted for "most played". Fire and forget, survives leaving the page. */
+export function trackPlay(game: string) {
+  const url = `${API_URL}/games/${encodeURIComponent(game)}/plays`;
+  try {
+    if (navigator.sendBeacon?.(url)) return;
+  } catch { /* fall back to fetch */ }
+  fetch(url, { method: "POST", keepalive: true }).catch(() => {});
 }

@@ -191,20 +191,21 @@ export function CreatorsSection({ user, onSignIn }: { user: User | null; onSignI
   const { setOpen, startSubmit, popups } = useIndiePopups(user, onSignIn, setGames, HOME_COUNT);
   return (
     <section id="creators" className="container creators">
-      <div className="indie-banner">
+      <div className={games && games.length > 0 ? "indie-banner" : "indie-banner no-art"}>
         <div className="indie-banner-text">
           <p className="eyebrow">Independent creators</p>
           <h2>Explore games from <mark>independent creators</mark></h2>
           <p>Games made and hosted by creators everywhere, from itch.io to their own sites. Find something new, or show the community what you've made.</p>
           <div className="indie-banner-actions">
-            <a className="btn lime" href="/creators">Explore games</a>
-            <button type="button" className="ghost on-dark" onClick={startSubmit}>Submit your game</button>
+            <a className="btn" href="/creators">Explore games</a>
+            <button type="button" className="ghost" onClick={startSubmit}>Submit your game</button>
           </div>
         </div>
-        <div className="indie-banner-art" aria-hidden="true">
-          {(games ?? []).slice(0, 3).map((g, i) => <img key={g.id} src={indieCoverUrl(g)} alt="" className={`tile t${i}`} />)}
-          {Array.from({ length: Math.max(0, 3 - (games?.length ?? 0)) }, (_, i) => <span key={i} className={`tile t${(games?.length ?? 0) + i}`} />)}
-        </div>
+        {games && games.length > 0 && (
+          <div className="indie-banner-art" aria-hidden="true">
+            {games.slice(0, 3).map((g, i) => <img key={g.id} src={indieCoverUrl(g)} alt="" className={`tile t${i}`} />)}
+          </div>
+        )}
       </div>
       {games && games.length > 0 && (
         <>

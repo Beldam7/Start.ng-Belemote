@@ -324,20 +324,15 @@ input:focus { outline: 2px solid var(--ink); outline-offset: -1px; }
 /* games by independent creators: the homepage banner + newest 4, the /creators page, the popups */
 .creators { padding-top: 64px; }
 .indie-banner { position: relative; overflow: hidden; display: grid; grid-template-columns: 1.25fr 1fr; gap: 28px; align-items: center;
-  background: var(--ink); color: #fff; border-radius: 22px; padding: 40px; box-shadow: 8px 8px 0 var(--lime); }
-.indie-banner .eyebrow { color: var(--lime); margin-bottom: 16px; }
-.indie-banner h2 { font-size: clamp(1.9rem, 4.2vw, 2.7rem); line-height: 1.05; letter-spacing: -.045em; margin: 0 0 16px; }
-.indie-banner mark { background: linear-gradient(transparent 62%, rgba(216, 253, 113, .45) 62%, rgba(216, 253, 113, .45) 92%, transparent 92%); color: var(--lime); }
-.indie-banner-text > p:not(.eyebrow) { color: rgba(255, 255, 255, .72); line-height: 1.65; margin: 0 0 26px; max-width: 46ch; }
+  background: var(--card); border: 1px solid var(--line); border-radius: 22px; padding: 36px; }
+.indie-banner.no-art { grid-template-columns: 1fr; }
+.indie-banner .eyebrow { color: var(--muted); margin-bottom: 14px; }
+.indie-banner h2 { font-size: clamp(1.7rem, 3.6vw, 2.3rem); line-height: 1.1; letter-spacing: -.04em; margin: 0 0 14px; }
+.indie-banner-text > p:not(.eyebrow) { color: var(--muted); line-height: 1.65; margin: 0 0 24px; max-width: 48ch; }
 .indie-banner-actions { display: flex; gap: 12px; flex-wrap: wrap; }
-.btn.lime, button.lime { background: var(--lime); color: var(--ink); }
-.btn.lime:hover, button.lime:hover { background: #e6ff9c; }
-button.ghost.on-dark, .btn.ghost.on-dark { background: transparent; color: #fff; border: 1px solid rgba(255, 255, 255, .35); }
-button.ghost.on-dark:hover, .btn.ghost.on-dark:hover { border-color: #fff; background: rgba(255, 255, 255, .06); }
 .indie-banner-art { position: relative; height: 220px; }
-.indie-banner-art .tile { position: absolute; width: 62%; aspect-ratio: 16 / 10; border-radius: 14px; object-fit: cover; border: 3px solid var(--ink);
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, .18), 0 14px 30px rgba(0, 0, 0, .35); background: #3a3b33; }
-.indie-banner-art span.tile { background: repeating-linear-gradient(135deg, #3a3b33 0 12px, #34352e 12px 24px); }
+.indie-banner-art .tile { position: absolute; width: 62%; aspect-ratio: 16 / 10; border-radius: 14px; object-fit: cover;
+  border: 1px solid var(--line); box-shadow: 0 10px 24px rgba(41, 42, 35, .14); background: var(--line); }
 .indie-banner-art .t0 { right: 0; top: 0; transform: rotate(4deg); z-index: 3; }
 .indie-banner-art .t1 { left: 4%; top: 22%; transform: rotate(-6deg); z-index: 2; }
 .indie-banner-art .t2 { right: 14%; bottom: 0; transform: rotate(-1deg); z-index: 1; }
@@ -370,6 +365,10 @@ textarea:focus { outline: 2px solid var(--ink); outline-offset: -1px; }
 .indie-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .indie-cover input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
 @media (max-width: 760px) {
-  .indie-banner { grid-template-columns: 1fr; padding: 28px 22px; }
+  .indie-banner { grid-template-columns: 1fr; padding: 26px 20px; }
   .indie-banner-art { height: 170px; }
 }
+
+/* most played */
+.most-played { display: flex; align-items: center; gap: 10px; margin: 10px 0 0; color: var(--muted); font-size: .92rem; }
+.by .plays { font-weight: 600; color: var(--ink); }
