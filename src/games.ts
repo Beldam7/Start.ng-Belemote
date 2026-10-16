@@ -1,11 +1,11 @@
-import { getLeaderboard, getLiveTicket, me, PublishedGame, submitScore } from "./api";
+import { BoardStat, getLeaderboard, getLiveTicket, me, PublishedGame, submitScore } from "./api";
 import { CharacterStyle, styleFor } from "./character";
 
 // A homepage card for a game from GET /games (games published with POST /games/publish).
 // The API only knows the name, so the title and colours are worked out from it:
 // the same game always gets the same colours.
 // cover is the game's picture; without one the card shows the title's first letter on the colours.
-export type Game = { slug: string; title: string; url: string; host: string; by: string; colors: [string, string]; cover: string | null };
+export type Game = { slug: string; title: string; url: string; host: string; by: string; colors: [string, string]; cover: string | null; board: BoardStat[] | null };
 
 const CARD_COLORS: [string, string][] = [
   ["#ffd400", "#e10600"],
@@ -15,6 +15,23 @@ const CARD_COLORS: [string, string][] = [
   ["#45aaf2", "#2b2f4a"],
   ["#fd9644", "#eb3b5a"],
 ];
+
+// The Hangout is start.ng's own game. It lives inside this app at /hangout instead of on a
+// hangout.start.ng address, so the homepage always shows it. If the API ever lists a game
+// with the same name, this card is the one that's shown.
+export const HANGOUT: Game = {
+  slug: "hangout",
+  title: "The Hangout",
+  url: "/hangout",
+  host: "start.ng/hangout",
+  by: "start.ng",
+  colors: ["#292a23", "#5b7d0d"],
+  cover: null,
+  board: null, // the Hangout has no leaderboard
+};
+
+/** A game that lives inside this app (opens in the same tab) rather than on its own start.ng address. */
+export const isInAppGame = (game: Game) => game.url.startsWith("/");
 
 // The API writes game addresses as https://, which is right on start.ng. Locally the Worker's
 // dev server is plain http, so local *.localhost games are linked over http.
@@ -36,31 +53,8 @@ export function toCard(game: PublishedGame): Game {
     by: game.by,
     colors: CARD_COLORS[hash % CARD_COLORS.length],
     cover: game.cover_url,
+    board: game.leaderboard ?? null,
   };
-}
-
-// The Hangout: start.ng's own game, pinned first on the homepage, even before it's published.
-// If GET /games lists it too, it's shown once, here, with the published address and cover.
-export const HANGOUT = "hangout";
-
-function hangoutCard(published: Game | undefined): Game {
-  // Locally, games run on the Worker's dev server: http://<name>.start.localhost:8787
-  const local = location.hostname.endsWith("localhost");
-  const url = local ? `http://${HANGOUT}.${location.hostname}:8787` : published?.url ?? `https://${HANGOUT}.start.ng`;
-  return {
-    slug: HANGOUT,
-    title: "The Hangout",
-    url,
-    host: new URL(url).host,
-    by: "start.ng",
-    colors: ["#d8fd71", "#f6f5ee"],
-    cover: published?.cover ?? "/games/hangout-cover.webp",
-  };
-}
-
-/** The homepage list: the Hangout first, then the community's games. */
-export function withHangoutFirst(games: Game[]): Game[] {
-  return [hangoutCard(games.find((g) => g.slug === HANGOUT)), ...games.filter((g) => g.slug !== HANGOUT)];
 }
 
 // Games are static sites on <name>.start.ng. This is how start.ng shares the signed-in
@@ -76,13 +70,14 @@ export function isGameOrigin(origin: string) {
   return GAME_ORIGINS.some((re) => re.test(origin));
 }
 
-/** The ?return_to= URL if it points at a game, otherwise null (so it can't redirect anywhere else). */
+/** The ?return_to= URL if it points at a game (or the Hangout), otherwise null (so it can't redirect anywhere else). */
 export function gameReturnUrl(): string | null {
   const raw = new URLSearchParams(location.search).get("return_to");
   if (!raw) return null;
   try {
     const url = new URL(raw);
-    return isGameOrigin(url.origin) ? url.href : null;
+    const isHangout = url.origin === location.origin && url.pathname === HANGOUT.url;
+    return isGameOrigin(url.origin) || isHangout ? url.href : null;
   } catch {
     return null;
   }
@@ -111,7 +106,7 @@ const gameFromOrigin = (origin: string) => new URL(origin).hostname.split(".")[0
 const errorText = (err: unknown, fallback: string) => (err instanceof Error ? err.message : fallback);
 
 // What /connect answers. Every reply echoes the request's requestId.
-type Message = { type: string; requestId?: unknown; score?: unknown; limit?: unknown };
+type Message = { type: string; requestId?: unknown; score?: unknown; stats?: unknown; limit?: unknown };
 const handlers: Record<string, (msg: Message, game: string) => Promise<object>> = {
   // { type: "startng:whoami" }
   //   -> { type: "startng:user", user: { id, name, account, style, face } | null, guest: { name, style, face } }
@@ -134,15 +129,17 @@ const handlers: Record<string, (msg: Message, game: string) => Promise<object>> 
     };
   },
 
-  // { type: "startng:score", score } -> { type: "startng:scoreSaved", ok, result: { best, improved, rank } | error }
+  // { type: "startng:score", score } or { type: "startng:score", stats: { ... } } (the game's startng.json stats)
+  //   -> { type: "startng:scoreSaved", ok, result: { best, improved, rank, stats } | error }
   "startng:score": async (msg, game) => {
     const token = localStorage.getItem("token");
     if (!token) return { type: "startng:scoreSaved", ok: false, error: "Sign in to save your score" };
-    if (!Number.isSafeInteger(msg.score) || (msg.score as number) < 0) {
+    const run = msg.stats !== undefined ? { stats: msg.stats as Record<string, unknown> } : { score: msg.score as number };
+    if (run.score !== undefined && (!Number.isSafeInteger(run.score) || run.score < 0)) {
       return { type: "startng:scoreSaved", ok: false, error: "A score must be a whole number, 0 or more" };
     }
     try {
-      return { type: "startng:scoreSaved", ok: true, result: await submitScore(token, game, msg.score as number) };
+      return { type: "startng:scoreSaved", ok: true, result: await submitScore(token, game, run) };
     } catch (err) {
       return { type: "startng:scoreSaved", ok: false, error: errorText(err, "Could not save the score") };
     }

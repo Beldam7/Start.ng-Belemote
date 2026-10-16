@@ -1,13 +1,14 @@
 import { FormEvent, lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { GoogleLogin } from "@react-oauth/google";
-import { approvePendingGame, getPendingGame, googleLogin, listGames, login, me, myGames, PendingGameInfo, register, saveCharacter, TokenResponse, User } from "./api";
+import { approvePendingGame, getGameSession, getPendingGame, googleLogin, listGames, login, me, myGames, PendingGameInfo, register, saveCharacter, TokenResponse, User } from "./api";
 import AccountMenu from "./AccountMenu";
 import Pagination from "./Pagination";
 import ScrollJump from "./ScrollJump";
 import { Character, styleFor } from "./character";
 // The creator (and three.js) loads only when someone opens it.
 const CharacterCreator = lazy(() => import("./CharacterCreator"));
-import { Game, gameReturnUrl, HANGOUT, playableUrl, toCard, withHangoutFirst } from "./games";
+const GameBoard = lazy(() => import("./GameBoard"));
+import { Game, gameReturnUrl, HANGOUT, isInAppGame, playableUrl, toCard } from "./games";
 
 // Set when a game sent the user here to sign in: we send them back afterwards.
 const returnTo = gameReturnUrl();
@@ -51,6 +52,8 @@ export default function App({ view = "home" }: { view?: "home" | "games" }) {
   // Published games from the API; null while loading.
   const [games, setGames] = useState<Game[] | null>(null);
   const [approval, setApproval] = useState<Approval | null>(approveCode ? { step: "loading" } : null);
+  // The game whose shared leaderboard is open, if any.
+  const [board, setBoard] = useState<Game | null>(null);
   // The signed-in builder's newest game, for the example address in the hero.
   const [myLatest, setMyLatest] = useState<Game | null>(null);
 
@@ -103,14 +106,16 @@ export default function App({ view = "home" }: { view?: "home" | "games" }) {
     window.scrollTo({ top: 0 });
   }
 
-  // A real address for the hero: your own newest game, else the newest game on start.ng.
-  const example = myLatest ?? games?.[0] ?? null;
-  // Every game: the Hangout pinned first, then everything published, newest first.
-  const listed = withHangoutFirst(games ?? []);
+  // The Hangout is always first; the rest come from the API.
+  const community = (games ?? []).filter((g) => g.slug !== HANGOUT.slug);
+  const cards = [HANGOUT, ...community];
   // What this page shows: the first HOME_GAMES on the homepage, one page of them on /games.
-  const pages = Math.max(1, Math.ceil(listed.length / PER_PAGE));
+  const pages = Math.max(1, Math.ceil(cards.length / PER_PAGE));
   const current = Math.min(page, pages); // a page past the end shows the last one
-  const shown = allGames ? listed.slice((current - 1) * PER_PAGE, current * PER_PAGE) : listed.slice(0, HOME_GAMES);
+  const shown = allGames ? cards.slice((current - 1) * PER_PAGE, current * PER_PAGE) : cards.slice(0, HOME_GAMES);
+
+  // A real address for the hero: your own newest game, else the newest game on start.ng.
+  const example = myLatest ?? community[0] ?? null;
 
   // Restore the session from the saved token, so a refresh keeps you signed in.
   useEffect(() => {
@@ -131,11 +136,26 @@ export default function App({ view = "home" }: { view?: "home" | "games" }) {
   const [goTo, setGoTo] = useState<string | null>(returnTo);
 
   useEffect(() => {
-    if (user?.character && goTo) location.assign(goTo);
+    // Back to the game once signed in and the character exists.
+    if (!(user?.character && goTo)) return;
+    const back = new URL(goTo, location.href);
+    // The Hangout lives in this app and has no game session of its own.
+    if (back.origin === location.origin) {
+      location.assign(back.href);
+      return;
+    }
+    // Hand the game a game session in the address (#startng_session=...): it only works for that
+    // game's player API and expires; the game never sees the sign-in token.
+    const token = localStorage.getItem("token");
+    const game = back.hostname.split(".")[0];
+    (token ? getGameSession(token, game).catch(() => null) : Promise.resolve(null)).then((s) => {
+      if (s) back.hash = `startng_session=${encodeURIComponent(s.session)}&expires_in=${s.expires_in}`;
+      location.replace(back.href);
+    });
   }, [user, goTo]);
 
   function pickGame(e: React.MouseEvent, g: Game) {
-    if (user || checking) return; // signed in: the link opens the game as usual
+    if (user || checking || isInAppGame(g)) return; // signed in: the link opens the game as usual (the Hangout asks for sign-in itself)
     e.preventDefault();
     setChosen(g);
   }
@@ -256,44 +276,43 @@ export default function App({ view = "home" }: { view?: "home" | "games" }) {
             {games && (
               <span className="count">
                 {allGames && pages > 1
-                  ? `${(current - 1) * PER_PAGE + 1}–${(current - 1) * PER_PAGE + shown.length} of ${listed.length}`
-                  : `${listed.length} to play`}
+                  ? `${(current - 1) * PER_PAGE + 1}–${(current - 1) * PER_PAGE + shown.length} of ${cards.length}`
+                  : `${cards.length} to play`}
               </span>
             )}
           </div>
-          <div className="grid">
-            {shown.map((g) => {
-              const pinned = g.slug === HANGOUT;
-              return (
-                <a key={g.slug} className={pinned ? "game featured" : "game"} href={g.url} target="_blank" rel="noreferrer" onClick={(e) => pickGame(e, g)}>
-                  <div className="art" style={pinned ? undefined : { background: `linear-gradient(135deg, ${g.colors[0]}, ${g.colors[1]})` }}>
-                    {g.cover ? <img src={g.cover} alt="" loading="lazy" /> : <span>{g.title.charAt(0)}</span>}
-                  </div>
-                  <div className="info">
-                    {pinned && <span className="badge">start.ng original</span>}
-                    <h3>{g.title}</h3>
-                    <p>{g.host}</p>
-                    <div className="meta">
-                      <span>{pinned ? "Hang out with everyone, live" : `by ${g.by}`}</span>
-                      <span className="play">{pinned ? "Enter ↗" : "Play ↗"}</span>
-                    </div>
-                  </div>
-                </a>
-              );
-            })}
-          </div>
           {games === null && <p className="empty">Loading games…</p>}
-          {games?.filter((g) => g.slug !== HANGOUT).length === 0 && (
+          {games && community.length === 0 && (
             <p className="empty">
               No community games yet. The first ones are on their way. <a href={allGames ? "/#how" : "#how"}>Put yours here.</a>
             </p>
           )}
+          <div className="grid">
+            {shown.map((g) => (
+              <article key={g.slug} className={g.slug === HANGOUT.slug ? "game legendary" : "game"}>
+                <a className="game-link" href={g.url} {...(isInAppGame(g) ? {} : { target: "_blank", rel: "noreferrer" })} onClick={(e) => pickGame(e, g)}>
+                  <div className="art" style={{ background: `linear-gradient(135deg, ${g.colors[0]}, ${g.colors[1]})` }}>
+                    {g.cover ? <img src={g.cover} alt="" loading="lazy" /> : <span>{g.title.charAt(0)}</span>}
+                  </div>
+                  <div className="info">
+                    <h3>{g.title}</h3>
+                    <p>{g.host}</p>
+                    <span className="by">by {g.by}</span>
+                  </div>
+                </a>
+                <div className="meta">
+                  {g.board && <button type="button" className="link board-btn" onClick={() => setBoard(g)}>Leaderboard</button>}
+                  <a className="play" href={g.url} {...(isInAppGame(g) ? {} : { target: "_blank", rel: "noreferrer" })} onClick={(e) => pickGame(e, g)}>{isInAppGame(g) ? "Play" : "Play ↗"}</a>
+                </div>
+              </article>
+            ))}
+          </div>
           {allGames ? (
             <Pagination page={current} pages={pages} onPage={goToPage} />
           ) : (
-            listed.length > HOME_GAMES && (
+            cards.length > HOME_GAMES && (
               <div className="see-all">
-                <a className="btn" href="/games">See all {listed.length} games →</a>
+                <a className="btn" href="/games">See all {cards.length} games →</a>
               </div>
             )
           )}
@@ -305,8 +324,8 @@ export default function App({ view = "home" }: { view?: "home" | "games" }) {
           <ol>
             <li><b>Build it</b><span>Any static browser game: HTML, JavaScript, three.js, Phaser. Players bring their start.ng character, scores and friends.</span></li>
             <li><b>Push it to GitHub</b><span>A public repo with a ready-to-play <code>index.html</code> at the top or in <code>dist/</code>, plus a <code>cover.png</code> for its card.</span></li>
-            <li><b>Upload it</b><span>Paste your repo link in Your games on your profile, or publish with one API call. Or hand your AI <code>start.ng/docs</code> and let it do the lot.</span></li>
-            <li><b>It's live</b><span>Your game plays at <code>yourgame.start.ng</code>, with its own leaderboard if you want one. After that, every push updates it.</span></li>
+            <li><b>Publish it</b><span>One API call with your repo link, no key needed. Or hand your AI <code>start.ng/docs</code> and let it do the lot.</span></li>
+            <li><b>Approve it once</b><span>Open the link you get back and it's live at <code>yourgame.start.ng</code>, with its own leaderboard if you want one. After that, every push updates it.</span></li>
           </ol>
           <div className="how-actions">
             <a className="btn" href="/docs">Read the docs</a>
@@ -387,6 +406,12 @@ export default function App({ view = "home" }: { view?: "home" | "games" }) {
         </div>
       )}
 
+      {board && (
+        <Suspense fallback={null}>
+          <GameBoard game={board} playerId={user?.id ?? null} onClose={() => setBoard(null)} />
+        </Suspense>
+      )}
+
       {chosen && !user && (
         <div className="overlay" onClick={() => setChosen(null)}>
           <div className="card choose" role="dialog" aria-modal="true" aria-labelledby="choose-title" onClick={(e) => e.stopPropagation()}>
@@ -397,13 +422,13 @@ export default function App({ view = "home" }: { view?: "home" | "games" }) {
             <button type="button" className="choice" onClick={() => signInFor(chosen)}>
               <b>Sign in</b>
               <span>
-                {chosen.slug === HANGOUT
+                {chosen.slug === HANGOUT.slug
                   ? "The Hangout is for start.ng members: come in as your own character and meet everyone."
                   : "Save your high scores and play as your own character. You can change it any time."}
               </span>
             </button>
             {/* The Hangout needs an account: everyone in it is a real start.ng member. */}
-            {chosen.slug !== HANGOUT && (
+            {chosen.slug !== HANGOUT.slug && (
               <button type="button" className="choice ghost" onClick={() => playAsGuest(chosen)}>
                 <b>Play as a guest</b>
                 <span>Jump straight in. Your high score won't be saved.</span>
@@ -421,7 +446,7 @@ export default function App({ view = "home" }: { view?: "home" | "games" }) {
               <button type="button" className="link close" aria-label="Close" onClick={closeSignIn}>✕</button>
             </div>
             <p className="note">
-              {goTo ? `Sign in to continue to ${new URL(goTo).host}.` : "Use your Google account. New here? Signing in creates your account."}
+              {goTo ? (new URL(goTo).origin === location.origin ? "Sign in to join the Hangout." : `Sign in to continue to ${new URL(goTo).host}.`) : "Use your Google account. New here? Signing in creates your account."}
             </p>
             {error && <p className="error">{error}</p>}
             <div className="google">

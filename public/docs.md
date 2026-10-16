@@ -53,18 +53,11 @@ Your game plays at `<name>.start.ng`. The name comes from `name` in the publish 
 
 ## Put your game live
 
-There are two ways. Both check the game the same way and put it at `<name>.start.ng` and on the start.ng homepage.
+Games go live through the API: one request with your repo link. No key or account is needed, so it works the same by hand, from a script, or from your AI. The game goes live at `<name>.start.ng` and on the start.ng homepage.
 
-### On the start.ng website
-
-1. Sign in on **start.ng**.
-2. Click your **face**, then **View profile**, then **Your games**.
-3. Paste your GitHub repo link and click **Upload**.
-4. It's live at `your-game.start.ng`. To take it down, click **Remove** on its card.
+Uploading from **Your games** on your start.ng profile is switched off for now. That's still where you manage your games: see them, change their cover, or click **Remove** to take one down.
 
 ### With the API
-
-No key or account is needed, which makes this the way for AI assistants and scripts.
 
 ```
 POST https://api.start.ng/games/publish
@@ -131,7 +124,7 @@ A repo can only update the game it's linked to; asking for a different `name` gi
 
 However you put your game live, **start.ng watches the branch it came from and updates the game by itself after every push**, usually within a minute or two (games that haven't changed in a while are checked less often, up to once an hour). So the everyday loop is: change the game, push to GitHub. Done.
 
-If a push doesn't publish (say `index.html` went missing), the game stays as it was until a push that works. Uploading the same link again on the website, or calling publish, updates it right away.
+If a push doesn't publish (say `index.html` went missing), the game stays as it was until a push that works. Calling publish again updates it right away.
 
 ### A cover picture
 
@@ -145,7 +138,7 @@ Your game's card on start.ng shows a cover picture. Put **`cover.png`** (or `cov
 
 ## Checks before anything goes live
 
-Every time a game is published or updated (from the website, the API, or a push), start.ng downloads the repo and checks it **before** anything goes live. It reports **every** problem at once, so you can fix them in one go.
+Every time a game is published or updated (through the API, or by a push), start.ng downloads the repo and checks it **before** anything goes live. It reports **every** problem at once, so you can fix them in one go.
 
 - **Errors** stop the game going live: it doesn't meet the rules above, or something in it could harm players.
 - **Warnings** don't stop it, but are worth fixing. They come back in `warnings` when a game goes live.
@@ -587,4 +580,4 @@ A game using the HTTP API: a sign-in link, saving a run, and showing the board.
 7. There's a `cover.png` (16:10) next to `index.html`.
 8. The repo is public on GitHub and pushed.
 9. `POST /games/check` passes with no errors (and you've looked at the warnings).
-10. Put it live (**Your games** on your profile, or the publish API and its `approve_url`). After that, pushing to the branch is enough.
+10. Publish with the API and open the `approve_url` the first time. After that, pushing to the branch is enough.
