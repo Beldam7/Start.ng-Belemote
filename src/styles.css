@@ -273,7 +273,7 @@ input:focus { outline: 2px solid var(--ink); outline-offset: -1px; }
 .update-problem code { font-size: .8rem; }
 
 /* /games: every game, a page at a time (Pagination.tsx) */
-.all-games { padding-top: 24px; min-height: 60vh; }
+.all-games { padding-top: 24px; padding-bottom: 72px; min-height: 60vh; }
 .all-games h1 { font-size: 2.4rem; letter-spacing: -.04em; margin: 0; }
 .nav nav a[aria-current="page"] { color: var(--ink); font-weight: 700; }
 .see-all { display: flex; justify-content: center; margin-top: 28px; }
