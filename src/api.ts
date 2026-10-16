@@ -39,6 +39,10 @@ export type PublishedGame = {
   name: string; url: string; repo_url: string; by: string; updated_at: string; cover_url: string | null;
   leaderboard: BoardStat[] | null; // null: this game has no leaderboard
   update_problem?: UpdateProblem | null;
+  // Only for the owner (myGames): how start.ng is keeping the game up to date from its repo.
+  checked_at?: string | null; // when the repo was last checked for a push (null: not yet)
+  live_commit?: string | null; // the first 7 characters of the commit that's live (null: not known yet)
+  updates_paused_until?: string | null; // set while GitHub's limit has paused all checking
 };
 
 export async function listGames(): Promise<PublishedGame[]> {
