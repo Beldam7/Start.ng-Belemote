@@ -1,6 +1,6 @@
 import { ChangeEvent, FormEvent, useCallback, useEffect, useState } from "react";
 import {
-  COVER_TYPES, IndieGame, indieCoverUrl, listIndieGames, MAX_COVER_BYTES, removeIndieGame, submitIndieGame, User,
+  COVER_TYPES, IndieGame, indieCoverUrl, listIndieGames, MAX_COVER_BYTES, removeIndieGame, submitIndieGame, trackIndiePlay, User,
 } from "./api";
 
 // Games by independent creators: made and hosted outside start.ng. The homepage shows the newest 4
@@ -20,19 +20,29 @@ function useEscape(onClose: () => void) {
   }, [onClose]);
 }
 
-function useIndieGames(user: User | null, limit?: number) {
+function useIndieGames(user: User | null, limit?: number, sort: "newest" | "popular" = "newest") {
   const [games, setGames] = useState<IndieGame[] | null>(null);
   const refresh = useCallback(() => {
-    listIndieGames(token(), limit).then(setGames).catch(() => setGames((g) => g ?? []));
-  }, [limit, user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => { refresh(); }, [refresh]);
+    listIndieGames(token(), limit, sort).then(setGames).catch(() => setGames((g) => g ?? []));
+  }, [limit, sort, user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  // On load, every 30 seconds and when you come back to the tab, so the most clicked keeps up.
+  useEffect(() => {
+    refresh();
+    const timer = window.setInterval(() => { if (document.visibilityState === "visible") refresh(); }, 30000);
+    const onVisible = () => { if (document.visibilityState === "visible") refresh(); };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => { window.clearInterval(timer); document.removeEventListener("visibilitychange", onVisible); };
+  }, [refresh]);
   return { games, setGames, refresh };
 }
+
+/** Opening a game counts a click, for the most clicked in the banner. */
+const play = (g: IndieGame) => trackIndiePlay(g.id);
 
 function IndieCard({ game, onOpen }: { game: IndieGame; onOpen: (g: IndieGame) => void }) {
   return (
     <article className="game">
-      <button type="button" className="game-link indie-open" onClick={() => onOpen(game)}>
+      <button type="button" className="game-link indie-open" onClick={() => { trackIndiePlay(game.id); onOpen(game); }}>
         <div className="art"><img src={indieCoverUrl(game)} alt="" loading="lazy" /></div>
         <div className="info">
           <h3>{game.name}</h3>
@@ -41,8 +51,8 @@ function IndieCard({ game, onOpen }: { game: IndieGame; onOpen: (g: IndieGame) =
         </div>
       </button>
       <div className="meta">
-        <button type="button" className="link board-btn" onClick={() => onOpen(game)}>Details</button>
-        <a className="play" href={game.url} target="_blank" rel="noopener noreferrer">Play ↗</a>
+        <button type="button" className="link board-btn" onClick={() => { trackIndiePlay(game.id); onOpen(game); }}>Details</button>
+        <a className="play" href={game.url} target="_blank" rel="noopener noreferrer" onClick={() => play(game)}>Play ↗</a>
       </div>
     </article>
   );
@@ -73,11 +83,11 @@ function IndieDetails({ game, onClose, onRemoved }: { game: IndieGame; onClose: 
         </div>
         <span className="tag indie-tag">Independent creator · {game.by}</span>
         <p className="indie-description">{game.description}</p>
-        <a className="indie-url" href={game.url} target="_blank" rel="noopener noreferrer"><code>{game.url}</code></a>
+        <a className="indie-url" href={game.url} target="_blank" rel="noopener noreferrer" onClick={() => play(game)}><code>{game.url}</code></a>
         <p className="note">Hosted by the creator, outside start.ng. It opens in a new tab.</p>
         {error && <p className="error">{error}</p>}
         <div className="indie-actions">
-          <a className="btn" href={game.url} target="_blank" rel="noopener noreferrer">Play ↗</a>
+          <a className="btn" href={game.url} target="_blank" rel="noopener noreferrer" onClick={() => play(game)}>Play ↗</a>
           {game.mine && <button type="button" className="link" disabled={removing} onClick={remove}>{removing ? "Removing…" : "Remove my game"}</button>}
         </div>
       </div>
@@ -188,10 +198,11 @@ function useIndiePopups(user: User | null, onSignIn: () => void, setGames: (f: (
 /** On the homepage, under "Games from the community": the banner and the newest 4. */
 export function CreatorsSection({ user, onSignIn }: { user: User | null; onSignIn: () => void }) {
   const { games, setGames } = useIndieGames(user, HOME_COUNT);
-  const { setOpen, startSubmit, popups } = useIndiePopups(user, onSignIn, setGames, HOME_COUNT);
+  const { games: top, refresh: refreshTop } = useIndieGames(user, 3, "popular"); // the banner: most clicked this week
+  const { setOpen, startSubmit, popups } = useIndiePopups(user, onSignIn, (f) => { setGames(f); refreshTop(); }, HOME_COUNT);
   return (
     <section id="creators" className="container creators">
-      <div className={games && games.length > 0 ? "indie-banner" : "indie-banner no-art"}>
+      <div className="indie-banner">
         <div className="indie-banner-text">
           <p className="eyebrow">Independent creators</p>
           <h2>Explore games from <mark>independent creators</mark></h2>
@@ -201,11 +212,24 @@ export function CreatorsSection({ user, onSignIn }: { user: User | null; onSignI
             <button type="button" className="ghost" onClick={startSubmit}>Submit your game</button>
           </div>
         </div>
-        {games && games.length > 0 && (
-          <div className="indie-banner-art" aria-hidden="true">
-            {games.slice(0, 3).map((g, i) => <img key={g.id} src={indieCoverUrl(g)} alt="" className={`tile t${i}`} />)}
-          </div>
-        )}
+        <div className="indie-banner-art">
+          {top && top.length > 0 ? (
+            <>
+              {top.map((g, i) => (
+                <button key={g.id} type="button" className={`tile t${i}`} onClick={() => { trackIndiePlay(g.id); setOpen(g); }}
+                  aria-label={`${g.name} by ${g.by}`}>
+                  <img src={indieCoverUrl(g)} alt="" />
+                  {i === 0 && <span className="tile-badge">Most clicked</span>}
+                </button>
+              ))}
+            </>
+          ) : top && (
+            <button type="button" className="tile first" onClick={startSubmit}>
+              <b>+</b>
+              <span>Your game could be the first one here</span>
+            </button>
+          )}
+        </div>
       </div>
       {games && games.length > 0 && (
         <>
