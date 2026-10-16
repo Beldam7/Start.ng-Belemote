@@ -2,6 +2,7 @@ import { FormEvent, lazy, Suspense, useCallback, useEffect, useRef, useState } f
 import { GoogleLogin } from "@react-oauth/google";
 import { approvePendingGame, getPendingGame, googleLogin, listGames, login, me, myGames, PendingGameInfo, register, saveCharacter, TokenResponse, User } from "./api";
 import AccountMenu from "./AccountMenu";
+import Pagination from "./Pagination";
 import ScrollJump from "./ScrollJump";
 import { Character, styleFor } from "./character";
 // The creator (and three.js) loads only when someone opens it.
@@ -18,6 +19,11 @@ const openProfile = opening.has("profile");
 const openSignIn = opening.has("signin");
 if (openProfile || openSignIn) history.replaceState(null, "", location.pathname + location.hash);
 
+// The homepage shows the first few games; /games has them all, a page at a time.
+const HOME_GAMES = 8;
+const PER_PAGE = 20;
+const pageFromUrl = () => Math.max(1, Number.parseInt(new URLSearchParams(location.search).get("page") ?? "1", 10) || 1);
+
 type Approval =
   | { step: "loading" }
   | { step: "missing"; message: string }
@@ -26,7 +32,11 @@ type Approval =
   | { step: "done"; name: string; url: string }
   | { step: "failed"; info: PendingGameInfo; message: string };
 
-export default function App() {
+/** The homepage, and /games (every game, PER_PAGE at a time). They share sign-in, the profile
+ *  and the "sign in or play as a guest?" question. */
+export default function App({ view = "home" }: { view?: "home" | "games" }) {
+  const allGames = view === "games";
+  const [page, setPage] = useState(pageFromUrl);
   const [user, setUser] = useState<User | null>(null);
   const [checking, setChecking] = useState(() => !!localStorage.getItem("token"));
   // Google sign-in; the first Google sign-in creates the account.
@@ -78,10 +88,29 @@ export default function App() {
     };
   }, [refreshGames]);
 
+  // /games: the back and forward buttons move between pages.
+  useEffect(() => {
+    if (!allGames) return;
+    document.title = "Games · start.ng";
+    const onPop = () => setPage(pageFromUrl());
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, [allGames]);
+
+  function goToPage(n: number) {
+    history.pushState(null, "", n === 1 ? "/games" : `/games?page=${n}`);
+    setPage(n);
+    window.scrollTo({ top: 0 });
+  }
+
   // A real address for the hero: your own newest game, else the newest game on start.ng.
   const example = myLatest ?? games?.[0] ?? null;
-  // The homepage list: the Hangout pinned first, then everything published.
+  // Every game: the Hangout pinned first, then everything published, newest first.
   const listed = withHangoutFirst(games ?? []);
+  // What this page shows: the first HOME_GAMES on the homepage, one page of them on /games.
+  const pages = Math.max(1, Math.ceil(listed.length / PER_PAGE));
+  const current = Math.min(page, pages); // a page past the end shows the last one
+  const shown = allGames ? listed.slice((current - 1) * PER_PAGE, current * PER_PAGE) : listed.slice(0, HOME_GAMES);
 
   // Restore the session from the saved token, so a refresh keeps you signed in.
   useEffect(() => {
@@ -189,8 +218,8 @@ export default function App() {
       <header className="container nav">
         <a className="logo" href="/"><b>start<span>.ng</span></b></a>
         <nav>
-          <a href="#games">Games</a>
-          <a href="#how">How it works</a>
+          <a href="/games" aria-current={allGames ? "page" : undefined}>Games</a>
+          <a href={allGames ? "/#how" : "#how"}>How it works</a>
           <a href="/docs">Docs</a>
           {user ? (
             <AccountMenu user={user} onProfile={() => setEditing(true)} onSignOut={signOut} />
@@ -201,6 +230,7 @@ export default function App() {
       </header>
 
       <main>
+        {!allGames && (
         <section className="container hero">
           <p className="eyebrow">Big imagination. Played everywhere.</p>
           <h1>Good vibes.<br /><mark>Good games.</mark></h1>
@@ -218,14 +248,21 @@ export default function App() {
             {!user && <button className="ghost" onClick={() => setSignInOpen(true)}>Create free account</button>}
           </div>
         </section>
+        )}
 
-        <section id="games" className="container">
+        <section id="games" className={allGames ? "container all-games" : "container"}>
           <div className="section-head">
-            <h2>Games</h2>
-            {games && <span className="count">{listed.length} to play</span>}
+            {allGames ? <h1>All games</h1> : <h2>Games</h2>}
+            {games && (
+              <span className="count">
+                {allGames && pages > 1
+                  ? `${(current - 1) * PER_PAGE + 1}–${(current - 1) * PER_PAGE + shown.length} of ${listed.length}`
+                  : `${listed.length} to play`}
+              </span>
+            )}
           </div>
           <div className="grid">
-            {listed.map((g) => {
+            {shown.map((g) => {
               const pinned = g.slug === HANGOUT;
               return (
                 <a key={g.slug} className={pinned ? "game featured" : "game"} href={g.url} target="_blank" rel="noreferrer" onClick={(e) => pickGame(e, g)}>
@@ -248,11 +285,21 @@ export default function App() {
           {games === null && <p className="empty">Loading games…</p>}
           {games?.filter((g) => g.slug !== HANGOUT).length === 0 && (
             <p className="empty">
-              No community games yet. The first ones are on their way. <a href="#how">Put yours here.</a>
+              No community games yet. The first ones are on their way. <a href={allGames ? "/#how" : "#how"}>Put yours here.</a>
             </p>
+          )}
+          {allGames ? (
+            <Pagination page={current} pages={pages} onPage={goToPage} />
+          ) : (
+            listed.length > HOME_GAMES && (
+              <div className="see-all">
+                <a className="btn" href="/games">See all {listed.length} games →</a>
+              </div>
+            )
           )}
         </section>
 
+        {!allGames && (
         <section id="how" className="container how">
           <h2>Got a game? Put it on start.ng</h2>
           <ol>
@@ -266,6 +313,7 @@ export default function App() {
             <a className="btn ghost" href="/docs.md" download="startng-docs.md">Docs for your AI (.md)</a>
           </div>
         </section>
+        )}
       </main>
 
       <footer className="container footer">

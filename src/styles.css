@@ -271,3 +271,22 @@ input:focus { outline: 2px solid var(--ink); outline-offset: -1px; }
 .update-problem { grid-column: 1 / -1; display: grid; gap: 4px; padding: 10px 12px; border-radius: 12px; background: #fdecea; border: 1px solid #f3b8b0; font-size: .84rem; line-height: 1.45; }
 .update-problem b { color: #a93226; }
 .update-problem code { font-size: .8rem; }
+
+/* /games: every game, a page at a time (Pagination.tsx) */
+.all-games { padding-top: 24px; min-height: 60vh; }
+.all-games h1 { font-size: 2.4rem; letter-spacing: -.04em; margin: 0; }
+.nav nav a[aria-current="page"] { color: var(--ink); font-weight: 700; }
+.see-all { display: flex; justify-content: center; margin-top: 28px; }
+.pagination { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px 16px; margin: 36px 0 8px; }
+.pagination a, .pagination .off { font-weight: 700; font-size: .95rem; }
+.pagination .off { color: var(--muted); opacity: .5; }
+.pagination .numbers { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.pagination .slot { display: flex; align-items: center; gap: 6px; }
+.pagination .numbers a { min-width: 40px; height: 40px; padding: 0 10px; display: grid; place-items: center; border-radius: 10px; border: 1px solid var(--line); background: var(--card); color: var(--ink); }
+.pagination .numbers a:hover { border-color: var(--ink); }
+.pagination .numbers a[aria-current="page"] { background: var(--ink); color: var(--lime); border-color: var(--ink); }
+.pagination .gap { color: var(--muted); }
+@media (max-width: 600px) {
+  .pagination { justify-content: space-between; }
+  .pagination .numbers { order: -1; width: 100%; justify-content: center; }
+}

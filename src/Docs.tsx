@@ -53,7 +53,7 @@ export default function Docs() {
       <header className="container nav">
         <a className="logo" href="/"><b>start<span>.ng</span></b></a>
         <nav>
-          <a href="/#games">Games</a>
+          <a href="/games">Games</a>
           <a href="/#how">How it works</a>
           <a href="/docs">Docs</a>
           {user ? (
