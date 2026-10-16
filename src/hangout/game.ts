@@ -2,9 +2,9 @@ import * as THREE from "three";
 import { CSS2DObject, CSS2DRenderer } from "three/addons/renderers/CSS2DRenderer.js";
 import { me } from "../api";
 import { styleFor } from "../character";
-import { buildHuman, Human } from "./human";
-import { buildPark } from "./world";
-import { LiveRoom, Player } from "./net";
+import { buildHuman, buildStatue, disposeStatue, Human } from "./human";
+import { buildPark, seatSpot } from "./world";
+import { LiveRoom, Player, Resident } from "./net";
 import { createChat } from "./chat";
 import { hourNow, startClock } from "./clock";
 import { isTouchDevice } from "./device";
@@ -72,29 +72,41 @@ export function startHangout(root: HTMLElement): () => void {
   listen(window, "resize", resize);
   resize();
 
-  // ---- players ------------------------------------------------------------------
+  // ---- people ------------------------------------------------------------------
+  // Everyone in the room is a live, moving character that only its owner controls. Everyone else
+  // with a seat sits on their bench as a still model until they come in.
 
   const avatars = new Map<number, Avatar>();
+  const statues = new Map<number, { obj: THREE.Group; label: CSS2DObject }>();
+  const residents = new Map<number, { name: string; style: Resident["style"]; seat: number }>(); // everyone with a seat
+  const statueQueue: number[] = []; // residents waiting to be built, a few per frame
   let myId: number | null = null;
 
-  function nameTag(name: string, isYou: boolean) {
+  function nameTag(name: string, kind: "you" | "here" | "away", height: number) {
     const el = document.createElement("div");
-    el.className = isYou ? "hangout-tag you" : "hangout-tag";
-    el.textContent = isYou ? `${name} (you)` : name;
+    el.className = kind === "here" ? "hangout-tag" : `hangout-tag ${kind}`;
+    el.textContent = kind === "you" ? `${name} (you)` : name;
     const tag = new CSS2DObject(el);
-    tag.position.set(0, 2.15, 0);
+    tag.position.set(0, height, 0);
     return tag;
   }
 
   function addAvatar(p: Player) {
     removeAvatar(p.id);
+    removeStatue(p.id);
+    if (p.seat != null) residents.set(p.id, { name: p.name, style: p.style, seat: p.seat });
     const human = buildHuman(p.style ?? styleFor(p.id));
-    const label = nameTag(p.name, p.id === myId);
+    const label = nameTag(p.name, p.id === myId ? "you" : "here", 2.15);
     human.root.add(label);
-    human.root.position.set(p.x, 0, p.z);
-    human.root.rotation.y = p.ry;
+    // Not moved yet: standing up in front of their seat (or mid-park if they have none).
+    const spot = p.seat != null ? seatSpot(p.seat) : null;
+    const x = p.x ?? spot?.stand.x ?? 0;
+    const z = p.z ?? spot?.stand.z ?? 0;
+    const ry = p.x != null ? p.ry : spot?.ry ?? 0;
+    human.root.position.set(x, 0, z);
+    human.root.rotation.y = ry;
     scene.add(human.root);
-    avatars.set(p.id, { human, label, target: { x: p.x, z: p.z, ry: p.ry }, moving: p.moving, bubble: null });
+    avatars.set(p.id, { human, label, target: { x, z, ry }, moving: p.moving, bubble: null });
   }
 
   // What someone said, in a box with an arrow, above their name. It goes after a while, and while
@@ -132,13 +144,46 @@ export function startHangout(root: HTMLElement): () => void {
     avatars.delete(id);
   }
 
+  function seat(id: number) {
+    if (!avatars.has(id) && !statues.has(id) && residents.has(id)) statueQueue.push(id);
+  }
+
+  function buildQueuedStatues(max: number) {
+    for (let i = 0; i < max && statueQueue.length; i++) {
+      const id = statueQueue.shift()!;
+      const r = residents.get(id);
+      if (!r || avatars.has(id) || statues.has(id)) continue;
+      const obj = buildStatue(r.style ?? styleFor(id));
+      const spot = seatSpot(r.seat);
+      obj.position.copy(spot.sit);
+      obj.rotation.y = spot.ry;
+      const label = nameTag(r.name, "away", 1.6);
+      obj.add(label);
+      scene.add(obj);
+      statues.set(id, { obj, label });
+    }
+  }
+
+  function removeStatue(id: number) {
+    const s = statues.get(id);
+    if (!s) return;
+    s.obj.remove(s.label);
+    s.label.element.remove();
+    scene.remove(s.obj);
+    disposeStatue(s.obj);
+    statues.delete(id);
+  }
+
   function clearAvatars() {
     for (const id of [...avatars.keys()]) removeAvatar(id);
+    for (const id of [...statues.keys()]) removeStatue(id);
+    residents.clear();
+    statueQueue.length = 0;
   }
 
   function showOnline() {
     const n = avatars.size;
-    ui.online.textContent = `${n} in the hangout`;
+    ui.online.textContent = `${n} here now`;
     ui.online.hidden = n === 0;
   }
 
@@ -183,7 +228,9 @@ export function startHangout(root: HTMLElement): () => void {
       if (msg.type === "welcome") {
         clearAvatars();
         myId = msg.you;
+        for (const r of msg.seats ?? []) residents.set(r.id, { name: r.name, style: r.style, seat: r.seat });
         msg.players.forEach(addAvatar);
+        for (const id of residents.keys()) seat(id);
         chat.setSelf(myId);
         chat.reset(msg.chat ?? []);
         chat.setEnabled(true);
@@ -203,6 +250,7 @@ export function startHangout(root: HTMLElement): () => void {
         avatars.get(msg.id)?.human.wave();
       } else if (msg.type === "leave") {
         removeAvatar(msg.id);
+        seat(msg.id); // back on their bench, if they have one
       } else if (msg.type === "chat") {
         chat.add(msg);
         showBubble(msg.id, msg.text);
@@ -320,6 +368,7 @@ export function startHangout(root: HTMLElement): () => void {
       skyAge = 0;
       park.setTime(hourNow());
     }
+    buildQueuedStatues(4); // a few benches' people per frame, so joining doesn't stutter
     const now = performance.now();
     for (const a of avatars.values()) {
       if (a.bubble && !a.bubble.el.hidden && now > a.bubble.until) a.bubble.el.hidden = true;

@@ -12,13 +12,16 @@ const REPLACED = 4409;
 // What the API says when no game called "hangout" has been published yet.
 const NO_GAME = "No game with that name";
 
-export type Player = { id: number; name: string; style?: Partial<CharacterStyle>; x: number; z: number; ry: number; moving: boolean };
+// x and z are null until the player first moves: they're standing at their seat.
+export type Player = { id: number; name: string; style?: Partial<CharacterStyle> | null; seat?: number | null; x: number | null; z: number | null; ry: number; moving: boolean };
+/** Everyone who has a seat, in the room or not. */
+export type Resident = { id: number; name: string; style?: Partial<CharacterStyle> | null; seat: number };
 export type RoomMessage =
-  | { type: "welcome"; you: number; players: Player[]; chat?: ChatMessage[] } // chat: the room's earlier messages (older servers leave it out)
+  | { type: "welcome"; you: number; players: Player[]; seats?: Resident[]; chat?: ChatMessage[] } // chat: the room's earlier messages (older servers leave it out)
   | { type: "join"; player: Player }
   | { type: "move"; id: number; x: number; z: number; ry: number; moving: boolean }
   | { type: "wave"; id: number }
-  | { type: "leave"; id: number }
+  | { type: "leave"; id: number; seat?: number | null }
   | ({ type: "chat" } & ChatMessage); // sent to everyone in the room, the sender too
 export type OutgoingMessage = { type: "wave" } | { type: "chat"; text: string } | { type: "move"; x: number; z: number; ry: number; moving: boolean };
 
