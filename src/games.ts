@@ -26,7 +26,7 @@ export const HANGOUT: Game = {
   host: "start.ng/hangout",
   by: "start.ng",
   colors: ["#292a23", "#5b7d0d"],
-  cover: null,
+  cover: "/hangout-cover.jpg", // a screenshot of the park, in public/
   board: null, // the Hangout has no leaderboard
 };
 
