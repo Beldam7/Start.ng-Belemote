@@ -186,3 +186,40 @@ export async function removeCover(token: string | null, name: string): Promise<P
   if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Could not remove the picture");
   return data;
 }
+
+// ---- Games by independent creators: made and hosted outside start.ng, listed on the homepage.
+export type IndieGame = {
+  id: number; name: string; url: string; description: string; by: string;
+  cover_path: string; // on the API, e.g. /indie/3/cover.webp
+  created_at: string;
+  mine: boolean; // the signed-in user added it (they can remove it)
+};
+export type IndieGameIn = { name: string; url: string; description: string; cover: string /* data URL */ };
+
+export const indieCoverUrl = (g: IndieGame) => `${API_URL}${g.cover_path}`;
+
+/** Newest first. The homepage asks for 4, the creators page for all. */
+export async function listIndieGames(token: string | null, limit = 200): Promise<IndieGame[]> {
+  const res = await fetch(`${API_URL}/indie?limit=${limit}`, token ? { headers: { Authorization: `Bearer ${token}` } } : undefined);
+  if (!res.ok) throw new Error("Could not load the games");
+  return res.json();
+}
+
+export async function submitIndieGame(token: string | null, game: IndieGameIn): Promise<IndieGame> {
+  const res = await fetch(`${API_URL}/indie`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify(game),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Could not add your game");
+  return data;
+}
+
+export async function removeIndieGame(token: string | null, id: number): Promise<void> {
+  const res = await fetch(`${API_URL}/indie/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(typeof data.detail === "string" ? data.detail : "Could not remove it");
+  }
+}

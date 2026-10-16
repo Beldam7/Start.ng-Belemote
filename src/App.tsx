@@ -9,6 +9,7 @@ import { Character, styleFor } from "./character";
 const CharacterCreator = lazy(() => import("./CharacterCreator"));
 const GameBoard = lazy(() => import("./GameBoard"));
 import { Game, gameReturnUrl, HANGOUT, isInAppGame, playableUrl, toCard } from "./games";
+import { CreatorsPage, CreatorsSection } from "./Creators";
 
 // Set when a game sent the user here to sign in: we send them back afterwards.
 const returnTo = gameReturnUrl();
@@ -35,8 +36,9 @@ type Approval =
 
 /** The homepage, and /games (every game, PER_PAGE at a time). They share sign-in, the profile
  *  and the "sign in or play as a guest?" question. */
-export default function App({ view = "home" }: { view?: "home" | "games" }) {
+export default function App({ view = "home" }: { view?: "home" | "games" | "creators" }) {
   const allGames = view === "games";
+  const creatorsPage = view === "creators";
   const [page, setPage] = useState(pageFromUrl);
   const [user, setUser] = useState<User | null>(null);
   const [checking, setChecking] = useState(() => !!localStorage.getItem("token"));
@@ -224,7 +226,8 @@ export default function App({ view = "home" }: { view?: "home" | "games" }) {
         <a className="logo" href="/"><b>start<span>.ng</span></b></a>
         <nav>
           <a href="/games" aria-current={allGames ? "page" : undefined}>Games</a>
-          <a href={allGames ? "/#how" : "#how"}>How it works</a>
+          <a href="/creators" aria-current={creatorsPage ? "page" : undefined}>Creators</a>
+          <a href={view === "home" ? "#how" : "/#how"}>How it works</a>
           <a href="/docs">Docs</a>
           {user ? (
             <AccountMenu user={user} onProfile={() => setEditing(true)} onSignOut={signOut} />
@@ -235,7 +238,9 @@ export default function App({ view = "home" }: { view?: "home" | "games" }) {
       </header>
 
       <main>
-        {!allGames && (
+        {creatorsPage && <CreatorsPage user={user} onSignIn={() => setSignInOpen(true)} />}
+
+        {view === "home" && (
         <section className="container hero">
           <p className="eyebrow">Big imagination. Played everywhere.</p>
           <h1>Good vibes.<br /><mark>Good games.</mark></h1>
@@ -255,9 +260,10 @@ export default function App({ view = "home" }: { view?: "home" | "games" }) {
         </section>
         )}
 
+        {!creatorsPage && (
         <section id="games" className={allGames ? "container all-games" : "container"}>
           <div className="section-head">
-            {allGames ? <h1>All games</h1> : <h2>Games</h2>}
+            {allGames ? <h1>All games from the community</h1> : <h2>Games from the community</h2>}
             {games && (
               <span className="count">
                 {allGames && pages > 1
@@ -302,8 +308,11 @@ export default function App({ view = "home" }: { view?: "home" | "games" }) {
             )
           )}
         </section>
+        )}
 
-        {!allGames && (
+        {view === "home" && <CreatorsSection user={user} onSignIn={() => setSignInOpen(true)} />}
+
+        {view === "home" && (
         <section id="how" className="container how">
           <h2>Got a game? Put it on start.ng</h2>
           <ol>
