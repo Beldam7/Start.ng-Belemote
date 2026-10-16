@@ -337,14 +337,15 @@ input:focus { outline: 2px solid var(--ink); outline-offset: -1px; }
 .indie-banner h2 { font-size: clamp(1.9rem, 4vw, 2.7rem); line-height: 1.05; letter-spacing: -.045em; margin: 0 0 14px; max-width: 17ch; }
 .indie-banner-text > p:not(.eyebrow) { color: var(--muted); line-height: 1.65; margin: 0 0 26px; max-width: 46ch; font-size: 1.05rem; }
 .indie-banner-actions { display: flex; gap: 12px; flex-wrap: wrap; }
-.indie-banner-art { position: relative; height: 240px; }
-.indie-banner-art .tile { position: absolute; width: 64%; aspect-ratio: 16 / 10; padding: 0; border-radius: 14px; overflow: hidden; cursor: pointer;
-  background: var(--line); border: 2px solid var(--ink); box-shadow: 5px 5px 0 var(--lime), 0 12px 26px rgba(41, 42, 35, .18); transition: transform .2s; }
-.indie-banner-art .tile:hover { background: var(--line); transform: translateY(-4px) rotate(0deg) !important; z-index: 5; }
+.indie-banner-art { position: relative; height: 220px; }
+/* stacked like the first mockup: three covers, dark frames, tilted, overlapping */
+.indie-banner-art .tile { position: absolute; width: 62%; aspect-ratio: 16 / 10; padding: 0; border-radius: 14px; overflow: hidden; cursor: pointer;
+  background: #3a3b33; border: 3px solid var(--ink); box-shadow: 0 0 0 1px rgba(255, 255, 255, .18), 0 14px 30px rgba(0, 0, 0, .35); transition: transform .2s; }
+.indie-banner-art .tile:hover { background: #3a3b33; transform: translateY(-4px) rotate(0deg) !important; z-index: 5; }
 .indie-banner-art .tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .indie-banner-art .t0 { right: 0; top: 0; transform: rotate(4deg); z-index: 3; }
-.indie-banner-art .t1 { left: 2%; top: 24%; transform: rotate(-6deg); z-index: 2; }
-.indie-banner-art .t2 { right: 12%; bottom: 0; transform: rotate(-1.5deg); z-index: 1; }
+.indie-banner-art .t1 { left: 4%; top: 22%; transform: rotate(-6deg); z-index: 2; }
+.indie-banner-art .t2 { right: 14%; bottom: 0; transform: rotate(-1deg); z-index: 1; }
 .tile-badge { position: absolute; left: 10px; top: 10px; background: var(--lime); color: var(--ink); font-family: var(--mono); font-size: .66rem; letter-spacing: .14em; text-transform: uppercase; padding: 4px 8px; border-radius: 6px; border: 1px solid var(--ink); }
 .indie-banner-art .tile.first { right: 8%; top: 50%; transform: translateY(-50%) rotate(-3deg); display: grid; place-items: center; align-content: center; gap: 8px;
   background: var(--card); border-style: dashed; color: var(--ink); padding: 18px; text-align: center; font-weight: 600; }
@@ -382,7 +383,7 @@ textarea:focus { outline: 2px solid var(--ink); outline-offset: -1px; }
 @media (max-width: 760px) {
   .indie-banner { grid-template-columns: 1fr; padding: 26px 20px; }
   .indie-banner::after { background: linear-gradient(180deg, var(--card) 45%, rgba(255, 254, 250, .4) 75%, transparent); }
-  .indie-banner-art { height: 190px; }
+  .indie-banner-art { height: 170px; }
 }
 
 /* most played */
