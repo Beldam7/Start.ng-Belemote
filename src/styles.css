@@ -317,3 +317,8 @@ input:focus { outline: 2px solid var(--ink); outline-offset: -1px; }
   .pagination { justify-content: space-between; }
   .pagination .numbers { order: -1; width: 100%; justify-content: center; }
 }
+
+/* whether start.ng is picking up pushes to a game's repo (MyGames.tsx) */
+.update-status { margin: 2px 0 0; font-size: .78rem; color: var(--muted); }
+.update-status code { font-size: .74rem; }
+.update-status.paused { color: #8a6d00; }

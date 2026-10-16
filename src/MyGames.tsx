@@ -9,6 +9,37 @@ const isUploaded = (g: PublishedGame) => !!g.cover_url && new URL(g.cover_url).p
 
 const dateOf = (iso: string) => new Date(iso).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
 
+// The API sends UTC; if a time arrives without a timezone, read it as UTC rather than local time.
+const utc = (iso: string) => new Date(/(Z|[+-]dd:?dd)$/i.test(iso) ? iso : `${iso}Z`);
+
+const ago = (iso: string) => {
+  const minutes = Math.max(0, Math.round((Date.now() - utc(iso).getTime()) / 60000));
+  if (minutes < 1) return "just now";
+  if (minutes < 60) return `${minutes} min ago`;
+  const hours = Math.round(minutes / 60);
+  return hours < 48 ? `${hours} h ago` : dateOf(iso);
+};
+
+/** Whether start.ng is picking up pushes to this game's repo, in one line. */
+function UpdateStatus({ game }: { game: PublishedGame }) {
+  const paused = game.updates_paused_until && utc(game.updates_paused_until) > new Date();
+  if (paused) {
+    const at = utc(game.updates_paused_until!).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+    return (
+      <p className="update-status paused">
+        Updates are paused by GitHub's limit until {at}. Pushes to your repo go live after that.
+      </p>
+    );
+  }
+  if (!game.checked_at) return <p className="update-status">Not checked yet: start.ng will look at your repo shortly.</p>;
+  return (
+    <p className="update-status">
+      Repo checked {ago(game.checked_at)}
+      {game.live_commit && <> · live: <code>{game.live_commit}</code></>}
+    </p>
+  );
+}
+
 /** What start.ng found in a game, one line each. */
 function ProblemList({ problems }: { problems: Problem[] }) {
   return (
@@ -162,6 +193,7 @@ export default function MyGames() {
                   <span className="tag">Live</span>
                   <span>Updated {dateOf(g.updated_at)}</span>
                 </div>
+                <UpdateStatus game={g} />
                 <div className="game-card-links">
                   <a href={g.url} target="_blank" rel="noreferrer">Play ↗</a>
                   <a href={g.repo_url} target="_blank" rel="noreferrer">GitHub ↗</a>
