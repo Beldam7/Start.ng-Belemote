@@ -3,6 +3,7 @@ import { me, User } from "./api";
 import AccountMenu from "./AccountMenu";
 import { Markdown, slug } from "./markdown";
 import ScrollJump from "./ScrollJump";
+import { PAGES, setSeo } from "./seo";
 
 // start.ng/docs: the builder docs. The words live in public/docs.md (also served as-is at
 // start.ng/docs.md for AI tools), so the page and the file never disagree.
@@ -24,7 +25,7 @@ export default function Docs() {
   }
 
   useEffect(() => {
-    document.title = "Docs · start.ng";
+    setSeo(PAGES.docs);
     fetch("/docs.md")
       .then((r) => (r.ok ? r.text() : Promise.reject()))
       .then(setSource)
@@ -54,10 +55,11 @@ export default function Docs() {
         <a className="logo" href="/"><b>start<span>.ng</span></b></a>
         <nav>
           <a href="/games">Games</a>
+          <a href="/creators">Creators</a>
           <a href="/#how">How it works</a>
           <a href="/docs">Docs</a>
           {user ? (
-            <AccountMenu user={user} onProfile={() => location.assign("/?profile")} onSignOut={signOut} />
+            <AccountMenu user={user} onProfile={() => location.assign("/?profile")} onFavorites={() => location.assign("/?favorites")} onSignOut={signOut} />
           ) : (
             <button onClick={() => location.assign("/?signin")}>Sign in</button>
           )}

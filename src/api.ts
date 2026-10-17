@@ -243,3 +243,19 @@ export function trackIndiePlay(id: number) {
   } catch { /* fall back to fetch */ }
   fetch(url, { method: "POST", keepalive: true }).catch(() => {});
 }
+
+// ---- Favorites: the games a signed-in player saved ("g:<name>" or "i:<id>"), newest first.
+async function favoritesCall(token: string | null, path: string, init?: RequestInit): Promise<string[]> {
+  const res = await fetch(`${API_URL}/favorites${path}`, {
+    ...init,
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Could not reach your favorites");
+  return res.json();
+}
+
+export const listFavorites = (token: string | null) => favoritesCall(token, "");
+/** Adds the favorites a device saved before sign-in, and returns the full list. */
+export const syncFavorites = (token: string | null, keys: string[]) => favoritesCall(token, "/sync", { method: "POST", body: JSON.stringify({ keys }) });
+export const addFavorite = (token: string | null, key: string) => favoritesCall(token, `/${encodeURIComponent(key)}`, { method: "PUT" });
+export const removeFavorite = (token: string | null, key: string) => favoritesCall(token, `/${encodeURIComponent(key)}`, { method: "DELETE" });

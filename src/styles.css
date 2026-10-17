@@ -100,9 +100,19 @@ input:focus { outline: 2px solid var(--ink); outline-offset: -1px; }
 .google { display: flex; justify-content: center; }
 
 @media (max-width: 600px) {
-  .nav nav a { display: none; }
+  /* Logo and account on the first row, the page links on a row of their own (they used to be hidden). */
+  .nav { flex-wrap: wrap; justify-content: flex-start; padding: 14px 20px 10px; row-gap: 8px; }
+  .nav::after { content: ""; order: 3; flex-basis: 100%; height: 0; }
+  .logo { order: 1; }
+  .nav nav { display: contents; }
+  .nav nav > button, .nav nav > .me { order: 2; margin-left: auto; }
+  .nav nav > a { order: 4; font-size: .9rem; padding: 4px 0; margin-right: 14px; }
+  .nav nav > a:last-of-type { margin-right: 0; }
+  .nav nav > a[aria-current="page"] { color: var(--ink); font-weight: 700; }
   .hero { padding: 48px 20px 56px; }
   .lead br { display: none; }
+  .lead { font-size: 1.05rem; line-height: 1.6; margin-bottom: 28px; }
+  .eyebrow { letter-spacing: .2em; font-size: .72rem; }
   .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
   .game { padding: 8px; gap: 10px; }
   .info { padding: 0 4px 4px; }
@@ -389,3 +399,79 @@ textarea:focus { outline: 2px solid var(--ink); outline-offset: -1px; }
 /* most played */
 .most-played { display: flex; align-items: center; gap: 10px; margin: 10px 0 0; color: var(--muted); font-size: .92rem; }
 .by .plays { font-weight: 600; color: var(--ink); }
+
+/* search */
+.search { position: relative; display: flex; align-items: center; flex: 1; min-width: 0; max-width: 420px; }
+.search svg { position: absolute; left: 14px; fill: none; stroke: var(--muted); stroke-width: 2; stroke-linecap: round; pointer-events: none; }
+.search input { width: 100%; padding: 12px 40px 12px 42px; border-radius: 999px; background: var(--card); -webkit-appearance: none; appearance: none; }
+.search input::-webkit-search-cancel-button { display: none; }
+.search-clear { position: absolute; right: 8px; width: 28px; height: 28px; display: grid; place-items: center; font-size: .9rem; }
+.list-tools { display: flex; align-items: center; justify-content: space-between; gap: 12px 16px; flex-wrap: wrap; margin: -6px 0 22px; }
+.list-tools .creators-intro-actions { display: flex; gap: 12px; align-items: center; }
+.empty .link { font-weight: 600; color: var(--ink); font-size: inherit; }
+
+/* skeleton loaders */
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.skeleton { background: linear-gradient(100deg, var(--line) 30%, #efede2 50%, var(--line) 70%); background-size: 220% 100%; animation: skeleton-shimmer 1.4s ease-in-out infinite; }
+.skeleton.line { display: block; height: 12px; border-radius: 6px; }
+.skeleton.title { height: 18px; width: 70%; margin: 3px 0 8px; }
+.skeleton.host { width: 52%; margin-bottom: 12px; }
+.skeleton.by { width: 38%; }
+.skeleton.action { width: 30%; height: 14px; margin-left: auto; }
+.skeleton-card, .skeleton-card:hover { transform: none; border-color: var(--line); box-shadow: none; }
+@keyframes skeleton-shimmer { from { background-position: 110% 0; } to { background-position: -110% 0; } }
+@media (prefers-reduced-motion: reduce) { .skeleton { animation: none; } }
+
+/* favorites */
+.game { position: relative; }
+.fav-btn { flex: none; width: 28px; height: 28px; padding: 0; display: grid; place-items: center; border-radius: 8px; background: none; color: var(--muted); opacity: .55; }
+.fav-btn:hover { background: var(--bg); color: var(--ink); opacity: 1; }
+.fav-btn svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; }
+.fav-btn.on { background: none; color: #c0392b; opacity: 1; }
+.fav-btn.on svg { fill: currentColor; }
+.card.favorites { max-width: 460px; max-height: calc(100dvh - 32px); overflow: auto; }
+.fav-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.fav-list li { display: flex; align-items: center; gap: 10px; }
+.fav-item { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; padding: 6px; border-radius: 12px; }
+.fav-item:hover { background: var(--bg); }
+.fav-art { width: 72px; height: 45px; flex: none; border-radius: 8px; overflow: hidden; display: grid; place-items: center; background: var(--line); color: #fff; }
+.fav-art img { width: 100%; height: 100%; object-fit: cover; }
+.fav-text { display: grid; min-width: 0; }
+.fav-text b, .fav-text small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fav-text small { color: var(--muted); }
+.fav-list .link { flex: none; font-size: .82rem; color: var(--muted); }
+
+/* most played */
+.most-played { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 8px 0 0; color: var(--muted); font-size: .95rem; }
+
+/* small screens */
+.docs-body p code, .docs-body li code, .docs-body td code, .docs-body blockquote code { overflow-wrap: anywhere; word-break: break-word; }
+.docs-body, .docs-body a { overflow-wrap: anywhere; }
+@media (max-width: 600px) {
+  .section-head { flex-wrap: wrap; align-items: center; gap: 4px 12px; margin-bottom: 16px; }
+  .section-head h2, .how h2 { font-size: 1.6rem; }
+  .all-games h1 { font-size: 1.7rem; }
+  .section-head .count { font-size: .78rem; margin-left: auto; white-space: nowrap; }
+  #games { padding-top: 40px; }
+  .most-played { font-size: .85rem; gap: 8px; }
+  .list-tools { margin: 0 0 16px; }
+  .search { max-width: none; }
+  .creators-intro { margin: 0 0 16px; }
+  .creators-intro p { font-size: .92rem; }
+  .creators-intro button { width: 100%; }
+  .info p { margin-bottom: 6px; font-size: .72rem; }
+  /* Play spans the card's width as a button, instead of hanging at one side. */
+  .meta { flex-wrap: wrap; font-size: .78rem; padding: 0 4px 4px; gap: 8px; }
+  .meta .play { margin-left: 0; flex: 1 1 100%; text-align: center; background: var(--ink); color: var(--lime); border-radius: 10px; padding: 10px 12px; font-size: .9rem; }
+  .meta .board-btn { margin-right: auto; }
+  .meta .fav-btn { order: -1; }
+  .docs-body h1 { font-size: 2rem; }
+  .docs-body h2 { font-size: 1.4rem; margin-top: 36px; }
+  .docs-body pre { padding: 12px 14px; font-size: .78rem; border-radius: 10px; }
+  .docs-body th, .docs-body td { padding: 6px 8px; font-size: .82rem; }
+}
+
+/* search suggestions */
+.suggestions { position: absolute; z-index: 15; top: calc(100% + 6px); left: 0; right: 0; margin: 0; padding: 6px; list-style: none; background: var(--card); border: 1px solid var(--line); border-radius: 16px; box-shadow: 4px 4px 0 var(--lime); }
+.suggestions li { padding: 10px 12px; border-radius: 10px; cursor: pointer; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.suggestions li.on, .suggestions li:hover { background: var(--bg); }

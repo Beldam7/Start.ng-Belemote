@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { startHangout } from "./game";
+import { PAGES, setSeo } from "../seo";
 import "./hangout.css";
 
 // The Hangout: start.ng's own game, an open park where everyone signed in hangs out together.
@@ -8,7 +9,7 @@ export default function Hangout() {
   const rootRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    document.title = "The Hangout · start.ng";
+    setSeo(PAGES.hangout);
     return startHangout(rootRef.current!);
   }, []);
 
