@@ -126,7 +126,7 @@ However you put your game live, **start.ng watches the branch it came from and u
 
 If a push doesn't publish (say `index.html` went missing), the game stays as it was until a push that works. Calling publish again updates it right away.
 
-**Pushed but not live yet?** The game's card in **Your games** shows when start.ng last checked your repo and which commit is live (for example "Repo checked 3 min ago · live: 07b08b1"). If GitHub's limit has paused checking, it says so and when it resumes, and your push goes live then. A game that start.ng has no record of yet is republished from its repo the first time it's checked.
+**Pushed but not live yet?** The game's card in **Your games** shows when start.ng last checked your repo and which commit is live (for example "Repo checked 3 min ago · live: 07b08b1"). If GitHub's limit has paused checking, it says so and when checking resumes. A push goes live once start.ng has checked it and it passes. A game that start.ng has no record of yet is republished from its repo the first time it's checked.
 
 ### A cover picture
 

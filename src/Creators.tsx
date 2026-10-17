@@ -1,4 +1,4 @@
-import { ChangeEvent, FormEvent, useCallback, useEffect, useState } from "react";
+import { ChangeEvent, FormEvent, RefObject, useCallback, useEffect, useRef, useState } from "react";
 import {
   COVER_TYPES, IndieGame, indieCoverUrl, listIndieGames, MAX_COVER_BYTES, removeIndieGame, submitIndieGame, trackIndiePlay, User,
 } from "./api";
@@ -11,13 +11,35 @@ const HOME_COUNT = 4;
 const hostOf = (url: string) => { try { return new URL(url).host.replace(/^www\./, ""); } catch { return url; } };
 const token = () => localStorage.getItem("token");
 
-/** Escape closes a popup. */
-function useEscape(onClose: () => void) {
+const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+/** Makes a popup behave like a dialog: focus moves in when it opens, Tab stays inside, Escape closes, and focus goes back to where it was. */
+function useDialog(onClose: () => void): RefObject<HTMLDivElement> {
+  const ref = useRef<HTMLDivElement>(null);
+  const close = useRef(onClose);
+  close.current = onClose;
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    const dialog = ref.current;
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const items = () => Array.from(dialog?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? []);
+    (items()[0] ?? dialog)?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") return close.current();
+      if (e.key !== "Tab") return;
+      const all = items();
+      if (all.length === 0) return e.preventDefault();
+      const first = all[0], last = all[all.length - 1];
+      if (!dialog?.contains(document.activeElement)) { e.preventDefault(); first.focus(); }
+      else if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      opener?.focus();
+    };
+  }, []);
+  return ref;
 }
 
 function useIndieGames(user: User | null, limit?: number, sort: "newest" | "popular" = "newest") {
@@ -61,7 +83,7 @@ function IndieCard({ game, onOpen }: { game: IndieGame; onOpen: (g: IndieGame) =
 function IndieDetails({ game, onClose, onRemoved }: { game: IndieGame; onClose: () => void; onRemoved: (id: number) => void }) {
   const [error, setError] = useState("");
   const [removing, setRemoving] = useState(false);
-  useEscape(onClose);
+  const dialog = useDialog(onClose);
   async function remove() {
     if (!confirm(`Remove ${game.name} from start.ng?`)) return;
     setRemoving(true);
@@ -75,7 +97,7 @@ function IndieDetails({ game, onClose, onRemoved }: { game: IndieGame; onClose: 
   }
   return (
     <div className="overlay" onClick={onClose}>
-      <div className="card indie-details" role="dialog" aria-modal="true" aria-labelledby="indie-title" onClick={(e) => e.stopPropagation()}>
+      <div ref={dialog} tabIndex={-1} className="card indie-details" role="dialog" aria-modal="true" aria-labelledby="indie-title" onClick={(e) => e.stopPropagation()}>
         <div className="art indie-details-art"><img src={indieCoverUrl(game)} alt={`${game.name} cover`} /></div>
         <div className="card-head">
           <h3 id="indie-title">{game.name}</h3>
@@ -104,7 +126,7 @@ function SubmitGame({ user, onSignIn, onClose, onAdded }: {
   const [cover, setCover] = useState<string | null>(null); // data URL
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  useEscape(onClose);
+  const dialog = useDialog(onClose);
 
   function pickCover(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -133,7 +155,7 @@ function SubmitGame({ user, onSignIn, onClose, onAdded }: {
 
   return (
     <div className="overlay creator-overlay" onClick={onClose}>
-      <div className="card indie-form" role="dialog" aria-modal="true" aria-labelledby="submit-title" onClick={(e) => e.stopPropagation()}>
+      <div ref={dialog} tabIndex={-1} className="card indie-form" role="dialog" aria-modal="true" aria-labelledby="submit-title" onClick={(e) => e.stopPropagation()}>
         <div className="card-head">
           <h3 id="submit-title">Submit your game</h3>
           <button type="button" className="link close" aria-label="Close" onClick={onClose}>✕</button>

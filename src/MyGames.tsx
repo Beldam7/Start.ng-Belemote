@@ -10,7 +10,7 @@ const isUploaded = (g: PublishedGame) => !!g.cover_url && new URL(g.cover_url).p
 const dateOf = (iso: string) => new Date(iso).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
 
 // The API sends UTC; if a time arrives without a timezone, read it as UTC rather than local time.
-const utc = (iso: string) => new Date(/(Z|[+-]dd:?dd)$/i.test(iso) ? iso : `${iso}Z`);
+const utc = (iso: string) => new Date(/(Z|[+-]\d{2}:?\d{2})$/i.test(iso) ? iso : `${iso}Z`);
 
 const ago = (iso: string) => {
   const minutes = Math.max(0, Math.round((Date.now() - utc(iso).getTime()) / 60000));
@@ -27,7 +27,7 @@ function UpdateStatus({ game }: { game: PublishedGame }) {
     const at = utc(game.updates_paused_until!).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
     return (
       <p className="update-status paused">
-        Updates are paused by GitHub's limit until {at}. Pushes to your repo go live after that.
+        Updates are paused by GitHub's limit until {at}. After that, start.ng checks your repo again, and a push that passes the checks goes live.
       </p>
     );
   }
@@ -65,6 +65,14 @@ export default function MyGames() {
   const refresh = () => myGames(token).then(setGames);
   useEffect(() => {
     refresh();
+    // Keep "checked 3 min ago" and the live commit current while the profile stays open.
+    const quietly = () => { if (document.visibilityState === "visible") myGames(token).then(setGames).catch(() => {}); };
+    const timer = window.setInterval(quietly, 30000);
+    document.addEventListener("visibilitychange", quietly);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", quietly);
+    };
   }, [token]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function upload() {
