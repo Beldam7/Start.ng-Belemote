@@ -43,6 +43,9 @@ if (typeof window !== "undefined") {
 const token = () => localStorage.getItem("token");
 const syncedKey = (userId: number) => `startng:favorites-synced:${userId}`;
 const askedThisVisit = new Set<number>();
+// Hearts tapped while a request is out: an older answer from the account must not undo them.
+let changes = 0;
+let saving = 0;
 
 /** Once per visit: pull the account's favorites. The first time on a device, also send up what it
  *  saved before (so nothing is lost); after that the account is the truth, so a favorite removed on
@@ -53,9 +56,10 @@ async function loadFromAccount(userId: number) {
   try {
     let first = true;
     try { first = !localStorage.getItem(syncedKey(userId)); } catch { /* treat as first */ }
+    const before = changes;
     const list = first ? await syncFavorites(token(), read(userId)) : await listFavorites(token());
     try { localStorage.setItem(syncedKey(userId), "1"); } catch { /* ignore */ }
-    write(userId, list);
+    if (changes === before && saving === 0) write(userId, list); // else a heart was tapped meanwhile; that one wins
   } catch {
     askedThisVisit.delete(userId); // offline or signed out: try again next time
   }
@@ -76,7 +80,12 @@ export function useFavorites(user: User | null) {
       const adding = !list.includes(key);
       write(user.id, adding ? [key, ...list] : list.filter((k) => k !== key));
       // Saved on the account in the background; the heart has already changed.
-      (adding ? addFavorite : removeFavorite)(token(), key).catch(() => {});
+      changes++;
+      saving++;
+      const id = user.id;
+      (adding ? addFavorite : removeFavorite)(token(), key)
+        .then((saved) => { if (--saving === 0) write(id, saved); }) // the last answer is the account's full list
+        .catch(() => { saving--; });
     },
   };
 }
