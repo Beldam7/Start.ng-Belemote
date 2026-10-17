@@ -38,6 +38,7 @@ export type BoardStat = { key: string; label: string; order: "highest" | "lowest
 export type PublishedGame = {
   name: string; url: string; repo_url: string; by: string; updated_at: string; cover_url: string | null;
   leaderboard: BoardStat[] | null; // null: this game has no leaderboard
+  plays?: number; // opened from start.ng in the last 7 days (the homepage shows the most played)
   update_problem?: UpdateProblem | null;
   // Only for the owner (myGames): how start.ng is keeping the game up to date from its repo.
   checked_at?: string | null; // when the repo was last checked for a push (null: not yet)
@@ -185,4 +186,60 @@ export async function removeCover(token: string | null, name: string): Promise<P
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Could not remove the picture");
   return data;
+}
+
+// ---- Games by independent creators: made and hosted outside start.ng, listed on the homepage.
+export type IndieGame = {
+  id: number; name: string; url: string; description: string; by: string;
+  cover_path: string; // on the API, e.g. /indie/3/cover.webp
+  created_at: string;
+  mine: boolean; // the signed-in user added it (they can remove it)
+  plays: number; // opened from start.ng in the last 7 days
+};
+export type IndieGameIn = { name: string; url: string; description: string; cover: string /* data URL */ };
+
+export const indieCoverUrl = (g: IndieGame) => `${API_URL}${g.cover_path}`;
+
+/** Newest first. The homepage asks for 4, the creators page for all. */
+export async function listIndieGames(token: string | null, limit = 200, sort: "newest" | "popular" = "newest"): Promise<IndieGame[]> {
+  const res = await fetch(`${API_URL}/indie?limit=${limit}&sort=${sort}`, token ? { headers: { Authorization: `Bearer ${token}` } } : undefined);
+  if (!res.ok) throw new Error("Could not load the games");
+  return res.json();
+}
+
+export async function submitIndieGame(token: string | null, game: IndieGameIn): Promise<IndieGame> {
+  const res = await fetch(`${API_URL}/indie`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify(game),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Could not add your game");
+  return data;
+}
+
+export async function removeIndieGame(token: string | null, id: number): Promise<void> {
+  const res = await fetch(`${API_URL}/indie/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(typeof data.detail === "string" ? data.detail : "Could not remove it");
+  }
+}
+
+/** Someone opened a game from start.ng: counted for "most played". Fire and forget, survives leaving the page. */
+export function trackPlay(game: string) {
+  const url = `${API_URL}/games/${encodeURIComponent(game)}/plays`;
+  try {
+    if (navigator.sendBeacon?.(url)) return;
+  } catch { /* fall back to fetch */ }
+  fetch(url, { method: "POST", keepalive: true }).catch(() => {});
+}
+
+/** Someone opened a game by an independent creator: counted for "most clicked". */
+export function trackIndiePlay(id: number) {
+  const url = `${API_URL}/indie/${id}/plays`;
+  try {
+    if (navigator.sendBeacon?.(url)) return;
+  } catch { /* fall back to fetch */ }
+  fetch(url, { method: "POST", keepalive: true }).catch(() => {});
 }

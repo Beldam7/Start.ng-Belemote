@@ -1,6 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { GoogleLogin } from "@react-oauth/google";
-import { approvePendingGame, getGameSession, getPendingGame, googleLogin, listGames, me, myGames, PendingGameInfo, saveCharacter, TokenResponse, User } from "./api";
+import { approvePendingGame, getGameSession, trackPlay, getPendingGame, googleLogin, listGames, me, myGames, PendingGameInfo, saveCharacter, TokenResponse, User } from "./api";
 import AccountMenu from "./AccountMenu";
 import Pagination from "./Pagination";
 import ScrollJump from "./ScrollJump";
@@ -9,6 +9,7 @@ import { Character, styleFor } from "./character";
 const CharacterCreator = lazy(() => import("./CharacterCreator"));
 const GameBoard = lazy(() => import("./GameBoard"));
 import { Game, gameReturnUrl, HANGOUT, isInAppGame, playableUrl, toCard } from "./games";
+import { CreatorsPage, CreatorsSection } from "./Creators";
 
 // Set when a game sent the user here to sign in: we send them back afterwards.
 const returnTo = gameReturnUrl();
@@ -35,8 +36,9 @@ type Approval =
 
 /** The homepage, and /games (every game, PER_PAGE at a time). They share sign-in, the profile
  *  and the "sign in or play as a guest?" question. */
-export default function App({ view = "home" }: { view?: "home" | "games" }) {
+export default function App({ view = "home" }: { view?: "home" | "games" | "creators" }) {
   const allGames = view === "games";
+  const creatorsPage = view === "creators";
   const [page, setPage] = useState(pageFromUrl);
   const [user, setUser] = useState<User | null>(null);
   const [checking, setChecking] = useState(() => !!localStorage.getItem("token"));
@@ -101,9 +103,11 @@ export default function App({ view = "home" }: { view?: "home" | "games" }) {
     window.scrollTo({ top: 0 });
   }
 
-  // The Hangout is always first; the rest come from the API.
+  // The Hangout is always first; the rest come from the API (newest first). The homepage shows the
+  // most played this week; ties keep the newest first.
   const community = (games ?? []).filter((g) => g.slug !== HANGOUT.slug);
-  const cards = [HANGOUT, ...community];
+  const popular = [...community].sort((a, b) => b.plays - a.plays);
+  const cards = [HANGOUT, ...(allGames ? community : popular)];
   // What this page shows: the first HOME_GAMES on the homepage, one page of them on /games.
   const pages = Math.max(1, Math.ceil(cards.length / PER_PAGE));
   const current = Math.min(page, pages); // a page past the end shows the last one
@@ -143,6 +147,7 @@ export default function App({ view = "home" }: { view?: "home" | "games" }) {
     // game's player API and expires; the game never sees the sign-in token.
     const token = localStorage.getItem("token");
     const game = back.hostname.split(".")[0];
+    if (goTo !== returnTo) trackPlay(game); // picked here, then signed in: they're off to play it
     (token ? getGameSession(token, game).catch(() => null) : Promise.resolve(null)).then((s) => {
       if (s) back.hash = `startng_session=${encodeURIComponent(s.session)}&expires_in=${s.expires_in}`;
       location.replace(back.href);
@@ -150,7 +155,10 @@ export default function App({ view = "home" }: { view?: "home" | "games" }) {
   }, [user, goTo]);
 
   function pickGame(e: React.MouseEvent, g: Game) {
-    if (user || checking || isInAppGame(g)) return; // signed in: the link opens the game as usual (the Hangout asks for sign-in itself)
+    if (user || checking || isInAppGame(g)) { // signed in: the link opens the game as usual (the Hangout asks for sign-in itself)
+      trackPlay(g.slug);
+      return;
+    }
     e.preventDefault();
     setChosen(g);
   }
@@ -159,6 +167,7 @@ export default function App({ view = "home" }: { view?: "home" | "games" }) {
     // ?guest tells games that support it to skip their own "sign in or guest?" question.
     const url = new URL(g.url);
     url.searchParams.set("guest", "1");
+    trackPlay(g.slug);
     window.open(url.href, "_blank", "noreferrer");
     setChosen(null);
   }
@@ -224,7 +233,8 @@ export default function App({ view = "home" }: { view?: "home" | "games" }) {
         <a className="logo" href="/"><b>start<span>.ng</span></b></a>
         <nav>
           <a href="/games" aria-current={allGames ? "page" : undefined}>Games</a>
-          <a href={allGames ? "/#how" : "#how"}>How it works</a>
+          <a href="/creators" aria-current={creatorsPage ? "page" : undefined}>Creators</a>
+          <a href={view === "home" ? "#how" : "/#how"}>How it works</a>
           <a href="/docs">Docs</a>
           {user ? (
             <AccountMenu user={user} onProfile={() => setEditing(true)} onSignOut={signOut} />
@@ -235,7 +245,9 @@ export default function App({ view = "home" }: { view?: "home" | "games" }) {
       </header>
 
       <main>
-        {!allGames && (
+        {creatorsPage && <CreatorsPage user={user} onSignIn={() => setSignInOpen(true)} />}
+
+        {view === "home" && (
         <section className="container hero">
           <p className="eyebrow">Big imagination. Played everywhere.</p>
           <h1>Good vibes.<br /><mark>Good games.</mark></h1>
@@ -255,9 +267,15 @@ export default function App({ view = "home" }: { view?: "home" | "games" }) {
         </section>
         )}
 
+        {!creatorsPage && (
         <section id="games" className={allGames ? "container all-games" : "container"}>
           <div className="section-head">
-            {allGames ? <h1>All games</h1> : <h2>Games</h2>}
+            {allGames ? <h1>All games from the community</h1> : (
+              <div>
+                <h2>Games from the community</h2>
+                {popular.some((g) => g.plays > 0) && <p className="most-played"><span className="tag">Most played</span> What everyone's playing this week</p>}
+              </div>
+            )}
             {games && (
               <span className="count">
                 {allGames && pages > 1
@@ -282,7 +300,7 @@ export default function App({ view = "home" }: { view?: "home" | "games" }) {
                   <div className="info">
                     <h3>{g.title}</h3>
                     <p>{g.host}</p>
-                    <span className="by">by {g.by}</span>
+                    <span className="by">by {g.by}{!allGames && g.plays > 0 && <> · <b className="plays">{g.plays} {g.plays === 1 ? "play" : "plays"}</b></>}</span>
                   </div>
                 </a>
                 <div className="meta">
@@ -302,8 +320,11 @@ export default function App({ view = "home" }: { view?: "home" | "games" }) {
             )
           )}
         </section>
+        )}
 
-        {!allGames && (
+        {view === "home" && <CreatorsSection user={user} onSignIn={() => setSignInOpen(true)} />}
+
+        {view === "home" && (
         <section id="how" className="container how">
           <h2>Got a game? Put it on start.ng</h2>
           <ol>
