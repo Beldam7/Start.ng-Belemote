@@ -1,6 +1,6 @@
 import { ChangeEvent, KeyboardEvent, useEffect, useState } from "react";
 import {
-  COVER_TYPES, GITHUB_REPO_RE, MAX_COVER_BYTES, myGames, Problem, publishGame, PublishedGame, PublishFailed, removeCover, unpublishGame, uploadCover,
+  COVER_TYPES, GITHUB_REPO_RE, MAX_COVER_BYTES, myGames, myGamesOrThrow, Problem, publishGame, PublishedGame, PublishFailed, removeCover, unpublishGame, uploadCover,
 } from "./api";
 import { toCard } from "./games";
 
@@ -66,7 +66,8 @@ export default function MyGames() {
   useEffect(() => {
     refresh();
     // Keep "checked 3 min ago" and the live commit current while the profile stays open.
-    const quietly = () => { if (document.visibilityState === "visible") myGames(token).then(setGames).catch(() => {}); };
+    // A failed refresh keeps the list on screen instead of replacing it with an empty one.
+    const quietly = () => { if (document.visibilityState === "visible") myGamesOrThrow(token).then(setGames).catch(() => {}); };
     const timer = window.setInterval(quietly, 30000);
     document.addEventListener("visibilitychange", quietly);
     return () => {

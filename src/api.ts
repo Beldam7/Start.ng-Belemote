@@ -155,6 +155,13 @@ export async function myGames(token: string | null): Promise<PublishedGame[]> {
   return res.ok ? res.json() : [];
 }
 
+/** Like myGames, but a failed request throws instead of looking like "no games", so a refresh can keep what is on screen. */
+export async function myGamesOrThrow(token: string | null): Promise<PublishedGame[]> {
+  const res = await fetch(`${API_URL}/games/mine`, { headers: { Authorization: `Bearer ${token}` } });
+  if (!res.ok) throw new Error(`Could not load your games (${res.status})`);
+  return res.json();
+}
+
 /** Take your game offline and free its name. */
 export async function unpublishGame(token: string | null, name: string): Promise<void> {
   const res = await fetch(`${API_URL}/games/${encodeURIComponent(name)}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
