@@ -1,14 +1,13 @@
 import { useEffect, useState } from "react";
 
-// Light or dark. With no saved choice the site follows the device's setting; once you tap the
-// button your choice is saved (localStorage "theme") and wins. index.html applies it before paint.
+// Light or dark. Light is the default; once you tap the button the choice is saved (localStorage "theme")
+// and kept. index.html applies it before paint.
 type Theme = "light" | "dark";
 const THEME_COLOR: Record<Theme, string> = { light: "#f6f5ee", dark: "#292a23" };
 
-const systemTheme = (): Theme => (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
 const current = (): Theme => {
   const set = document.documentElement.getAttribute("data-theme");
-  return set === "dark" || set === "light" ? set : systemTheme();
+  return set === "dark" ? "dark" : "light";
 };
 const paintBar = (t: Theme) => document.querySelector('meta[name="theme-color"]')?.setAttribute("content", THEME_COLOR[t]);
 
@@ -18,14 +17,6 @@ export default function ThemeToggle() {
   useEffect(() => {
     paintBar(theme);
   }, [theme]);
-
-  // No saved choice: follow the device when its setting changes.
-  useEffect(() => {
-    const mq = matchMedia("(prefers-color-scheme: dark)");
-    const onChange = () => { if (!document.documentElement.hasAttribute("data-theme")) setTheme(systemTheme()); };
-    mq.addEventListener("change", onChange);
-    return () => mq.removeEventListener("change", onChange);
-  }, []);
 
   function toggle() {
     const next: Theme = theme === "dark" ? "light" : "dark";
