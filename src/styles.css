@@ -33,6 +33,7 @@ code { font-family: var(--mono); font-size: .88em; background: var(--lime); padd
 .nav nav { display: flex; align-items: center; gap: 24px; }
 .nav nav a { color: var(--muted); font-size: .95rem; }
 .nav nav a:hover { color: var(--ink); }
+.nav nav a[aria-current="page"] { color: var(--ink); font-weight: 700; }
 .me { display: flex; align-items: center; gap: 10px; }
 .avatar { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--lime); border: 2px solid var(--ink); font-weight: 700; }
 
@@ -324,7 +325,6 @@ input:focus { outline: 2px solid var(--ink); outline-offset: -1px; }
 /* /games: every game, a page at a time (Pagination.tsx) */
 .all-games { padding-top: 24px; padding-bottom: 72px; min-height: 60vh; }
 .all-games h1 { font-size: 2.4rem; letter-spacing: -.04em; margin: 0; }
-.nav nav a[aria-current="page"] { color: var(--ink); font-weight: 700; }
 .see-all { display: flex; justify-content: center; margin-top: 28px; }
 .pagination { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px 16px; margin: 36px 0 8px; }
 .pagination a, .pagination .off { font-weight: 700; font-size: .95rem; }
@@ -517,5 +517,6 @@ code { color: var(--on-lime); }
 .docs-body .table { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 @media (max-width: 760px) {
   .docs-body table { min-width: 560px; }
-  .docs-body td code { white-space: nowrap; overflow-wrap: normal; word-break: normal; }
+  .docs-body td code { white-space: normal; overflow-wrap: normal; word-break: normal; }
+  .docs-body th:first-child, .docs-body td:first-child { white-space: nowrap; }
 }
