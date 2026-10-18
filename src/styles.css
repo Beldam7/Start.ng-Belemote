@@ -15,16 +15,6 @@
   --warn-bg: #4a4220; --warn-line: #7a6a2a; --bad-bg: #4a2a26; --bad-line: #7d4a43;
   color-scheme: dark;
 }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #292a23; --card: #33342c; --ink: #f6f5ee; --muted: #b0b1a6; --line: #4a4b41;
-    --text-2: #dedcd0; --on-solid: #292a23; --on-solid-accent: #292a23; --solid-hover: #fff;
-    --scrim: rgba(20, 21, 17, .65); --shimmer: #44453b; --code-bg: #1f201b; --legendary-bg: #38402a; --banner-tint: #343b27;
-    --dot: rgba(246, 245, 238, .12); --danger: #ff8a7d; --ok: #7fd884; --warn-ink: #e6c34d;
-    --warn-bg: #4a4220; --warn-line: #7a6a2a; --bad-bg: #4a2a26; --bad-line: #7d4a43;
-    color-scheme: dark;
-  }
-}
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body { margin: 0; font-family: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif; color: var(--ink); background: var(--bg); }
@@ -43,6 +33,7 @@ code { font-family: var(--mono); font-size: .88em; background: var(--lime); padd
 .nav nav { display: flex; align-items: center; gap: 24px; }
 .nav nav a { color: var(--muted); font-size: .95rem; }
 .nav nav a:hover { color: var(--ink); }
+.nav nav a[aria-current="page"] { color: var(--ink); font-weight: 700; }
 .me { display: flex; align-items: center; gap: 10px; }
 .avatar { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--lime); border: 2px solid var(--ink); font-weight: 700; }
 
@@ -132,7 +123,7 @@ input:focus { outline: 2px solid var(--ink); outline-offset: -1px; }
   .nav nav::-webkit-scrollbar { display: none; }
   .nav nav { justify-content: space-between; }
   .nav nav a { flex: none; padding: 7px 10px; border-radius: 999px; font-size: .82rem; border: 1px solid var(--line); background: var(--card); }
-  .nav nav a[aria-current="page"] { background: var(--ink); border-color: var(--ink); color: var(--on-solid-accent); }
+  .nav nav a[aria-current="page"] { background: var(--lime); border-color: var(--lime); color: var(--on-lime); }
   .hero { padding: 48px 20px 56px; }
   .lead br { display: none; }
   .lead { font-size: 1.05rem; line-height: 1.6; margin-bottom: 28px; }
@@ -334,7 +325,6 @@ input:focus { outline: 2px solid var(--ink); outline-offset: -1px; }
 /* /games: every game, a page at a time (Pagination.tsx) */
 .all-games { padding-top: 24px; padding-bottom: 72px; min-height: 60vh; }
 .all-games h1 { font-size: 2.4rem; letter-spacing: -.04em; margin: 0; }
-.nav nav a[aria-current="page"] { color: var(--ink); font-weight: 700; }
 .see-all { display: flex; justify-content: center; margin-top: 28px; }
 .pagination { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px 16px; margin: 36px 0 8px; }
 .pagination a, .pagination .off { font-weight: 700; font-size: .95rem; }
@@ -515,13 +505,18 @@ code { color: var(--on-lime); }
 .theme-toggle:hover { background: var(--card); border-color: var(--ink); }
 .theme-toggle svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
-/* dark mode: the heading is egg white on the dark brown page, so it gets a brown outline to stay
-   readable where the lime underline runs behind it */
+/* dark mode (only when chosen with the toggle; light is the default): the heading is egg white on the dark
+   brown page, so it gets a brown outline to stay readable where the lime underline runs behind it */
 :root[data-theme="dark"] .hero h1, :root[data-theme="dark"] mark { -webkit-text-stroke: .075em var(--bg); paint-order: stroke fill; }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .hero h1, :root:not([data-theme="light"]) mark { -webkit-text-stroke: .075em var(--bg); paint-order: stroke fill; }
-}
 
 /* The Hangout is a game scene with its own overlay colours: it stays on the light palette in both modes. */
 .hangout { --bg: #f6f5ee; --card: #fffefa; --ink: #292a23; --muted: #6b6c63; --line: #e4e2d6; --on-solid: #fff; --on-solid-accent: var(--lime); --on-lime: #292a23; color-scheme: light; }
 .hangout .hangout-brand, .hangout h1, .hangout mark { -webkit-text-stroke: 0; }
+
+/* docs tables on phones: keep their natural width and scroll sideways instead of squeezing the columns */
+.docs-body .table { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+@media (max-width: 760px) {
+  .docs-body table { min-width: 560px; }
+  .docs-body td code { white-space: normal; overflow-wrap: normal; word-break: normal; }
+  .docs-body th:first-child, .docs-body td:first-child { white-space: nowrap; }
+}
