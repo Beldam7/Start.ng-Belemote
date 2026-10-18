@@ -111,7 +111,7 @@ export function FavoriteButton({ user, on, name, onToggle, onSignIn }: {
 }
 
 /** The popup opened from the account menu: everything you've hearted, in one place. */
-export default function Favorites({ user, games, onClose }: { user: User; games: Game[]; onClose: () => void }) {
+export default function Favorites({ user, games, gamesLoading, onClose }: { user: User; games: Game[]; gamesLoading: boolean; onClose: () => void }) {
   const favs = useFavorites(user);
   const [indie, setIndie] = useState<IndieGame[] | null>(null);
   const wantsIndie = favs.list.some((k) => k.startsWith("i:"));
@@ -126,7 +126,7 @@ export default function Favorites({ user, games, onClose }: { user: User; games:
     if (wantsIndie && indie === null) listIndieGames(localStorage.getItem("token")).then(setIndie).catch(() => setIndie([]));
   }, [wantsIndie, indie]);
 
-  const stillLoading = (favs.list.some((k) => k.startsWith("g:")) && games.length <= 1) || (wantsIndie && indie === null);
+  const stillLoading = (favs.list.some((k) => k.startsWith("g:")) && gamesLoading) || (wantsIndie && indie === null);
   type Row = { key: string; title: string; sub: string; href: string; newTab: boolean; cover: string | null; colors: [string, string] | null; onOpen: () => void };
   const rows = favs.list.flatMap((key): Row[] => {
     if (key.startsWith("g:")) {
@@ -144,10 +144,10 @@ export default function Favorites({ user, games, onClose }: { user: User; games:
           <h3 id="fav-title">Your favorites</h3>
           <button type="button" className="link close" aria-label="Close" onClick={onClose}>✕</button>
         </div>
-        {favs.list.length === 0 ? (
-          <p className="note">Nothing here yet. Tap the heart on any game to keep it close.</p>
-        ) : rows.length === 0 && stillLoading ? (
+        {rows.length === 0 && stillLoading ? (
           <p className="note">Loading your games…</p>
+        ) : rows.length === 0 ? (
+          <p className="note">Nothing here yet. Tap the heart on any game to keep it close.</p>
         ) : (
           <ul className="fav-list">
             {rows.map((r) => (

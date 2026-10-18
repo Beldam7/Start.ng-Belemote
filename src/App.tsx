@@ -450,7 +450,7 @@ export default function App({ view = "home" }: { view?: "home" | "games" | "crea
         </div>
       )}
 
-      {favoritesOpen && user && <Favorites user={user} games={[HANGOUT, ...community]} onClose={() => setFavoritesOpen(false)} />}
+      {favoritesOpen && user && <Favorites user={user} games={[HANGOUT, ...community]} gamesLoading={games === null} onClose={() => setFavoritesOpen(false)} />}
 
       {board && (
         <Suspense fallback={null}>
