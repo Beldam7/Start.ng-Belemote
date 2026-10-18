@@ -118,10 +118,15 @@ export function jsonLd(site: string): string {
   return `<script type="application/ld+json">${JSON.stringify(data).replace(/</g, "\\u003c")}</script>`;
 }
 
+/** The public origin, from the same VITE_SITE_URL the build uses, so a preview or alternate host still points at the real address. */
+function siteUrl(): string {
+  return (import.meta.env.VITE_SITE_URL || DEFAULT_SITE_URL).replace(/\/$/, "");
+}
+
 /** Update the tags of the page that's open (when moving between pages or searching without a reload). */
 export function setSeo(seo: Seo) {
   document.title = seo.title;
-  const url = location.origin + seo.path;
+  const url = siteUrl() + seo.path;
   const robots = seo.noindex ? "noindex, nofollow" : "index, follow, max-image-preview:large";
   const upsert = (tag: "meta" | "link", selector: string, attrs: Record<string, string>) => {
     let el = document.head.querySelector(selector);
