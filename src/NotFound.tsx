@@ -1,10 +1,11 @@
 import { useEffect } from "react";
+import { PAGES, setSeo } from "./seo";
 
 // Shown for any address that isn't one of the app's pages. nginx serves it with a real
 // 404 status (see nginx.conf); the Vite dev server shows it too, with a 200.
 export default function NotFound() {
   useEffect(() => {
-    document.title = "Page not found · start.ng";
+    setSeo(PAGES.notFound);
   }, []);
 
   return (
@@ -13,6 +14,7 @@ export default function NotFound() {
         <a className="logo" href="/"><b>start<span>.ng</span></b></a>
         <nav>
           <a href="/games">Games</a>
+          <a href="/creators">Creators</a>
           <a href="/#how">How it works</a>
           <a href="/docs">Docs</a>
         </nav>

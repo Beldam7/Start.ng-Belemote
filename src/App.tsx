@@ -1,8 +1,12 @@
-import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { GoogleLogin } from "@react-oauth/google";
 import { approvePendingGame, getGameSession, trackPlay, getPendingGame, googleLogin, listGames, me, myGames, PendingGameInfo, saveCharacter, TokenResponse, User } from "./api";
 import AccountMenu from "./AccountMenu";
+import Favorites, { FavoriteButton, gameKey, useFavorites } from "./Favorites";
 import Pagination from "./Pagination";
+import SearchBox, { matches, queryFromUrl, urlFor } from "./SearchBox";
+import { setSeo, PAGES } from "./seo";
+import { SkeletonCards } from "./Skeleton";
 import ScrollJump from "./ScrollJump";
 import { Character, styleFor } from "./character";
 // The creator (and three.js) loads only when someone opens it.
@@ -19,7 +23,8 @@ const approveCode = location.pathname.match(/^\/approve\/([\w-]{8,40})\/?$/)?.[1
 const opening = new URLSearchParams(location.search);
 const openProfile = opening.has("profile");
 const openSignIn = opening.has("signin");
-if (openProfile || openSignIn) history.replaceState(null, "", location.pathname + location.hash);
+const openFavorites = opening.has("favorites");
+if (openProfile || openSignIn || openFavorites) history.replaceState(null, "", location.pathname + location.hash);
 
 // The homepage shows the first few games; /games has them all, a page at a time.
 const HOME_GAMES = 8;
@@ -40,6 +45,8 @@ export default function App({ view = "home" }: { view?: "home" | "games" | "crea
   const allGames = view === "games";
   const creatorsPage = view === "creators";
   const [page, setPage] = useState(pageFromUrl);
+  const [q, setQ] = useState(queryFromUrl); // /games search
+  const [favoritesOpen, setFavoritesOpen] = useState(openFavorites);
   const [user, setUser] = useState<User | null>(null);
   const [checking, setChecking] = useState(() => !!localStorage.getItem("token"));
   // Google sign-in; the first Google sign-in creates the account.
@@ -88,29 +95,47 @@ export default function App({ view = "home" }: { view?: "home" | "games" | "crea
     };
   }, [refreshGames]);
 
-  // /games: the back and forward buttons move between pages.
+  // Titles and link previews for the page that's open (the served HTML has them too, see seo.ts).
+  useEffect(() => {
+    setSeo(approveCode ? PAGES.approve : allGames ? PAGES.games : creatorsPage ? PAGES.creators : PAGES.home);
+  }, [allGames, creatorsPage]);
+
+  // /games: the back and forward buttons move between pages and searches.
   useEffect(() => {
     if (!allGames) return;
-    document.title = "Games · start.ng";
-    const onPop = () => setPage(pageFromUrl());
+    const onPop = () => { setPage(pageFromUrl()); setQ(queryFromUrl()); };
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
   }, [allGames]);
 
   function goToPage(n: number) {
-    history.pushState(null, "", n === 1 ? "/games" : `/games?page=${n}`);
+    history.pushState(null, "", urlFor("/games", q, n));
     setPage(n);
     window.scrollTo({ top: 0 });
   }
+
+  // Searching starts again from the first page; the address follows what you type.
+  function search(next: string) {
+    setQ(next);
+    setPage(1);
+    history.replaceState(null, "", urlFor("/games", next));
+  }
+
+  const favs = useFavorites(user);
 
   // The Hangout is always first; the rest come from the API (newest first). The homepage shows the
   // most played this week; ties keep the newest first.
   const community = (games ?? []).filter((g) => g.slug !== HANGOUT.slug);
   const popular = [...community].sort((a, b) => b.plays - a.plays);
-  const cards = [HANGOUT, ...(allGames ? community : popular)];
+  const searching = allGames && q.trim() !== "";
+  // What the search box suggests: game names and their creators.
+  const suggestions = useMemo(() => [HANGOUT, ...(games ?? [])].flatMap((g) => [g.title, g.by]), [games]);
+  const everyCard = [HANGOUT, ...(allGames ? community : popular)];
+  const cards = searching ? everyCard.filter((g) => matches(q, g.title, g.host, g.by)) : everyCard;
   // What this page shows: the first HOME_GAMES on the homepage, one page of them on /games.
   const pages = Math.max(1, Math.ceil(cards.length / PER_PAGE));
   const current = Math.min(page, pages); // a page past the end shows the last one
+  // While the API answers, the Hangout (which needs no API) shows and skeleton cards hold the other places.
   const shown = allGames ? cards.slice((current - 1) * PER_PAGE, current * PER_PAGE) : cards.slice(0, HOME_GAMES);
 
   // A real address for the hero: your own newest game, else the newest game on start.ng.
@@ -237,7 +262,7 @@ export default function App({ view = "home" }: { view?: "home" | "games" | "crea
           <a href={view === "home" ? "#how" : "/#how"}>How it works</a>
           <a href="/docs">Docs</a>
           {user ? (
-            <AccountMenu user={user} onProfile={() => setEditing(true)} onSignOut={signOut} />
+            <AccountMenu user={user} onProfile={() => setEditing(true)} onFavorites={() => setFavoritesOpen(true)} onSignOut={signOut} />
           ) : (
             <button onClick={() => setSignInOpen(true)}>Sign in</button>
           )}
@@ -278,40 +303,53 @@ export default function App({ view = "home" }: { view?: "home" | "games" | "crea
             )}
             {games && (
               <span className="count">
-                {allGames && pages > 1
+                {searching
+                  ? `${cards.length} ${cards.length === 1 ? "result" : "results"}`
+                  : allGames && pages > 1
                   ? `${(current - 1) * PER_PAGE + 1}–${(current - 1) * PER_PAGE + shown.length} of ${cards.length}`
                   : `${cards.length} to play`}
               </span>
             )}
           </div>
-          {games === null && <p className="empty">Loading games…</p>}
-          {games && community.length === 0 && (
+          {allGames && (
+            <div className="list-tools">
+              <SearchBox value={q} onChange={search} label="Search games" placeholder="Search games by name or creator" suggestions={suggestions} />
+            </div>
+          )}
+          {games && !searching && community.length === 0 && (
             <p className="empty">
               No community games yet. The first ones are on their way. <a href={allGames ? "/#how" : "#how"}>Put yours here.</a>
             </p>
           )}
-          <div className="grid">
+          {games && searching && cards.length === 0 && (
+            <p className="empty">
+              No games match “{q.trim()}”. <button type="button" className="link" onClick={() => search("")}>Clear search</button>
+            </p>
+          )}
+          <div className="grid" aria-busy={games === null}>
             {shown.map((g) => (
               <article key={g.slug} className={g.slug === HANGOUT.slug ? "game legendary" : "game"}>
                 <a className="game-link" href={g.url} {...(isInAppGame(g) ? {} : { target: "_blank", rel: "noreferrer" })} onClick={(e) => pickGame(e, g)}>
                   <div className="art" style={{ background: `linear-gradient(135deg, ${g.colors[0]}, ${g.colors[1]})` }}>
-                    {g.cover ? <img src={g.cover} alt="" loading="lazy" /> : <span>{g.title.charAt(0)}</span>}
+                    {g.cover ? <img src={g.cover} alt="" loading="lazy" decoding="async" /> : <span>{g.title.charAt(0)}</span>}
                   </div>
                   <div className="info">
                     <h3>{g.title}</h3>
                     <p>{g.host}</p>
-                    <span className="by">by {g.by}{!allGames && g.plays > 0 && <> · <b className="plays">{g.plays} {g.plays === 1 ? "play" : "plays"}</b></>}</span>
+                    <span className="by">by {g.by}</span>
                   </div>
                 </a>
                 <div className="meta">
+                  <FavoriteButton user={user} on={favs.has(gameKey(g))} name={g.title} onToggle={() => favs.toggle(gameKey(g))} onSignIn={() => setSignInOpen(true)} />
                   {g.board && <button type="button" className="link board-btn" onClick={() => setBoard(g)}>Leaderboard</button>}
                   <a className="play" href={g.url} {...(isInAppGame(g) ? {} : { target: "_blank", rel: "noreferrer" })} onClick={(e) => pickGame(e, g)}>{isInAppGame(g) ? "Play" : "Play ↗"}</a>
                 </div>
               </article>
             ))}
+            {games === null && <SkeletonCards count={Math.max(0, (allGames ? 8 : HOME_GAMES) - shown.length)} />}
           </div>
           {allGames ? (
-            <Pagination page={current} pages={pages} onPage={goToPage} />
+            <Pagination page={current} pages={pages} onPage={goToPage} hrefFor={(n) => urlFor("/games", q, n)} />
           ) : (
             cards.length > HOME_GAMES && (
               <div className="see-all">
@@ -411,6 +449,8 @@ export default function App({ view = "home" }: { view?: "home" | "games" | "crea
           </div>
         </div>
       )}
+
+      {favoritesOpen && user && <Favorites user={user} games={[HANGOUT, ...community]} gamesLoading={games === null} onClose={() => setFavoritesOpen(false)} />}
 
       {board && (
         <Suspense fallback={null}>
