@@ -215,6 +215,14 @@ export async function listIndieGames(token: string | null, limit = 200, sort: "n
   return res.json();
 }
 
+/** One game by an independent creator (for its page on start.ng). Null when there's no game with that id. */
+export async function getIndieGame(token: string | null, id: number): Promise<IndieGame | null> {
+  const res = await fetch(`${API_URL}/indie/${id}`, token ? { headers: { Authorization: `Bearer ${token}` } } : undefined);
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error("Could not load the game");
+  return res.json();
+}
+
 export async function submitIndieGame(token: string | null, game: IndieGameIn): Promise<IndieGame> {
   const res = await fetch(`${API_URL}/indie`, {
     method: "POST",

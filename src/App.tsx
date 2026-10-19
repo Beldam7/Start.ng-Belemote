@@ -5,6 +5,7 @@ import AccountMenu from "./AccountMenu";
 import Favorites, { FavoriteButton, gameKey, useFavorites } from "./Favorites";
 import Pagination from "./Pagination";
 import GamePage from "./GamePage";
+import IndiePage from "./IndiePage";
 import ThemeToggle from "./ThemeToggle";
 import SearchBox, { matches, queryFromUrl, urlFor } from "./SearchBox";
 import { setSeo, PAGES } from "./seo";
@@ -43,8 +44,9 @@ type Approval =
 
 /** The homepage, and /games (every game, PER_PAGE at a time). They share sign-in, the profile
  *  and the "sign in or play as a guest?" question. */
-export default function App({ view = "home", gameName }: { view?: "home" | "games" | "creators" | "game"; gameName?: string }) {
+export default function App({ view = "home", gameName, indieId }: { view?: "home" | "games" | "creators" | "game" | "indie"; gameName?: string; indieId?: number }) {
   const gamePage = view === "game";
+  const indiePage = view === "indie";
   const allGames = view === "games";
   const creatorsPage = view === "creators";
   const [page, setPage] = useState(pageFromUrl);
@@ -269,7 +271,7 @@ export default function App({ view = "home", gameName }: { view?: "home" | "game
         <a className="logo" href="/"><b>start<span>.ng</span></b></a>
         <nav aria-label="Pages">
           <a href="/games" aria-current={allGames || gamePage ? "page" : undefined}>Games</a>
-          <a href="/creators" aria-current={creatorsPage ? "page" : undefined}>Creators</a>
+          <a href="/creators" aria-current={creatorsPage || indiePage ? "page" : undefined}>Creators</a>
           <a href={view === "home" ? "#how" : "/#how"}>How it works</a>
           <a href="/docs">Docs</a>
         </nav>
@@ -286,15 +288,17 @@ export default function App({ view = "home", gameName }: { view?: "home" | "game
       <main>
         {creatorsPage && <CreatorsPage user={user} onSignIn={() => setSignInOpen(true)} />}
 
+        {indiePage && indieId && <IndiePage id={indieId} user={user} onSignIn={() => setSignInOpen(true)} />}
+
         {gamePage && (
           <GamePage
             name={gameName ?? ""}
             game={[HANGOUT, ...community].find((g) => g.slug === gameName)}
             loading={games === null}
             user={user}
+            playerId={user?.id ?? null}
             favorite={{ on: favs.has(`g:${gameName}`), toggle: () => favs.toggle(`g:${gameName}`) }}
             onPlay={pickGame}
-            onLeaderboard={setBoard}
             onSignIn={() => setSignInOpen(true)}
           />
         )}
@@ -319,7 +323,7 @@ export default function App({ view = "home", gameName }: { view?: "home" | "game
         </section>
         )}
 
-        {!creatorsPage && !gamePage && (
+        {!creatorsPage && !gamePage && !indiePage && (
         <section id="games" className={allGames ? "container all-games" : "container"}>
           <div className="section-head">
             {allGames ? <h1>All games from the community</h1> : (

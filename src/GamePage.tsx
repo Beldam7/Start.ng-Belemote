@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import BoardTable from "./BoardTable";
 import { FavoriteButton } from "./Favorites";
 import { User } from "./api";
 import { Game, isInAppGame } from "./games";
@@ -7,14 +8,14 @@ import { PAGES, setSeo } from "./seo";
 // start.ng/games/<name>: a game's own page on start.ng, shown before the game itself. Search engines
 // and shared links land here (the API serves this address with the text already in it, see
 // startng-be app/routers/pages.py), and Play goes on to the game's address.
-export default function GamePage({ name, game, loading, user, favorite, onPlay, onLeaderboard, onSignIn }: {
+export default function GamePage({ name, game, loading, user, playerId, favorite, onPlay, onSignIn }: {
   name: string;
   game: Game | undefined;
   loading: boolean;
   user: User | null;
+  playerId: number | null;
   favorite: { on: boolean; toggle: () => void };
   onPlay: (e: React.MouseEvent, g: Game) => void;
-  onLeaderboard: (g: Game) => void;
   onSignIn: () => void;
 }) {
   const [copied, setCopied] = useState(false);
@@ -80,9 +81,14 @@ export default function GamePage({ name, game, loading, user, favorite, onPlay, 
             <a className="btn" href={g.url} {...(isInAppGame(g) ? {} : { target: "_blank", rel: "noreferrer" })} onClick={(e) => onPlay(e, g)}>
               {isInAppGame(g) ? "Play" : "Play ↗"}
             </a>
-            {g.board && <button type="button" className="ghost" onClick={() => onLeaderboard(g)}>Leaderboard</button>}
             <FavoriteButton user={user} on={favorite.on} name={g.title} onToggle={favorite.toggle} onSignIn={onSignIn} />
           </div>
+          {g.board && (
+            <aside className="game-page-board" aria-labelledby="board-heading">
+              <h2 id="board-heading">Leaderboard</h2>
+              <BoardTable game={g} playerId={playerId} />
+            </aside>
+          )}
           <div className="game-page-share">
             <span>Share it</span>
             <a className="ghost btn" href={tweet} target="_blank" rel="noreferrer">Share on X</a>

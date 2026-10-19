@@ -545,3 +545,8 @@ code { color: var(--on-lime); }
   .game-page-grid { grid-template-columns: minmax(0, 1fr); gap: 20px; }
   .game-page-actions .btn, .game-page-actions .ghost { flex: 1 1 auto; text-align: center; }
 }
+
+/* the leaderboard on a game's page, beside its details */
+.game-page-board { display: grid; gap: 10px; padding: 16px; background: var(--card); border: 1px solid var(--line); border-radius: 16px; box-shadow: 4px 4px 0 var(--lime); min-width: 0; }
+.game-page-board h2 { margin: 0; font-size: 1.1rem; letter-spacing: -.02em; }
+.game-page-board .board-sub, .game-page-board .board-empty { margin: 0; }
