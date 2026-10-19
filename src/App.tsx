@@ -17,6 +17,7 @@ const CharacterCreator = lazy(() => import("./CharacterCreator"));
 const GameBoard = lazy(() => import("./GameBoard"));
 import { Game, gameReturnUrl, HANGOUT, isInAppGame, playableUrl, toCard } from "./games";
 import { CreatorsPage, CreatorsSection } from "./Creators";
+import { LeaderboardPage, TournamentBanner, TournamentPage, useTournament } from "./Tournament";
 
 // Set when a game sent the user here to sign in: we send them back afterwards.
 const returnTo = gameReturnUrl();
@@ -44,11 +45,13 @@ type Approval =
 
 /** The homepage, and /games (every game, PER_PAGE at a time). They share sign-in, the profile
  *  and the "sign in or play as a guest?" question. */
-export default function App({ view = "home", gameName, indieId }: { view?: "home" | "games" | "creators" | "game" | "indie"; gameName?: string; indieId?: number }) {
+export default function App({ view = "home", gameName, indieId }: { view?: "home" | "games" | "creators" | "game" | "indie" | "tournament" | "leaderboard"; gameName?: string; indieId?: number }) {
   const gamePage = view === "game";
   const indiePage = view === "indie";
   const allGames = view === "games";
   const creatorsPage = view === "creators";
+  const tournamentPage = view === "tournament";
+  const leaderboardPage = view === "leaderboard";
   const [page, setPage] = useState(pageFromUrl);
   const [q, setQ] = useState(queryFromUrl); // /games search
   const [favoritesOpen, setFavoritesOpen] = useState(openFavorites);
@@ -102,8 +105,9 @@ export default function App({ view = "home", gameName, indieId }: { view?: "home
 
   // Titles and link previews for the page that's open (the served HTML has them too, see seo.ts).
   useEffect(() => {
+    if (tournamentPage || leaderboardPage) return; // they set their own
     setSeo(approveCode ? PAGES.approve : allGames ? PAGES.games : creatorsPage ? PAGES.creators : PAGES.home);
-  }, [allGames, creatorsPage]);
+  }, [allGames, creatorsPage, tournamentPage, leaderboardPage]);
 
   // /games: the back and forward buttons move between pages and searches.
   useEffect(() => {
@@ -127,6 +131,8 @@ export default function App({ view = "home", gameName, indieId }: { view?: "home
   }
 
   const favs = useFavorites(user);
+  // Today's tournament: the homepage banner, the badge on game pages, and /tournament.
+  const tournament = useTournament(user, view === "home" || gamePage || tournamentPage);
 
   // The Hangout is always first; the rest come from the API (newest first). The homepage shows the
   // most played this week; ties keep the newest first.
@@ -271,6 +277,7 @@ export default function App({ view = "home", gameName, indieId }: { view?: "home
         <a className="logo" href="/"><b>start<span>.ng</span></b></a>
         <nav aria-label="Pages">
           <a href="/games" aria-current={allGames || gamePage ? "page" : undefined}>Games</a>
+          <a href="/tournament" aria-current={tournamentPage || leaderboardPage ? "page" : undefined}>Tournament</a>
           <a href="/creators" aria-current={creatorsPage || indiePage ? "page" : undefined}>Creators</a>
           <a href={view === "home" ? "#how" : "/#how"}>How it works</a>
           <a href="/docs">Docs</a>
@@ -288,6 +295,10 @@ export default function App({ view = "home", gameName, indieId }: { view?: "home
       <main>
         {creatorsPage && <CreatorsPage user={user} onSignIn={() => setSignInOpen(true)} />}
 
+        {tournamentPage && <TournamentPage user={user} state={tournament} onSignIn={() => setSignInOpen(true)} onPlay={pickGame} />}
+
+        {leaderboardPage && <LeaderboardPage user={user} />}
+
         {indiePage && indieId && <IndiePage id={indieId} user={user} onSignIn={() => setSignInOpen(true)} />}
 
         {gamePage && (
@@ -300,6 +311,7 @@ export default function App({ view = "home", gameName, indieId }: { view?: "home
             favorite={{ on: favs.has(`g:${gameName}`), toggle: () => favs.toggle(`g:${gameName}`) }}
             onPlay={pickGame}
             onSignIn={() => setSignInOpen(true)}
+            inTournament={!!tournament.tournament?.games.some((g) => g.name === gameName)}
           />
         )}
 
@@ -323,7 +335,9 @@ export default function App({ view = "home", gameName, indieId }: { view?: "home
         </section>
         )}
 
-        {!creatorsPage && !gamePage && !indiePage && (
+        {view === "home" && <TournamentBanner tournament={tournament.tournament} />}
+
+        {(view === "home" || allGames) && (
         <section id="games" className={allGames ? "container all-games" : "container"}>
           <div className="section-head">
             {allGames ? <h1>All games from the community</h1> : (

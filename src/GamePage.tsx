@@ -8,7 +8,7 @@ import { PAGES, setSeo } from "./seo";
 // start.ng/games/<name>: a game's own page on start.ng, shown before the game itself. Search engines
 // and shared links land here (the API serves this address with the text already in it, see
 // startng-be app/routers/pages.py), and Play goes on to the game's address.
-export default function GamePage({ name, game, loading, user, playerId, favorite, onPlay, onSignIn }: {
+export default function GamePage({ name, game, loading, user, playerId, favorite, onPlay, onSignIn, inTournament = false }: {
   name: string;
   game: Game | undefined;
   loading: boolean;
@@ -17,6 +17,7 @@ export default function GamePage({ name, game, loading, user, playerId, favorite
   favorite: { on: boolean; toggle: () => void };
   onPlay: (e: React.MouseEvent, g: Game) => void;
   onSignIn: () => void;
+  inTournament?: boolean; // one of today's tournament games
 }) {
   const [copied, setCopied] = useState(false);
   const found = !!game;
@@ -74,6 +75,7 @@ export default function GamePage({ name, game, loading, user, playerId, favorite
           {g.cover ? <img src={g.cover} alt={`${g.title} cover`} decoding="async" /> : <span>{g.title.charAt(0)}</span>}
         </div>
         <div className="game-page-body">
+          {inTournament && <a className="tag tournament-badge" href="/tournament">In today's tournament →</a>}
           <h1>{g.title}</h1>
           <p className="game-page-by">by {g.by} · <code>{g.host}</code></p>
           <p className="game-page-description">{description}</p>

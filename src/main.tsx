@@ -16,6 +16,8 @@ const HANGOUT_PATH = "/hangout";
 const APPROVE_PATH = /^\/approve\/[\w-]{8,40}\/?$/; // the homepage, with "put this game live?" on top
 const DOCS_PATHS = ["/docs", "/docs/"];
 const GAMES_PATHS = ["/games", "/games/"]; // every game, a page at a time
+const TOURNAMENT_PATHS = ["/tournament", "/tournament/"]; // today's tournament
+const LEADERBOARD_PATHS = ["/leaderboard", "/leaderboard/"]; // tournament points, all time and this week
 const CREATORS_PATHS = ["/creators", "/creators/"]; // every game by independent creators
 const INDIE_PATH = /^\/creators\/(\d{1,10})(?:-[a-z0-9-]*)?\/?$/; // one independent creator's game page
 const GAME_PATH = /^\/games\/([a-z0-9][a-z0-9-]{0,39})\/?$/; // one game's page, before its own address
@@ -27,10 +29,10 @@ if (location.pathname === "/connect") {
   const path = location.pathname;
   ReactDOM.createRoot(document.getElementById("root")!).render(
     <React.StrictMode>
-      {HOME_PATHS.includes(path) || APPROVE_PATH.test(path) || GAMES_PATHS.includes(path) || CREATORS_PATHS.includes(path) || GAME_PATH.test(path) || INDIE_PATH.test(path) ? (
+      {HOME_PATHS.includes(path) || APPROVE_PATH.test(path) || GAMES_PATHS.includes(path) || CREATORS_PATHS.includes(path) || TOURNAMENT_PATHS.includes(path) || LEADERBOARD_PATHS.includes(path) || GAME_PATH.test(path) || INDIE_PATH.test(path) ? (
         <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID ?? ""}>
           <App
-            view={INDIE_PATH.test(path) ? "indie" : GAME_PATH.test(path) ? "game" : GAMES_PATHS.includes(path) ? "games" : CREATORS_PATHS.includes(path) ? "creators" : "home"}
+            view={INDIE_PATH.test(path) ? "indie" : GAME_PATH.test(path) ? "game" : GAMES_PATHS.includes(path) ? "games" : CREATORS_PATHS.includes(path) ? "creators" : TOURNAMENT_PATHS.includes(path) ? "tournament" : LEADERBOARD_PATHS.includes(path) ? "leaderboard" : "home"}
             gameName={path.match(GAME_PATH)?.[1]}
             indieId={Number(path.match(INDIE_PATH)?.[1]) || undefined}
           />
