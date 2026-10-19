@@ -335,7 +335,7 @@ export default function App({ view = "home", gameName, indieId }: { view?: "home
           </div>
           {allGames && (
             <div className="list-tools">
-              <SearchBox value={q} onChange={search} label="Search games" placeholder="Search games by name or creator" suggestions={suggestions} />
+              <SearchBox value={q} onChange={search} label="Search games" placeholder="Search games or creators" suggestions={suggestions} />
               {games && (
                 <span className="count">
                   {searching
