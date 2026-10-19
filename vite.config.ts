@@ -23,7 +23,7 @@ function seoPages(site: string): Plugin {
       mkdirSync(out, { recursive: true });
       writeFileSync(resolve(out, "robots.txt"), `User-agent: *\nAllow: /\nDisallow: /approve/\nDisallow: /connect\n\nSitemap: ${site}/sitemap.xml\n`);
       const urls = SITEMAP_PATHS.map((p) => `  <url><loc>${site}${p}</loc></url>`).join("\n");
-      writeFileSync(resolve(out, "sitemap.xml"), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`);
+      writeFileSync(resolve(out, "sitemap.static.xml"), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`);
     },
   };
 }

@@ -38,6 +38,7 @@ export type BoardStat = { key: string; label: string; order: "highest" | "lowest
 export type PublishedGame = {
   name: string; url: string; repo_url: string; by: string; updated_at: string; cover_url: string | null;
   leaderboard: BoardStat[] | null; // null: this game has no leaderboard
+  description?: string | null; // one line from the game's startng.json, for its page on start.ng
   plays?: number; // opened from start.ng in the last 7 days (the homepage shows the most played)
   update_problem?: UpdateProblem | null;
   // Only for the owner (myGames): how start.ng is keeping the game up to date from its repo.
@@ -211,6 +212,14 @@ export const indieCoverUrl = (g: IndieGame) => `${API_URL}${g.cover_path}`;
 export async function listIndieGames(token: string | null, limit = 200, sort: "newest" | "popular" = "newest"): Promise<IndieGame[]> {
   const res = await fetch(`${API_URL}/indie?limit=${limit}&sort=${sort}`, token ? { headers: { Authorization: `Bearer ${token}` } } : undefined);
   if (!res.ok) throw new Error("Could not load the games");
+  return res.json();
+}
+
+/** One game by an independent creator (for its page on start.ng). Null when there's no game with that id. */
+export async function getIndieGame(token: string | null, id: number): Promise<IndieGame | null> {
+  const res = await fetch(`${API_URL}/indie/${id}`, token ? { headers: { Authorization: `Bearer ${token}` } } : undefined);
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error("Could not load the game");
   return res.json();
 }
 

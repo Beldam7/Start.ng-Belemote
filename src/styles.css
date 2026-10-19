@@ -523,3 +523,30 @@ code { color: var(--on-lime); }
   .docs-body td code { white-space: normal; overflow-wrap: normal; word-break: normal; }
   .docs-body th:first-child, .docs-body td:first-child { white-space: nowrap; }
 }
+
+/* a game's page: start.ng/games/<name> */
+.game-page { padding-top: 16px; padding-bottom: 72px; min-height: 60vh; }
+.game-page .back { display: inline-block; margin-bottom: 18px; color: var(--muted); font-weight: 600; }
+.game-page .back:hover { color: var(--ink); }
+.game-page-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 32px; align-items: start; }
+.game-page-grid > .art { border-radius: 20px; aspect-ratio: 16 / 10; box-shadow: 6px 6px 0 var(--lime); border: 1px solid var(--line); }
+.game-page-body { display: grid; gap: 14px; min-width: 0; }
+.game-page-body h1 { margin: 0; font-size: clamp(2rem, 6vw, 3rem); letter-spacing: -.04em; line-height: 1.05; overflow-wrap: anywhere; }
+.game-page-by { margin: 0; color: var(--muted); }
+.game-page-description { margin: 0; font-size: 1.1rem; line-height: 1.65; overflow-wrap: anywhere; }
+.game-page-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 6px; }
+.game-page-actions .fav-btn { width: 44px; height: 44px; border: 1px solid var(--line); border-radius: 12px; opacity: 1; }
+.game-page-actions .fav-btn svg { width: 20px; height: 20px; }
+.game-page-share { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding-top: 14px; border-top: 1px solid var(--line); color: var(--muted); }
+.game-page-share span { font-family: var(--mono); font-size: .75rem; text-transform: uppercase; letter-spacing: .12em; margin-right: 4px; }
+.game-page-share .btn, .game-page-share button { padding: 9px 16px; font-size: .9rem; }
+.skeleton.line.big { height: 34px; width: 60%; margin-bottom: 6px; }
+@media (max-width: 760px) {
+  .game-page-grid { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  .game-page-actions .btn, .game-page-actions .ghost { flex: 1 1 auto; text-align: center; }
+}
+
+/* the leaderboard on a game's page, beside its details */
+.game-page-board { display: grid; gap: 10px; padding: 16px; background: var(--card); border: 1px solid var(--line); border-radius: 16px; box-shadow: 4px 4px 0 var(--lime); min-width: 0; }
+.game-page-board h2 { margin: 0; font-size: 1.1rem; letter-spacing: -.02em; }
+.game-page-board .board-sub, .game-page-board .board-empty { margin: 0; }

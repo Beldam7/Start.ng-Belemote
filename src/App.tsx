@@ -4,6 +4,8 @@ import { approvePendingGame, getGameSession, trackPlay, getPendingGame, googleLo
 import AccountMenu from "./AccountMenu";
 import Favorites, { FavoriteButton, gameKey, useFavorites } from "./Favorites";
 import Pagination from "./Pagination";
+import GamePage from "./GamePage";
+import IndiePage from "./IndiePage";
 import ThemeToggle from "./ThemeToggle";
 import SearchBox, { matches, queryFromUrl, urlFor } from "./SearchBox";
 import { setSeo, PAGES } from "./seo";
@@ -42,7 +44,9 @@ type Approval =
 
 /** The homepage, and /games (every game, PER_PAGE at a time). They share sign-in, the profile
  *  and the "sign in or play as a guest?" question. */
-export default function App({ view = "home" }: { view?: "home" | "games" | "creators" }) {
+export default function App({ view = "home", gameName, indieId }: { view?: "home" | "games" | "creators" | "game" | "indie"; gameName?: string; indieId?: number }) {
+  const gamePage = view === "game";
+  const indiePage = view === "indie";
   const allGames = view === "games";
   const creatorsPage = view === "creators";
   const [page, setPage] = useState(pageFromUrl);
@@ -189,6 +193,14 @@ export default function App({ view = "home" }: { view?: "home" | "games" | "crea
     setChosen(g);
   }
 
+  // A card opens the game's page on start.ng first (its details, leaderboard and Play button), so the page
+  // can be found by search and shared. The Hangout lives in this app, so it opens straight away.
+  function cardLink(g: Game) {
+    return isInAppGame(g)
+      ? { href: g.url, onClick: (e: React.MouseEvent) => pickGame(e, g) }
+      : { href: `/games/${g.slug}` };
+  }
+
   function playAsGuest(g: Game) {
     // ?guest tells games that support it to skip their own "sign in or guest?" question.
     const url = new URL(g.url);
@@ -258,8 +270,8 @@ export default function App({ view = "home" }: { view?: "home" | "games" | "crea
       <header className="container nav">
         <a className="logo" href="/"><b>start<span>.ng</span></b></a>
         <nav aria-label="Pages">
-          <a href="/games" aria-current={allGames ? "page" : undefined}>Games</a>
-          <a href="/creators" aria-current={creatorsPage ? "page" : undefined}>Creators</a>
+          <a href="/games" aria-current={allGames || gamePage ? "page" : undefined}>Games</a>
+          <a href="/creators" aria-current={creatorsPage || indiePage ? "page" : undefined}>Creators</a>
           <a href={view === "home" ? "#how" : "/#how"}>How it works</a>
           <a href="/docs">Docs</a>
         </nav>
@@ -275,6 +287,21 @@ export default function App({ view = "home" }: { view?: "home" | "games" | "crea
 
       <main>
         {creatorsPage && <CreatorsPage user={user} onSignIn={() => setSignInOpen(true)} />}
+
+        {indiePage && indieId && <IndiePage id={indieId} user={user} onSignIn={() => setSignInOpen(true)} />}
+
+        {gamePage && (
+          <GamePage
+            name={gameName ?? ""}
+            game={[HANGOUT, ...community].find((g) => g.slug === gameName)}
+            loading={games === null}
+            user={user}
+            playerId={user?.id ?? null}
+            favorite={{ on: favs.has(`g:${gameName}`), toggle: () => favs.toggle(`g:${gameName}`) }}
+            onPlay={pickGame}
+            onSignIn={() => setSignInOpen(true)}
+          />
+        )}
 
         {view === "home" && (
         <section className="container hero">
@@ -296,7 +323,7 @@ export default function App({ view = "home" }: { view?: "home" | "games" | "crea
         </section>
         )}
 
-        {!creatorsPage && (
+        {!creatorsPage && !gamePage && !indiePage && (
         <section id="games" className={allGames ? "container all-games" : "container"}>
           <div className="section-head">
             {allGames ? <h1>All games from the community</h1> : (
@@ -308,7 +335,7 @@ export default function App({ view = "home" }: { view?: "home" | "games" | "crea
           </div>
           {allGames && (
             <div className="list-tools">
-              <SearchBox value={q} onChange={search} label="Search games" placeholder="Search games by name or creator" suggestions={suggestions} />
+              <SearchBox value={q} onChange={search} label="Search games" placeholder="Search games or creators" suggestions={suggestions} />
               {games && (
                 <span className="count">
                   {searching
@@ -333,7 +360,7 @@ export default function App({ view = "home" }: { view?: "home" | "games" | "crea
           <div className="grid" aria-busy={games === null}>
             {shown.map((g) => (
               <article key={g.slug} className={g.slug === HANGOUT.slug ? "game legendary" : "game"}>
-                <a className="game-link" href={g.url} {...(isInAppGame(g) ? {} : { target: "_blank", rel: "noreferrer" })} onClick={(e) => pickGame(e, g)}>
+                <a className="game-link" {...cardLink(g)}>
                   <div className="art" style={{ background: `linear-gradient(135deg, ${g.colors[0]}, ${g.colors[1]})` }}>
                     {g.cover ? <img src={g.cover} alt="" loading="lazy" decoding="async" /> : <span>{g.title.charAt(0)}</span>}
                   </div>
@@ -346,7 +373,7 @@ export default function App({ view = "home" }: { view?: "home" | "games" | "crea
                 <div className="meta">
                   <FavoriteButton user={user} on={favs.has(gameKey(g))} name={g.title} onToggle={() => favs.toggle(gameKey(g))} onSignIn={() => setSignInOpen(true)} />
                   {g.board && <button type="button" className="link board-btn" onClick={() => setBoard(g)}>Leaderboard</button>}
-                  <a className="play" href={g.url} {...(isInAppGame(g) ? {} : { target: "_blank", rel: "noreferrer" })} onClick={(e) => pickGame(e, g)}>{isInAppGame(g) ? "Play" : "Play ↗"}</a>
+                  <a className="play" {...cardLink(g)}>{isInAppGame(g) ? "Play" : "View"}</a>
                 </div>
               </article>
             ))}
