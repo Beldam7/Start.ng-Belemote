@@ -47,6 +47,12 @@ export const PAGES: Record<string, Seo> = {
     description: "How to publish a browser game on start.ng: push it to GitHub, make one API call, approve it once, and it's live at yourgame.start.ng with its own leaderboard.",
     path: "/docs",
   },
+  // The plain page nginx falls back to for /games/<name> when the API can't render that game's page.
+  game: {
+    title: "Play free on start.ng",
+    description: "Play free browser games made by the HNG community on start.ng.",
+    path: "/games",
+  },
   approve: {
     title: "Put your game live · start.ng",
     description: "Approve a game you published to start.ng and put it live at its own address.",
@@ -67,6 +73,7 @@ export const STATIC_PAGES: [string, Seo][] = [
   ["creators.html", PAGES.creators],
   ["hangout.html", PAGES.hangout],
   ["docs.html", PAGES.docs],
+  ["game.html", PAGES.game],
   ["approve.html", PAGES.approve],
   ["404.html", PAGES.notFound],
 ];

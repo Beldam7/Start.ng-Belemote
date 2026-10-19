@@ -17,6 +17,7 @@ const APPROVE_PATH = /^\/approve\/[\w-]{8,40}\/?$/; // the homepage, with "put t
 const DOCS_PATHS = ["/docs", "/docs/"];
 const GAMES_PATHS = ["/games", "/games/"]; // every game, a page at a time
 const CREATORS_PATHS = ["/creators", "/creators/"]; // every game by independent creators
+const GAME_PATH = /^\/games\/([a-z0-9][a-z0-9-]{0,39})\/?$/; // one game's page, before its own address
 
 // /connect is loaded invisibly by games, so it renders nothing.
 if (location.pathname === "/connect") {
@@ -25,9 +26,12 @@ if (location.pathname === "/connect") {
   const path = location.pathname;
   ReactDOM.createRoot(document.getElementById("root")!).render(
     <React.StrictMode>
-      {HOME_PATHS.includes(path) || APPROVE_PATH.test(path) || GAMES_PATHS.includes(path) || CREATORS_PATHS.includes(path) ? (
+      {HOME_PATHS.includes(path) || APPROVE_PATH.test(path) || GAMES_PATHS.includes(path) || CREATORS_PATHS.includes(path) || GAME_PATH.test(path) ? (
         <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID ?? ""}>
-          <App view={GAMES_PATHS.includes(path) ? "games" : CREATORS_PATHS.includes(path) ? "creators" : "home"} />
+          <App
+            view={GAME_PATH.test(path) ? "game" : GAMES_PATHS.includes(path) ? "games" : CREATORS_PATHS.includes(path) ? "creators" : "home"}
+            gameName={path.match(GAME_PATH)?.[1]}
+          />
         </GoogleOAuthProvider>
       ) : path === HANGOUT_PATH ? (
         <Suspense fallback={null}>

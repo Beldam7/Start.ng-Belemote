@@ -415,6 +415,16 @@ Add a file called **`startng.json`** next to your `index.html` (or at the top of
 - **1 to 5 stats.** Players are ranked by the **first** stat; the next ones break ties, then whoever got there first.
 - start.ng reads `startng.json` when the game is published (and on every update). If something's wrong in it, publishing tells you what to fix.
 
+### Your game's page: `description`
+
+Every game gets its own page on start.ng, at `start.ng/games/<your-game>`. It's the page that search engines and shared links show, and players land there before they open your game. Add a one-line **`description`** to `startng.json` and it's used there (plain text, up to 300 characters):
+
+```json
+{ "description": "Dodge the lava and climb as high as you can.", "leaderboard": { "stats": [ ... ] } }
+```
+
+Without one, start.ng writes a simple line from your game's name. A `startng.json` with only a `description` is fine: it doesn't give your game a leaderboard on its own.
+
 Examples:
 
 | Game | `stats` |

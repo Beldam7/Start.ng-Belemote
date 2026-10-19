@@ -38,6 +38,7 @@ export type BoardStat = { key: string; label: string; order: "highest" | "lowest
 export type PublishedGame = {
   name: string; url: string; repo_url: string; by: string; updated_at: string; cover_url: string | null;
   leaderboard: BoardStat[] | null; // null: this game has no leaderboard
+  description?: string | null; // one line from the game's startng.json, for its page on start.ng
   plays?: number; // opened from start.ng in the last 7 days (the homepage shows the most played)
   update_problem?: UpdateProblem | null;
   // Only for the owner (myGames): how start.ng is keeping the game up to date from its repo.
