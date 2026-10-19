@@ -275,3 +275,60 @@ export const listFavorites = (token: string | null) => favoritesCall(token, "");
 export const syncFavorites = (token: string | null, keys: string[]) => favoritesCall(token, "/sync", { method: "POST", body: JSON.stringify({ keys }) });
 export const addFavorite = (token: string | null, key: string) => favoritesCall(token, `/${encodeURIComponent(key)}`, { method: "PUT" });
 export const removeFavorite = (token: string | null, key: string) => favoritesCall(token, `/${encodeURIComponent(key)}`, { method: "DELETE" });
+
+// ---- Daily tournaments: 5 random games for 24 hours, points by place, one winner a day (startng-be app/tournaments.py)
+export type TournamentRun = { rank: number; player_id: number; name: string; color: string | null; stats: Record<string, number | null>; points: number };
+export type TournamentGame = {
+  name: string;
+  url: string;
+  cover_url: string | null;
+  description: string | null;
+  leaderboard: BoardStat[];
+  players: number;
+  top: TournamentRun[];
+};
+export type Standing = { place: number; player_id: number; name: string; color: string | null; points: number; firsts: number };
+export type Tournament = {
+  id: number;
+  starts_at: string;
+  ends_at: string;
+  finished: boolean;
+  games: TournamentGame[];
+  entrants: number;
+  entered: boolean;
+  standings: Standing[];
+  me: Standing | null;
+  winner: Standing | null;
+};
+export type TournamentSummary = { id: number; starts_at: string; ends_at: string; games: string[]; winner: Standing | null; podium: Standing[] };
+export type OverallEntry = { rank: number; player_id: number; name: string; color: string | null; points: number; wins: number; firsts: number };
+
+const authHeader = (token: string | null): HeadersInit => (token ? { Authorization: `Bearer ${token}` } : {});
+
+/** Today's tournament (made automatically), or null when there aren't enough games for one. */
+export async function getTournament(token: string | null): Promise<Tournament | null> {
+  const res = await fetch(`${API_URL}/tournaments/current`, { headers: authHeader(token) });
+  if (!res.ok) throw new Error("Could not load today's tournament");
+  return res.json();
+}
+
+/** Enter today's tournament (after sharing it). From then on your runs on its games count. */
+export async function enterTournament(token: string | null): Promise<Tournament> {
+  const res = await fetch(`${API_URL}/tournaments/current/enter`, { method: "POST", headers: authHeader(token) });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Could not enter the tournament");
+  return data;
+}
+
+export async function recentTournaments(limit = 7): Promise<TournamentSummary[]> {
+  const res = await fetch(`${API_URL}/tournaments/recent?limit=${limit}`);
+  if (!res.ok) throw new Error("Could not load past tournaments");
+  return res.json();
+}
+
+/** The overall leaderboard: tournament points, all time or this week. */
+export async function overallLeaderboard(period: "all" | "week", limit = 50): Promise<OverallEntry[]> {
+  const res = await fetch(`${API_URL}/tournaments/leaderboard?period=${period}&limit=${limit}`);
+  if (!res.ok) throw new Error("Could not load the leaderboard");
+  return res.json();
+}

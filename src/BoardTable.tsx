@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { BoardStat, getLeaderboard, LeaderboardEntry } from "./api";
 import { Game } from "./games";
 
-const show = (stat: BoardStat, v: number | null | undefined) => {
+/** A stat as players read it: times as m:ss, numbers with separators, "–" when missing. */
+export const formatStat = (stat: BoardStat, v: number | null | undefined) => {
   if (v === null || v === undefined) return "–";
   if (stat.format === "time") return `${Math.floor(v / 60)}:${String(v % 60).padStart(2, "0")}`;
   return v.toLocaleString();
@@ -42,7 +43,7 @@ export default function BoardTable({ game, playerId }: { game: Game; playerId: n
                 <span className="dot" style={{ background: e.color ?? "var(--line)" }} />
                 {e.name}{e.player_id === playerId && <em> (you)</em>}
               </span>
-              {stats.map((s) => <span key={s.key} className="num sc">{show(s, e.stats?.[s.key] ?? (s.key === "score" ? e.score : null))}</span>)}
+              {stats.map((s) => <span key={s.key} className="num sc">{formatStat(s, e.stats?.[s.key] ?? (s.key === "score" ? e.score : null))}</span>)}
             </div>
           ))}
         </div>
