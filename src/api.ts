@@ -49,6 +49,13 @@ export type PublishedGame = {
   hidden?: "reported" | "flagged" | "blocked" | null; // only for the owner: hidden from start.ng while admins look at it
 };
 
+/** The feature flags that are on (see src/features/flags.ts). ["*"] means all of them. */
+export async function getFeatures(): Promise<string[]> {
+  const res = await fetch(`${API_URL}/features`);
+  if (!res.ok) throw new Error("Could not load the feature list");
+  return res.json();
+}
+
 export async function listGames(): Promise<PublishedGame[]> {
   const res = await fetch(`${API_URL}/games`);
   if (!res.ok) throw new Error("Could not load the games");

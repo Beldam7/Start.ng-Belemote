@@ -5,12 +5,13 @@ import {
 } from "./api";
 import { toCard } from "./games";
 import ThemeToggle from "./ThemeToggle";
+import { useFeatures } from "./features/flags";
+import { allAdminTabs, registerAdminTab, type AdminTabProps } from "./features/registry";
 
 // start.ng/admin. Only admins get past the first check: super admins (SUPER_ADMIN_EMAILS on the API) and the admins
 // they add by email. There's no admin sign-up: admins sign in to start.ng with Google, then come here.
 // The API checks every permission; this page only hides what an admin's role can't do.
 
-type Tab = "overview" | "games" | "tournaments" | "admins" | "log";
 const token = () => localStorage.getItem("token");
 const when = (iso: string | null) => (iso ? new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "");
 
@@ -94,7 +95,8 @@ function Dialog({ ask, onClose }: { ask: Ask; onClose: (v: string | null) => voi
 export default function Admin() {
   const [user, setUser] = useState<User | null | undefined>(undefined);
   const [access, setAccess] = useState<AdminMe | null | undefined>(undefined);
-  const [tab, setTab] = useState<Tab>(() => (location.hash.slice(1) as Tab) || "overview");
+  const [tab, setTab] = useState<string>(() => location.hash.slice(1) || "overview");
+  const isOn = useFeatures();
   const [dialog, ask] = useDialog();
 
   useEffect(() => {
@@ -110,7 +112,7 @@ export default function Admin() {
     }).catch(() => { setUser(null); setAccess(null); }); // e.g. a broken saved token: show the sign-in screen
   }, []);
 
-  function go(t: Tab) {
+  function go(t: string) {
     setTab(t);
     history.replaceState(null, "", `#${t}`);
   }
@@ -134,14 +136,9 @@ export default function Admin() {
   }
 
   const can = (p: string) => access.is_super || access.permissions.includes(p);
-  const tabs: [Tab, string, boolean][] = [
-    ["overview", "Overview", true],
-    ["games", "Reports", can("reports.view")],
-    ["tournaments", "Tournaments", can("tournaments.view")],
-    ["admins", "Admins & roles", access.is_super],
-    ["log", "Activity", can("log.view")],
-  ];
-  const shown = tabs.find(([t, , ok]) => t === tab && ok) ? tab : "overview";
+  // Every tab, the admin page's own and each feature's (src/features/registry.ts, registerAdminTab)
+  const tabs = allAdminTabs().filter((t) => isOn(t.feature) && (t.superOnly ? access.is_super : !t.permission || can(t.permission)));
+  const shown = tabs.find((t) => t.key === tab) ?? tabs[0];
 
   return (
     <div className="admin-shell">
@@ -152,16 +149,12 @@ export default function Admin() {
         <ThemeToggle />
       </header>
       <nav className="admin-tabs" aria-label="Admin sections">
-        {tabs.filter(([, , ok]) => ok).map(([t, label]) => (
-          <button key={t} type="button" className={t === shown ? "on" : "ghost"} aria-current={t === shown ? "page" : undefined} onClick={() => go(t)}>{label}</button>
+        {tabs.map((t) => (
+          <button key={t.key} type="button" className={t === shown ? "on" : "ghost"} aria-current={t === shown ? "page" : undefined} onClick={() => go(t.key)}>{t.label}</button>
         ))}
       </nav>
       <main className="admin-main">
-        {shown === "overview" && <OverviewTab access={access} go={go} can={can} />}
-        {shown === "games" && <ReportsTab can={can} ask={ask} />}
-        {shown === "tournaments" && <TournamentsTab can={can} ask={ask} />}
-        {shown === "admins" && <AdminsTab ask={ask} />}
-        {shown === "log" && <LogTab />}
+        {shown && <shown.Component access={access} can={can} go={go} ask={ask} />}
       </main>
       {dialog}
     </div>
@@ -184,7 +177,7 @@ function GameArt({ g }: { g: GameCard }) {
 
 const titleOf = (name: string) => name.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
 
-function OverviewTab({ access, go, can }: { access: AdminMe; go: (t: Tab) => void; can: (p: string) => boolean }) {
+function OverviewTab({ access, go, can }: AdminTabProps) {
   const { data, error } = useLoad<Overview>(() => admin.overview(token()), []);
   return (
     <section>
@@ -211,7 +204,7 @@ function OverviewTab({ access, go, can }: { access: AdminMe; go: (t: Tab) => voi
 
 type AskFn = (a: Ask) => Promise<string | null>;
 
-function ReportsTab({ can, ask }: { can: (p: string) => boolean; ask: AskFn }) {
+function ReportsTab({ can, ask }: AdminTabProps) {
   const { data, error, reload } = useLoad<ReviewGame[]>(() => admin.review(token()), []);
   const [devId, setDevId] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
@@ -415,7 +408,7 @@ function Countdowns({ t }: { t: AdminTournament }) {
   );
 }
 
-function TournamentsTab({ can, ask }: { can: (p: string) => boolean; ask: AskFn }) {
+function TournamentsTab({ can, ask }: AdminTabProps) {
   const { data, setData, error } = useLoad<AdminTournaments>(() => admin.tournaments(token()), []);
   const [editing, setEditing] = useState<{ id: number; games: string[] } | null>(null);
   const [actionError, setActionError] = useState("");
@@ -515,7 +508,7 @@ function GamePicker({ data, chosen, onChange, onSave, onCancel }: {
 
 // ---- admins and roles (super admins only)
 
-function AdminsTab({ ask }: { ask: AskFn }) {
+function AdminsTab({ ask }: AdminTabProps) {
   const roles = useLoad<Role[]>(() => admin.roles(token()), []);
   const admins = useLoad<AdminAccount[]>(() => admin.admins(token()), []);
   const perms = useLoad<Permission[]>(() => admin.permissions(token()), []);
@@ -664,7 +657,7 @@ function describe(e: LogEntry): React.ReactNode {
   }
 }
 
-function LogTab() {
+function LogTab(_: AdminTabProps) {
   const [kind, setKind] = useState<ActivityKind | null>(null);
   const { data, setData, error } = useLoad<LogEntry[]>(() => admin.log(token(), kind), [kind]);
   const [more, setMore] = useState(true);
@@ -697,3 +690,10 @@ function LogTab() {
     </section>
   );
 }
+
+// The admin page's own tabs. Features add theirs from their own folder (src/features/registry.ts, registerAdminTab).
+registerAdminTab({ feature: null, key: "overview", label: "Overview", order: 0, Component: OverviewTab });
+registerAdminTab({ feature: null, key: "games", label: "Reports", order: 10, permission: "reports.view", Component: ReportsTab });
+registerAdminTab({ feature: null, key: "tournaments", label: "Tournaments", order: 20, permission: "tournaments.view", Component: TournamentsTab });
+registerAdminTab({ feature: null, key: "admins", label: "Admins & roles", order: 900, superOnly: true, Component: AdminsTab });
+registerAdminTab({ feature: null, key: "log", label: "Activity", order: 1000, permission: "log.view", Component: LogTab });
