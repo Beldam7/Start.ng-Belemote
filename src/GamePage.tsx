@@ -34,6 +34,7 @@ export default function GamePage({ name, game, loading, user, playerId, favorite
         title: `${game.title} · Play free on start.ng`,
         description: game.description ?? `Play ${game.title} free in your browser on start.ng, a game by ${game.by}.`,
         path: `/games/${game.slug}`,
+        ...(game.cover ? { image: game.cover, imageAlt: `${game.title} cover` } : {}),
       });
     } else if (!loading) {
       setSeo(PAGES.notFound);
