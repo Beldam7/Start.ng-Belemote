@@ -6,6 +6,9 @@ import Docs from "./Docs";
 import { serveConnect } from "./games";
 import NotFound from "./NotFound";
 import { initAnalytics } from "./analytics";
+import "./features"; // every feature registers its pages, card parts and admin tabs (src/features/index.ts)
+import FeatureGate from "./features/FeatureGate";
+import { findPage } from "./features/registry";
 import "./styles.css";
 
 // The Hangout (start.ng's own game, with three.js) loads only when someone opens it.
@@ -34,6 +37,7 @@ if (location.pathname === "/connect") {
   serveConnect();
 } else {
   const path = location.pathname;
+  const feature = findPage(path); // a feature's page (src/features), shown only while its flag is on
   ReactDOM.createRoot(document.getElementById("root")!).render(
     <React.StrictMode>
       {HOME_PATHS.includes(path) || APPROVE_PATH.test(path) || GAMES_PATHS.includes(path) || CREATORS_PATHS.includes(path) || TOURNAMENT_PATHS.includes(path) || LEADERBOARD_PATHS.includes(path) || GAME_PATH.test(path) || INDIE_PATH.test(path) ? (
@@ -54,6 +58,18 @@ if (location.pathname === "/connect") {
         </Suspense>
       ) : DOCS_PATHS.includes(path) ? (
         <Docs />
+      ) : feature?.page.shell === "app" ? (
+        <FeatureGate feature={feature.page.feature} off={<NotFound />}>
+          <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID ?? ""}>
+            <App view="feature" featurePage={feature} />
+          </GoogleOAuthProvider>
+        </FeatureGate>
+      ) : feature ? (
+        <FeatureGate feature={feature.page.feature} off={<NotFound />}>
+          <Suspense fallback={null}>
+            <feature.page.Component user={null} onSignIn={() => location.assign("/?signin")} params={feature.params} />
+          </Suspense>
+        </FeatureGate>
       ) : (
         <NotFound />
       )}

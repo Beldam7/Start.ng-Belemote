@@ -702,3 +702,9 @@ button.small { padding: 7px 12px; font-size: .85rem; border-radius: 8px; }
 .activity .kind.system { color: var(--warn-ink); }
 @media (max-width: 560px) { .activity li { grid-template-columns: 1fr; gap: 2px; } }
 .admin-main .chips button { text-transform: none; }
+
+/* Game card slots for features (src/GameCard.tsx, src/features/registry.ts) */
+.art { position: relative; }
+.card-badges { position: absolute; top: 8px; left: 8px; right: 8px; display: flex; gap: 6px; flex-wrap: wrap; pointer-events: none; }
+.card-stats { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 6px; font-size: .8rem; color: var(--muted); }
+.card-actions { display: flex; gap: 10px; align-items: center; }

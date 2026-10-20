@@ -5,6 +5,8 @@ import AccountMenu from "./AccountMenu";
 import { analytics } from "./analytics";
 import Favorites, { FavoriteButton, gameKey, useFavorites } from "./Favorites";
 import Pagination from "./Pagination";
+import GameCard from "./GameCard";
+import type { FeaturePage } from "./features/registry";
 import GamePage from "./GamePage";
 import IndiePage from "./IndiePage";
 import ThemeToggle from "./ThemeToggle";
@@ -46,7 +48,12 @@ type Approval =
 
 /** The homepage, and /games (every game, PER_PAGE at a time). They share sign-in, the profile
  *  and the "sign in or play as a guest?" question. */
-export default function App({ view = "home", gameName, indieId }: { view?: "home" | "games" | "creators" | "game" | "indie" | "tournament" | "leaderboard"; gameName?: string; indieId?: number }) {
+export default function App({ view = "home", gameName, indieId, featurePage }: {
+  view?: "home" | "games" | "creators" | "game" | "indie" | "tournament" | "leaderboard" | "feature";
+  gameName?: string;
+  indieId?: number;
+  featurePage?: { page: FeaturePage; params: Record<string, string> }; // a feature's page inside the start.ng shell
+}) {
   const gamePage = view === "game";
   const indiePage = view === "indie";
   const allGames = view === "games";
@@ -112,9 +119,9 @@ export default function App({ view = "home", gameName, indieId }: { view?: "home
 
   // Titles and link previews for the page that's open (the served HTML has them too, see seo.ts).
   useEffect(() => {
-    if (tournamentPage || leaderboardPage) return; // they set their own
+    if (tournamentPage || leaderboardPage || featurePage) return; // they set their own
     setSeo(approveCode ? PAGES.approve : allGames ? PAGES.games : creatorsPage ? PAGES.creators : PAGES.home);
-  }, [allGames, creatorsPage, tournamentPage, leaderboardPage]);
+  }, [allGames, creatorsPage, tournamentPage, leaderboardPage, featurePage]);
 
   // /games: the back and forward buttons move between pages and searches.
   useEffect(() => {
@@ -308,6 +315,12 @@ export default function App({ view = "home", gameName, indieId }: { view?: "home
 
         {leaderboardPage && <LeaderboardPage user={user} />}
 
+        {featurePage && (
+          <Suspense fallback={null}>
+            <featurePage.page.Component user={user} onSignIn={() => setSignInOpen(true)} params={featurePage.params} />
+          </Suspense>
+        )}
+
         {indiePage && indieId && <IndiePage id={indieId} user={user} onSignIn={() => setSignInOpen(true)} />}
 
         {gamePage && (
@@ -384,23 +397,10 @@ export default function App({ view = "home", gameName, indieId }: { view?: "home
           )}
           <div className="grid" aria-busy={games === null}>
             {shown.map((g) => (
-              <article key={g.slug} className={g.slug === HANGOUT.slug ? "game legendary" : "game"}>
-                <a className="game-link" {...cardLink(g)}>
-                  <div className="art" style={{ background: `linear-gradient(135deg, ${g.colors[0]}, ${g.colors[1]})` }}>
-                    {g.cover ? <img src={g.cover} alt="" loading="lazy" decoding="async" /> : <span>{g.title.charAt(0)}</span>}
-                  </div>
-                  <div className="info">
-                    <h3>{g.title}</h3>
-                    <p>{g.host}</p>
-                    <span className="by">by {g.by}</span>
-                  </div>
-                </a>
-                <div className="meta">
-                  <FavoriteButton user={user} on={favs.has(gameKey(g))} name={g.title} onToggle={() => favs.toggle(gameKey(g))} onSignIn={() => setSignInOpen(true)} />
-                  {g.board && <button type="button" className="link board-btn" onClick={() => setBoard(g)}>Leaderboard</button>}
-                  <a className="play" {...cardLink(g)}>{isInAppGame(g) ? "Play" : "View"}</a>
-                </div>
-              </article>
+              <GameCard key={g.slug} game={g} legendary={g.slug === HANGOUT.slug} link={cardLink(g)} user={user} onSignIn={() => setSignInOpen(true)}
+                favorite={<FavoriteButton user={user} on={favs.has(gameKey(g))} name={g.title} onToggle={() => favs.toggle(gameKey(g))} onSignIn={() => setSignInOpen(true)} />}
+                board={g.board && <button type="button" className="link board-btn" onClick={() => setBoard(g)}>Leaderboard</button>}
+                play={<a className="play" {...cardLink(g)}>{isInAppGame(g) ? "Play" : "View"}</a>} />
             ))}
             {games === null && <SkeletonCards count={Math.max(0, (allGames ? 8 : HOME_GAMES) - shown.length)} />}
           </div>

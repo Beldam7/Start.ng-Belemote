@@ -9,6 +9,23 @@ cp .env.example .env   # set VITE_API_URL and VITE_GOOGLE_CLIENT_ID
 npm install && npm run dev
 ```
 
+## Building a feature (start here)
+Every new feature lives in `src/features/<feature>/` with one owner (the PRD, section 3).
+1. Copy `src/features/_template` and rename things, then add **one line** to `src/features/index.ts`
+   (`import "./<feature>";`).
+2. From your folder's `index.tsx`, register what you add (`src/features/registry.ts`). Everything you register is
+   hidden while your flag is off (`GET /features` on the API; `useFeature("name")` in components).
+   - **Pages:** `registerPage({ feature, path, shell: "app" | "bare", load: () => import("./Page") })`. `"app"` sits
+     inside the start.ng shell (top bar, sign-in). A RegExp path's named groups become `params`. Also add the address
+     to `nginx.conf` (one `location` line serving `index.html`).
+   - **Game cards:** `registerCardPart({ feature, key, slot: "badges" | "stats" | "actions", render: (game) => ... })`.
+     Return `null` to leave a card alone. Cards are `src/GameCard.tsx`; don't edit it for a feature.
+   - **Admin tabs:** `registerAdminTab({ feature, key, label, permission, Component })`. You get `access`, `can`,
+     `go` and the shared confirm dialog `ask`. Register the permission on the API side (`PERMISSIONS`).
+   - **Profile sections:** `registerProfileSection({ feature, key, title, Component })`. The profile page shows them
+     with `<ProfileSections userId isMe />`.
+3. Your API calls live in your folder too, not in `src/api.ts`.
+
 ## Deploy (Coolify)
 Dockerfile build pack (nginx, port 80). VITE_API_URL and VITE_GOOGLE_CLIENT_ID are build-time, so mark them as
 Build Variables in Coolify. GitHub secrets: COOLIFY_WEBHOOK_URL (optional COOLIFY_TOKEN); the
