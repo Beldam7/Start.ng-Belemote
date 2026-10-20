@@ -595,3 +595,110 @@ code { color: var(--on-lime); }
   .tournament-banner-games .art { width: 52px; }
   .tournament-status, .tournament-columns { grid-template-columns: 1fr; }
 }
+
+/* Reporting a game (Report.tsx) */
+.game-page-report { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 18px; font-size: .9rem; }
+.game-page-report .flag { color: var(--danger); }
+.card.report { max-width: 440px; }
+.reasons { border: 0; padding: 0; margin: 0; display: grid; gap: 6px; }
+.reasons label { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; cursor: pointer; font-weight: 600; font-size: .95rem; }
+.reasons label.on { border-color: var(--ink); background: var(--bg); }
+.reasons input { margin: 0; accent-color: var(--ink); }
+.report-details { display: grid; gap: 6px; font-size: .9rem; font-weight: 600; }
+button.danger, .btn.danger { background: var(--danger); color: #fff; }
+button:disabled { opacity: .5; cursor: not-allowed; }
+
+/* The admin page (Admin.tsx) */
+.admin-shell { max-width: 1100px; margin: 0 auto; padding: 20px 16px 60px; }
+.admin-top { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+.admin-who { margin-left: auto; color: var(--muted); font-size: .9rem; overflow-wrap: anywhere; }
+.admin-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 22px; }
+.admin-tabs button { padding: 9px 16px; font-size: .95rem; }
+.admin-main h2 { margin: 26px 0 8px; letter-spacing: -.02em; }
+.admin-main section > h2:first-child { margin-top: 0; }
+.admin-main .note { margin-bottom: 10px; }
+.admin-gate { margin: 12vh auto 0; }
+.admin-gate h3 { margin: 0; }
+.admin-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin: 14px 0; }
+.admin-stats .stat { display: grid; gap: 4px; text-align: left; padding: 18px; border: 1px solid var(--line); border-radius: 14px; background: var(--card); color: var(--ink); }
+.admin-stats .stat b { font-size: 2rem; letter-spacing: -.03em; }
+.admin-stats .stat span { color: var(--muted); font-weight: 500; }
+.admin-list { display: grid; gap: 14px; }
+.admin-item { border: 1px solid var(--line); border-radius: 16px; padding: 16px 18px; background: var(--card); }
+.admin-item-head { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: flex-start; }
+.admin-item h3 { margin: 0 0 4px; font-size: 1.15rem; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.admin-item h3 a { color: inherit; }
+.pill { font: 600 .72rem var(--mono); text-transform: uppercase; letter-spacing: .08em; padding: 3px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+.pill.reported { color: var(--warn-ink); border-color: currentColor; }
+.pill.flagged, .pill.blocked { color: var(--danger); border-color: currentColor; }
+.admin-reports, .admin-contacts, .admin-games { margin: 10px 0 0; padding-left: 18px; display: grid; gap: 8px; }
+.admin-reports li { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.admin-reports li.resolved, .admin-reports li.dismissed { opacity: .6; }
+.admin-games li { display: flex; gap: 8px; align-items: center; }
+.row-actions { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.admin-inline { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0 14px; }
+.admin-inline input { flex: 1 1 220px; min-width: 0; }
+.admin-inline select, .admin-table select { padding: 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: inherit; font: inherit; }
+.admin-table { width: 100%; border-collapse: collapse; margin: 8px 0 10px; font-size: .92rem; display: block; overflow-x: auto; }
+.admin-table th, .admin-table td { text-align: left; padding: 10px 12px 10px 0; border-bottom: 1px solid var(--line); vertical-align: middle; }
+.admin-table th { color: var(--muted); font-weight: 600; white-space: nowrap; }
+.card.admin-dev, .card.admin-role { max-width: 520px; }
+.card.admin-dev h4 { margin: 6px 0 0; }
+.perms { border: 0; padding: 0; margin: 0; display: grid; gap: 8px; }
+.perms legend { font-weight: 700; margin-bottom: 6px; }
+.perms label { display: flex; gap: 10px; align-items: flex-start; font-size: .92rem; }
+.perms code { color: var(--muted); font-size: .78rem; }
+.tournament-next { margin: 8px 0 0; font-size: .9rem; color: var(--muted); }
+.tournament-next b { color: var(--ink); }
+
+/* Admin page: dialogs, game cards, countdowns, activity */
+.card.admin-dialog { max-width: 460px; }
+.card.admin-dialog.danger { box-shadow: 6px 6px 0 var(--danger); }
+.dialog-body { opacity: 1; color: var(--text-2); }
+.dialog-field { display: grid; gap: 6px; font-size: .9rem; font-weight: 600; }
+.dialog-field input, .dialog-field textarea { width: 100%; }
+.dialog-actions { display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+button.small { padding: 7px 12px; font-size: .85rem; border-radius: 8px; }
+.pill.waiting { color: var(--warn-ink); border-color: currentColor; }
+.pill.live { color: var(--on-lime); background: var(--lime); border-color: var(--ink); }
+.admin-stats .stat.attention { border-color: var(--ink); box-shadow: 4px 4px 0 var(--lime); }
+.admin-item-head > .admin-art { width: 96px; flex: none; }
+.admin-item-title { flex: 1 1 200px; min-width: 0; }
+.admin-art { display: grid; place-items: center; aspect-ratio: 16 / 10; width: 100%; max-width: 100%; border-radius: 10px; overflow: hidden; color: #fff; font-weight: 800; font-size: 1.6rem; }
+.admin-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.admin-game-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin-top: 14px; }
+.admin-game { display: grid; gap: 4px; align-content: start; text-align: left; background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 12px; padding: 8px; position: relative; font: inherit; font-weight: 500; min-width: 0; }
+.admin-game:hover { border-color: var(--ink); background: var(--bg); }
+.admin-game .note { margin: 0; font-size: .8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.admin-game-name { font-weight: 700; font-size: .95rem; overflow-wrap: anywhere; }
+.admin-game .pill { justify-self: start; }
+.admin-game.pick.on { border-color: var(--ink); box-shadow: 4px 4px 0 var(--lime); }
+.admin-game.pick:disabled { opacity: .45; }
+.picked { position: absolute; top: 14px; right: 14px; background: var(--lime); color: var(--on-lime); font: 700 .78rem var(--mono); padding: 3px 8px; border-radius: 999px; border: 1px solid var(--ink); }
+.picker { display: grid; gap: 10px; margin-top: 12px; }
+.picker input[type="search"] { max-width: 360px; }
+.picker-actions { margin-top: 6px; }
+.countdowns { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 12px; }
+.countdown { display: grid; gap: 2px; padding: 12px 14px; border-radius: 12px; background: var(--bg); border: 1px solid var(--line); }
+.countdown .label { font: 600 .7rem var(--mono); text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
+.countdown b { font: 700 1.5rem var(--mono); font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.countdown .note { margin: 0; font-size: .8rem; }
+.admin-item.tournament.on { border-color: var(--ink); box-shadow: 5px 5px 0 var(--lime); }
+.strikes { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.strike { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--ink); display: grid; place-items: center; font: 700 .85rem var(--mono); }
+.strike.on { background: var(--lime); color: var(--on-lime); }
+.strikes .note { margin: 0; }
+.admin-table-wrap { overflow-x: auto; }
+.admin-table-wrap .admin-table { display: table; }
+.activity { list-style: none; margin: 14px 0; padding: 0; display: grid; border: 1px solid var(--line); border-radius: 14px; background: var(--card); overflow: hidden; }
+.activity li { display: grid; grid-template-columns: 96px minmax(0, 1fr) auto; gap: 12px; align-items: baseline; padding: 10px 14px; border-bottom: 1px solid var(--line); font-size: .92rem; }
+.activity li:last-child { border-bottom: 0; }
+.activity .what { overflow-wrap: anywhere; }
+.activity .what a { text-decoration: underline; text-underline-offset: 2px; }
+.activity time { color: var(--muted); font: .78rem var(--mono); white-space: nowrap; }
+.activity .kind { font: 600 .68rem var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.activity .kind.admin { color: var(--danger); }
+.activity .kind.developer { color: var(--ok); }
+.activity .kind.system { color: var(--warn-ink); }
+@media (max-width: 560px) { .activity li { grid-template-columns: 1fr; gap: 2px; } }
+.admin-main .chips button { text-transform: none; }

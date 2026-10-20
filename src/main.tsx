@@ -9,12 +9,15 @@ import "./styles.css";
 
 // The Hangout (start.ng's own game, with three.js) loads only when someone opens it.
 const Hangout = lazy(() => import("./hangout/Hangout"));
+// The admin page loads only for admins who open it.
+const Admin = lazy(() => import("./Admin"));
 
 // The app's pages. Keep these in step with the locations in nginx.conf.
 const HOME_PATHS = ["/", "/index.html"];
 const HANGOUT_PATH = "/hangout";
 const APPROVE_PATH = /^\/approve\/[\w-]{8,40}\/?$/; // the homepage, with "put this game live?" on top
 const DOCS_PATHS = ["/docs", "/docs/"];
+const ADMIN_PATHS = ["/admin", "/admin/"]; // admins only (the API checks)
 const GAMES_PATHS = ["/games", "/games/"]; // every game, a page at a time
 const TOURNAMENT_PATHS = ["/tournament", "/tournament/"]; // today's tournament
 const LEADERBOARD_PATHS = ["/leaderboard", "/leaderboard/"]; // tournament points, all time and this week
@@ -40,6 +43,10 @@ if (location.pathname === "/connect") {
       ) : path === HANGOUT_PATH ? (
         <Suspense fallback={null}>
           <Hangout />
+        </Suspense>
+      ) : ADMIN_PATHS.includes(path) ? (
+        <Suspense fallback={null}>
+          <Admin />
         </Suspense>
       ) : DOCS_PATHS.includes(path) ? (
         <Docs />

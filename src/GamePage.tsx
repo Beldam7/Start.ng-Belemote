@@ -3,12 +3,13 @@ import BoardTable from "./BoardTable";
 import { FavoriteButton } from "./Favorites";
 import { User } from "./api";
 import { Game, isInAppGame } from "./games";
+import ReportDialog from "./Report";
 import { PAGES, setSeo } from "./seo";
 
 // start.ng/games/<name>: a game's own page on start.ng, shown before the game itself. Search engines
 // and shared links land here (the API serves this address with the text already in it, see
 // startng-be app/routers/pages.py), and Play goes on to the game's address.
-export default function GamePage({ name, game, loading, user, playerId, favorite, onPlay, onSignIn, inTournament = false }: {
+export default function GamePage({ name, game, loading, user, playerId, favorite, onPlay, onSignIn, inTournament = false, canFlag = false, onHidden }: {
   name: string;
   game: Game | undefined;
   loading: boolean;
@@ -18,8 +19,11 @@ export default function GamePage({ name, game, loading, user, playerId, favorite
   onPlay: (e: React.MouseEvent, g: Game) => void;
   onSignIn: () => void;
   inTournament?: boolean; // one of today's tournament games
+  canFlag?: boolean; // the signed-in admin may flag games (app/admin.py on the API)
+  onHidden?: () => void; // the game was reported or flagged, so it's hidden now
 }) {
   const [copied, setCopied] = useState(false);
+  const [reporting, setReporting] = useState<"report" | "flag" | null>(null);
   const found = !!game;
 
   useEffect(() => {
@@ -96,8 +100,20 @@ export default function GamePage({ name, game, loading, user, playerId, favorite
             <a className="ghost btn" href={tweet} target="_blank" rel="noreferrer">Share on X</a>
             <button type="button" className="ghost" onClick={copy}>{copied ? "Link copied" : "Copy link"}</button>
           </div>
+          {g.slug !== "hangout" && (
+            <div className="game-page-report">
+              <button type="button" className="link" onClick={() => (user ? setReporting("report") : onSignIn())}>
+                Report this game
+              </button>
+              {canFlag && <button type="button" className="link flag" onClick={() => setReporting("flag")}>Flag game (admin)</button>}
+            </div>
+          )}
         </div>
       </div>
+      {reporting && (
+        <ReportDialog game={g.slug} title={g.title} mode={reporting} onClose={() => setReporting(null)}
+          onDone={() => { setReporting(null); if (reporting === "flag") onHidden?.(); }} />
+      )}
     </section>
   );
 }

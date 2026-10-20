@@ -36,16 +36,33 @@ export function useTournament(user: User | null, active: boolean) {
 
 /** "5h 12m left", ticking every half minute. */
 function useTimeLeft(endsAt: string | undefined) {
+  const left = useCountdown(endsAt);
+  return left === null ? "" : left === "" ? "ending now" : `${left} left`;
+}
+
+/** "5h 12m" until a moment ("" once it's here, null with no moment), ticking every half minute. */
+function useCountdown(at: string | null | undefined): string | null {
   const [now, setNow] = useState(Date.now());
   useEffect(() => {
     const timer = window.setInterval(() => setNow(Date.now()), 30000);
     return () => window.clearInterval(timer);
   }, []);
-  if (!endsAt) return "";
-  const ms = Math.max(0, new Date(endsAt).getTime() - now);
+  if (!at) return null;
+  const ms = Math.max(0, new Date(at).getTime() - now);
   const h = Math.floor(ms / 3_600_000);
   const m = Math.floor((ms % 3_600_000) / 60_000);
-  return ms === 0 ? "ending now" : h > 0 ? `${h}h ${m}m left` : `${m}m left`;
+  return ms === 0 ? "" : h > 0 ? `${h}h ${m}m` : `${m}m`;
+}
+
+/** "Next tournament starts in 5h 12m" while today's runs. Its games are a surprise until it starts. */
+function NextTournament({ at }: { at: string | null }) {
+  const left = useCountdown(at);
+  if (!at || left === null) return null;
+  return (
+    <p className="tournament-next">
+      Next tournament {left ? <>starts in <b>{left}</b></> : "starts now"} · {dayText(at)}, {endsAtText(at)} your time. New games, revealed when it starts.
+    </p>
+  );
 }
 
 const endsAtText = (iso: string) => new Date(iso).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
@@ -73,6 +90,7 @@ export function TournamentBanner({ tournament }: { tournament: Tournament | null
           <p className="tournament-banner-sub">
             Share to enter, then play. {tournament.entrants} {tournament.entrants === 1 ? "player has" : "players have"} entered.
           </p>
+          <NextTournament at={tournament.next_starts_at} />
         </div>
         <div className="tournament-banner-games" aria-hidden="true">
           {tournament.games.map((g) => {
@@ -176,6 +194,7 @@ export function TournamentPage({ user, state, onSignIn, onPlay }: {
                 Ends at <b>{endsAtText(t.ends_at)}</b> your time. {t.entrants} {t.entrants === 1 ? "player has" : "players have"} entered.
               </p>
               <p className="note">{POINTS_NOTE} Most points wins the day.</p>
+              <NextTournament at={t.next_starts_at} />
             </div>
             <div className="tournament-enter">
               {t.entered ? (
