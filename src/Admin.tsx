@@ -270,7 +270,7 @@ function ReportsTab({ can, ask }: AdminTabProps) {
             {" "}· contacted {g.developer_contacts} of 3{g.hidden_at ? ` · hidden ${when(g.hidden_at)}` : ""}
           </p>
         </div>
-        {can("reports.close") && g.hidden && g.hidden !== "blocked" && (
+        {can("reports.close") && (g.hidden === "reported" || g.hidden === "flagged") && (
           <button type="button" className="ghost" disabled={busy} onClick={() => restore(g)}>Put back</button>
         )}
       </div>
