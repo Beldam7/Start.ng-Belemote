@@ -109,6 +109,9 @@ Then open `https://dave.start.ng` in a browser: the page should say "It works".
 - `/` gives `<name>/index.html`. `/save` and `/save/` give `<name>/save/index.html`.
   A last segment with a dot (`/style.css`) is a file.
 - `..`, backslashes and hidden files (`.git`, `.env`) give 404.
+- A game start.ng's admins hid has an empty `_hidden/<name>` object in the bucket (written by startng-be). Every
+  path of that game then gets a 410 "This game isn't available" page (`no-store`). `SITE_URL` sets where its link goes
+  (default `https://<BASE_DOMAIN>`). The check is one `head()` per request.
 - Missing folder or file gives 404. Only GET and HEAD are allowed.
 - Names in `RESERVED_NAMES` are passed on to the normal origin, never read from the bucket.
 

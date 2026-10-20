@@ -1,6 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { GoogleLogin } from "@react-oauth/google";
-import { approvePendingGame, getGameSession, trackPlay, getPendingGame, googleLogin, listGames, me, myGames, PendingGameInfo, saveCharacter, TokenResponse, User } from "./api";
+import { adminMe, AdminMe, approvePendingGame, getGameSession, trackPlay, getPendingGame, googleLogin, listGames, me, myGames, PendingGameInfo, saveCharacter, TokenResponse, User } from "./api";
 import AccountMenu from "./AccountMenu";
 import Favorites, { FavoriteButton, gameKey, useFavorites } from "./Favorites";
 import Pagination from "./Pagination";
@@ -68,6 +68,12 @@ export default function App({ view = "home", gameName, indieId }: { view?: "home
   const [board, setBoard] = useState<Game | null>(null);
   // The signed-in builder's newest game, for the example address in the hero.
   const [myLatest, setMyLatest] = useState<Game | null>(null);
+  // The signed-in admin's access (null for everyone else): shows the Admin link and the Flag button.
+  const [adminAccess, setAdminAccess] = useState<AdminMe | null>(null);
+  useEffect(() => {
+    if (!user) return setAdminAccess(null);
+    adminMe(localStorage.getItem("token")).then(setAdminAccess).catch(() => setAdminAccess(null));
+  }, [user]);
 
   // Keep the games current without a page refresh: on load, when the profile closes
   // (after an upload or a new cover), when you come back to the tab, and every 30 seconds.
@@ -285,7 +291,7 @@ export default function App({ view = "home", gameName, indieId }: { view?: "home
         <div className="nav-account">
           <ThemeToggle />
           {user ? (
-            <AccountMenu user={user} onProfile={() => setEditing(true)} onFavorites={() => setFavoritesOpen(true)} onSignOut={signOut} />
+            <AccountMenu user={user} isAdmin={!!adminAccess} onProfile={() => setEditing(true)} onFavorites={() => setFavoritesOpen(true)} onSignOut={signOut} />
           ) : (
             <button onClick={() => setSignInOpen(true)}>Sign in</button>
           )}
@@ -312,6 +318,8 @@ export default function App({ view = "home", gameName, indieId }: { view?: "home
             onPlay={pickGame}
             onSignIn={() => setSignInOpen(true)}
             inTournament={!!tournament.tournament?.games.some((g) => g.name === gameName)}
+            canFlag={!!adminAccess && (adminAccess.is_super || adminAccess.permissions.includes("games.flag"))}
+            onHidden={refreshGames}
           />
         )}
 
