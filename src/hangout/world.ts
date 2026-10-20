@@ -26,6 +26,54 @@ export function seatSpot(n: number) {
   return { sit: along(0.04), stand: along(0.95), ry: b.ry };
 }
 
+// ---- collision: benches are rotated boxes, tree trunks are circles. Players are a circle of PLAYER_RADIUS.
+export const PLAYER_RADIUS = 0.3;
+const BENCH_HALF_X = BENCH_WIDTH / 2; // along the bench
+const BENCH_BACK_Z = -0.3; // behind the backrest
+const BENCH_FRONT_Z = 0.26; // the front edge of the seat
+type Circle = { x: number; z: number; r: number };
+
+/** Moves a circle at (x, z) out of a bench, so it slides along the bench instead of going through it. */
+function outOfBench(x: number, z: number, r: number, b: { position: THREE.Vector3; ry: number }): [number, number] {
+  // into the bench's own frame: +x along the seat, +z out the front
+  const cos = Math.cos(b.ry), sin = Math.sin(b.ry);
+  const dx = x - b.position.x, dz = z - b.position.z;
+  const lx = dx * cos - dz * sin;
+  const lz = dx * sin + dz * cos;
+  const cx = THREE.MathUtils.clamp(lx, -BENCH_HALF_X, BENCH_HALF_X);
+  const cz = THREE.MathUtils.clamp(lz, BENCH_BACK_Z, BENCH_FRONT_Z);
+  const ox = lx - cx, oz = lz - cz;
+  const d = Math.hypot(ox, oz);
+  if (d >= r) return [x, z];
+  let nx: number, nz: number;
+  if (d > 1e-6) {
+    // touching an edge or corner: push straight out from the closest point
+    nx = cx + (ox / d) * r;
+    nz = cz + (oz / d) * r;
+  } else {
+    // the centre is inside the box (rare: a very fast step): leave by the nearest side
+    const exits: [number, number, number][] = [ // [distance, new x, new z]
+      [BENCH_HALF_X - lx, BENCH_HALF_X + r, lz],
+      [lx + BENCH_HALF_X, -BENCH_HALF_X - r, lz],
+      [BENCH_FRONT_Z - lz, lx, BENCH_FRONT_Z + r],
+      [lz - BENCH_BACK_Z, lx, BENCH_BACK_Z - r],
+    ];
+    exits.sort((a, b2) => a[0] - b2[0]);
+    [, nx, nz] = exits[0];
+  }
+  // back to the park's frame
+  return [b.position.x + nx * cos + nz * sin, b.position.z - nx * sin + nz * cos];
+}
+
+function outOfCircle(x: number, z: number, r: number, c: Circle): [number, number] {
+  const dx = x - c.x, dz = z - c.z;
+  const d = Math.hypot(dx, dz);
+  const min = r + c.r;
+  if (d >= min) return [x, z];
+  if (d < 1e-6) return [c.x + min, z];
+  return [c.x + (dx / d) * min, c.z + (dz / d) * min];
+}
+
 function seeded(seed: number) {
   return () => {
     seed = (seed + 0x6d2b79f5) | 0;
@@ -124,6 +172,7 @@ export function buildPark(scene: THREE.Scene, shadowSize = 2048) {
   for (let i = 0; i < 8; i++) spots.push([between(21, 27), rand() * Math.PI * 2]);
   for (let i = 0; i < 45; i++) spots.push([between(28, 55), rand() * Math.PI * 2]);
   for (let i = 0; i < 80; i++) spots.push([between(60, 110), rand() * Math.PI * 2]);
+  const treeCircles: Circle[] = [];
   const trunks = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.16, 0.24, 2.2, 7).translate(0, 1.1, 0), new THREE.MeshStandardMaterial({ color: "#6b4a2f", roughness: 0.9 }), spots.length);
   const crowns = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1.5, 1).translate(0, 3.2, 0), new THREE.MeshStandardMaterial({ roughness: 0.85, flatShading: true }), spots.length);
   spots.forEach(([r, a], i) => {
@@ -131,11 +180,28 @@ export function buildPark(scene: THREE.Scene, shadowSize = 2048) {
     const x = Math.cos(a) * r;
     const z = Math.sin(a) * r;
     place(trunks, i, x, 0, z, s);
+    treeCircles.push({ x, z, r: 0.26 * s }); // the trunk at the ground
     place(crowns, i, x, 0, z, s, rand() * 6);
     crowns.setColorAt(i, color.setHSL(between(0.25, 0.33), between(0.4, 0.55), between(0.26, 0.36)));
   });
   for (const m of [trunks, crowns]) m.castShadow = m.receiveShadow = true;
   scene.add(trunks, crowns);
 
-  return { setTime: sky.setTime, update: sky.update };
+  /** Where a player stepping from (fromX, fromZ) to (x, z) ends up: pushed out of benches and tree trunks, so they stop
+   * at them and slide around them. In the odd pocket where two trunks overlap and there's no free spot, they stay put. */
+  function collide(x: number, z: number, fromX = x, fromZ = z, r = PLAYER_RADIUS): { x: number; z: number } {
+    for (let pass = 0; pass < 4; pass++) {
+      const [px, pz] = [x, z];
+      for (const b of BENCHES) {
+        if (Math.abs(x - b.position.x) < 2 && Math.abs(z - b.position.z) < 2) [x, z] = outOfBench(x, z, r, b);
+      }
+      for (const t of treeCircles) {
+        if (Math.abs(x - t.x) < 1 && Math.abs(z - t.z) < 1) [x, z] = outOfCircle(x, z, r, t);
+      }
+      if (x === px && z === pz) return { x, z }; // clear of everything
+    }
+    return { x: fromX, z: fromZ };
+  }
+
+  return { setTime: sky.setTime, update: sky.update, collide };
 }

@@ -371,8 +371,15 @@ export function startHangout(root: HTMLElement): () => void {
         const running = held("run") || pushed > 0.85;
         mx /= len;
         mz /= len;
-        pos.x = THREE.MathUtils.clamp(pos.x + mx * (running ? RUN : WALK) * dt, -WORLD, WORLD);
-        pos.z = THREE.MathUtils.clamp(pos.z + mz * (running ? RUN : WALK) * dt, -WORLD, WORLD);
+        // stop at benches and trees, sliding along them (world.ts collide)
+        const next = park.collide(
+          THREE.MathUtils.clamp(pos.x + mx * (running ? RUN : WALK) * dt, -WORLD, WORLD),
+          THREE.MathUtils.clamp(pos.z + mz * (running ? RUN : WALK) * dt, -WORLD, WORLD),
+          pos.x,
+          pos.z,
+        );
+        pos.x = THREE.MathUtils.clamp(next.x, -WORLD, WORLD);
+        pos.z = THREE.MathUtils.clamp(next.z, -WORLD, WORLD);
         const ry = mine.human.root.rotation.y;
         mine.human.root.rotation.y = ry + angleTo(ry, Math.atan2(mx, mz)) * Math.min(1, dt * 12);
         mine.human.setWalking(running ? 1.8 : 1);
