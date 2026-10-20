@@ -2,6 +2,7 @@ import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } fro
 import { GoogleLogin } from "@react-oauth/google";
 import { adminMe, AdminMe, approvePendingGame, getGameSession, trackPlay, getPendingGame, googleLogin, listGames, me, myGames, PendingGameInfo, saveCharacter, TokenResponse, User } from "./api";
 import AccountMenu from "./AccountMenu";
+import { analytics } from "./analytics";
 import Favorites, { FavoriteButton, gameKey, useFavorites } from "./Favorites";
 import Pagination from "./Pagination";
 import GamePage from "./GamePage";
@@ -234,6 +235,7 @@ export default function App({ view = "home", gameName, indieId }: { view?: "home
   }
 
   function onSuccess(res: TokenResponse) {
+    analytics.login();
     localStorage.setItem("token", res.access_token);
     setUser(res.user);
     setSignInOpen(false);
@@ -252,6 +254,7 @@ export default function App({ view = "home", gameName, indieId }: { view?: "home
     setApproval({ step: "working", info });
     try {
       const live = await approvePendingGame(localStorage.getItem("token"), approveCode);
+      analytics.publishGame(live.name);
       setApproval({ step: "done", name: live.name, url: playableUrl(live.url) });
       refreshGames();
     } catch (err) {

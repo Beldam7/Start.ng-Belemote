@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { analytics } from "./analytics";
 import {
   enterTournament, getTournament, OverallEntry, overallLeaderboard, recentTournaments, Standing, Tournament, TournamentGame,
   TournamentSummary, User,
@@ -158,11 +159,12 @@ export function TournamentPage({ user, state, onSignIn, onPlay }: {
     const text = `I'm in today's start.ng tournament: ${t.games.length} games, 24 hours, one winner. Come and play!`;
     const share = `https://twitter.com/intent/tweet?${new URLSearchParams({ text, url: `${location.origin}/tournament` })}`;
     window.open(share, "_blank", "noopener,noreferrer");
+    analytics.share("tournament", String(t.id), "x");
     setEntering(true);
     setEnterError("");
     window.setTimeout(() => {
       enterTournament(token())
-        .then(setTournament)
+        .then((next) => { analytics.enterTournament(next.id); setTournament(next); })
         .catch((err) => setEnterError(err instanceof Error ? err.message : "Could not enter the tournament"))
         .finally(() => setEntering(false));
     }, ENTER_DELAY_MS);
