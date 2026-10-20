@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { analytics } from "./analytics";
 import BoardTable from "./BoardTable";
 import { FavoriteButton } from "./Favorites";
 import { User } from "./api";
@@ -28,6 +29,7 @@ export default function GamePage({ name, game, loading, user, playerId, favorite
 
   useEffect(() => {
     if (game) {
+      analytics.viewGame(game.slug);
       setSeo({
         title: `${game.title} · Play free on start.ng`,
         description: game.description ?? `Play ${game.title} free in your browser on start.ng, a game by ${game.by}.`,
@@ -66,6 +68,7 @@ export default function GamePage({ name, game, loading, user, playerId, favorite
   async function copy() {
     try {
       await navigator.clipboard.writeText(pageUrl);
+      analytics.share("game", g.slug, "copy_link");
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch { /* no clipboard (older browsers): the address bar has the link */ }
@@ -97,7 +100,7 @@ export default function GamePage({ name, game, loading, user, playerId, favorite
           )}
           <div className="game-page-share">
             <span>Share it</span>
-            <a className="ghost btn" href={tweet} target="_blank" rel="noreferrer">Share on X</a>
+            <a className="ghost btn" href={tweet} target="_blank" rel="noreferrer" onClick={() => analytics.share("game", g.slug, "x")}>Share on X</a>
             <button type="button" className="ghost" onClick={copy}>{copied ? "Link copied" : "Copy link"}</button>
           </div>
           {g.slug !== "hangout" && (

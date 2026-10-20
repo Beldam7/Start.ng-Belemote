@@ -1,4 +1,5 @@
 import type { Character } from "./character";
+import { analytics } from "./analytics";
 
 const API_URL = (import.meta.env.VITE_API_URL ?? "http://localhost:8000").replace(/\/$/, "");
 
@@ -245,6 +246,7 @@ export async function removeIndieGame(token: string | null, id: number): Promise
 
 /** Someone opened a game from start.ng: counted for "most played". Fire and forget, survives leaving the page. */
 export function trackPlay(game: string) {
+  analytics.play(game);
   const url = `${API_URL}/games/${encodeURIComponent(game)}/plays`;
   try {
     if (navigator.sendBeacon?.(url)) return;
@@ -254,6 +256,7 @@ export function trackPlay(game: string) {
 
 /** Someone opened a game by an independent creator: counted for "most clicked". */
 export function trackIndiePlay(id: number) {
+  analytics.playIndie(id);
   const url = `${API_URL}/indie/${id}/plays`;
   try {
     if (navigator.sendBeacon?.(url)) return;

@@ -14,6 +14,13 @@ Dockerfile build pack (nginx, port 80). VITE_API_URL and VITE_GOOGLE_CLIENT_ID a
 Build Variables in Coolify. GitHub secrets: COOLIFY_WEBHOOK_URL (optional COOLIFY_TOKEN); the
 Deploy (Coolify) workflow runs only after Malware Scan (CI Gate) passes on main.
 
+## Google Analytics
+`src/analytics.ts` loads Google Analytics 4 (measurement ID `G-9K8146WXDG`, start.ng's web stream) on the live
+site only: never in `npm run dev`, on localhost, or on `/connect` (games load it invisibly). Page views come
+from GA itself; the app also records `view_item` (a game page), `play_game`, `share` (X or copy link),
+`login`, `tournament_enter` and `publish_game`. Nothing to set in Coolify; a build variable
+`VITE_GA_MEASUREMENT_ID` can change the ID, or `off` switches it off.
+
 ## Leaderboards for games (opt-in, game-defined)
 
 A game gets a leaderboard by shipping a `startng.json` that lists its own stats (for example waves and kills,

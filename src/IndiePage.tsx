@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { analytics } from "./analytics";
 import { FavoriteButton, indieKey, useFavorites } from "./Favorites";
 import { getIndieGame, IndieGame, indieCoverUrl, removeIndieGame, trackIndiePlay, User } from "./api";
 import { hostOf, indiePath } from "./indie";
@@ -59,6 +60,7 @@ export default function IndiePage({ id, user, onSignIn }: { id: number; user: Us
   async function copy() {
     try {
       await navigator.clipboard.writeText(pageUrl);
+      analytics.share("indie_game", String(g.id), "copy_link");
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch { /* no clipboard (older browsers): the address bar has the link */ }
@@ -97,7 +99,7 @@ export default function IndiePage({ id, user, onSignIn }: { id: number; user: Us
           </div>
           <div className="game-page-share">
             <span>Share it</span>
-            <a className="ghost btn" href={tweet} target="_blank" rel="noreferrer">Share on X</a>
+            <a className="ghost btn" href={tweet} target="_blank" rel="noreferrer" onClick={() => analytics.share("indie_game", String(g.id), "x")}>Share on X</a>
             <button type="button" className="ghost" onClick={copy}>{copied ? "Link copied" : "Copy link"}</button>
           </div>
         </div>

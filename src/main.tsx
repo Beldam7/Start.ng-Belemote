@@ -5,12 +5,16 @@ import App from "./App";
 import Docs from "./Docs";
 import { serveConnect } from "./games";
 import NotFound from "./NotFound";
+import { initAnalytics } from "./analytics";
 import "./styles.css";
 
 // The Hangout (start.ng's own game, with three.js) loads only when someone opens it.
 const Hangout = lazy(() => import("./hangout/Hangout"));
 // The admin page loads only for admins who open it.
 const Admin = lazy(() => import("./Admin"));
+
+// Google Analytics (live site only, never on /connect).
+initAnalytics();
 
 // The app's pages. Keep these in step with the locations in nginx.conf.
 const HOME_PATHS = ["/", "/index.html"];
