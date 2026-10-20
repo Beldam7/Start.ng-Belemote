@@ -753,3 +753,11 @@ button.small { padding: 7px 12px; font-size: .85rem; border-radius: 8px; }
 .tag.done { background: var(--line); color: var(--muted); }
 .private-share { display: flex; flex-wrap: wrap; gap: 8px; }
 .private-manage { padding-top: 8px; }
+/* Name filter admin tab (src/features/moderation) */
+.name-filter h3 { margin: 22px 0 8px; font-size: 1.05rem; }
+.filter-result { margin: 0 0 6px; font-weight: 600; }
+.filter-result.ok { color: var(--ok); }
+.filter-result.bad { color: var(--danger); }
+.filter-strong { display: flex; gap: 6px; align-items: center; font-size: .9rem; }
+.filter-builtin { margin-top: 22px; }
+.filter-builtin summary { cursor: pointer; font-weight: 600; }
