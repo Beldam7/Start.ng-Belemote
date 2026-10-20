@@ -110,3 +110,21 @@ test("helpers", () => {
   assert.equal(keyForPath("dave", "/save"), "dave/save/index.html");
   assert.equal(keyForPath("dave", "/a/b.js"), "dave/a/b.js");
 });
+
+test("a hidden game shows the unavailable page on every path, and others are untouched", async () => {
+  const hiddenEnv = { ...env, GAMES_BUCKET: fakeBucket({ ...files, "_hidden/dave": "" }) };
+  for (const p of ["/", "/style.css", "/save/"]) {
+    const r = await worker.fetch(new Request(`https://dave.start.ng${p}`), hiddenEnv);
+    assert.equal(r.status, 410);
+    assert.match(await r.text(), /isn't available/);
+    assert.equal(r.headers.get("cache-control"), "no-store");
+  }
+  const other = await worker.fetch(new Request("https://other.start.ng/"), hiddenEnv);
+  assert.equal(other.status, 200);
+});
+
+test("the hidden marker itself can't be fetched as a game", async () => {
+  const hiddenEnv = { ...env, GAMES_BUCKET: fakeBucket({ ...files, "_hidden/dave": "" }) };
+  const r = await worker.fetch(new Request("https://_hidden.start.ng/dave"), hiddenEnv);
+  assert.equal(r.status, 404);
+});

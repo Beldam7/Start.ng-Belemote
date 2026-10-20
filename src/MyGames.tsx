@@ -219,6 +219,17 @@ export default function MyGames() {
                   )}
                 </div>
               </div>
+              {/* Reported or flagged: hidden from start.ng while admins look at it. */}
+              {g.hidden && (
+                <div className="update-problem" role="status">
+                  <b>Hidden from start.ng</b>
+                  <span>
+                    {g.hidden === "reported" ? "Our team reviewed a report about this game and hid it for now. We'll reach out about what to fix."
+                      : g.hidden === "flagged" ? "Our team flagged this game, so it's hidden for now. We'll reach out about what to fix."
+                      : "Your account is blocked, so your games are hidden."}
+                  </span>
+                </div>
+              )}
               {/* The latest push didn't pass the checks: the game kept its last version. */}
               {g.update_problem && (
                 <div className="update-problem" role="status">

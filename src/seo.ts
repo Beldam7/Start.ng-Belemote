@@ -47,6 +47,22 @@ export const PAGES: Record<string, Seo> = {
     description: "How to publish a browser game on start.ng: push it to GitHub, make one API call, approve it once, and it's live at yourgame.start.ng with its own leaderboard.",
     path: "/docs",
   },
+  tournament: {
+    title: "Today's tournament · start.ng",
+    description: "Every day, a few start.ng games for 24 hours and one winner. Share to enter, play, and climb the standings.",
+    path: "/tournament",
+  },
+  leaderboard: {
+    title: "Leaderboard · start.ng",
+    description: "The best players on start.ng: points from the daily tournaments, all time and this week.",
+    path: "/leaderboard",
+  },
+  // The plain page nginx falls back to for /games/<name> when the API can't render that game's page.
+  game: {
+    title: "Play free on start.ng",
+    description: "Play free browser games made by the HNG community on start.ng.",
+    path: "/games",
+  },
   approve: {
     title: "Put your game live · start.ng",
     description: "Approve a game you published to start.ng and put it live at its own address.",
@@ -67,12 +83,15 @@ export const STATIC_PAGES: [string, Seo][] = [
   ["creators.html", PAGES.creators],
   ["hangout.html", PAGES.hangout],
   ["docs.html", PAGES.docs],
+  ["tournament.html", PAGES.tournament],
+  ["leaderboard.html", PAGES.leaderboard],
+  ["game.html", PAGES.game],
   ["approve.html", PAGES.approve],
   ["404.html", PAGES.notFound],
 ];
 
 /** Pages that belong in sitemap.xml. */
-export const SITEMAP_PATHS = ["home", "games", "creators", "hangout", "docs"].map((k) => PAGES[k].path);
+export const SITEMAP_PATHS = ["home", "games", "creators", "tournament", "leaderboard", "hangout", "docs"].map((k) => PAGES[k].path);
 
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
 

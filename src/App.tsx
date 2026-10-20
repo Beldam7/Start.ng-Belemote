@@ -1,9 +1,12 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { GoogleLogin } from "@react-oauth/google";
-import { approvePendingGame, getGameSession, trackPlay, getPendingGame, googleLogin, listGames, me, myGames, PendingGameInfo, saveCharacter, TokenResponse, User } from "./api";
+import { adminMe, AdminMe, approvePendingGame, getGameSession, trackPlay, getPendingGame, googleLogin, listGames, me, myGames, PendingGameInfo, saveCharacter, TokenResponse, User } from "./api";
 import AccountMenu from "./AccountMenu";
+import { analytics } from "./analytics";
 import Favorites, { FavoriteButton, gameKey, useFavorites } from "./Favorites";
 import Pagination from "./Pagination";
+import GamePage from "./GamePage";
+import IndiePage from "./IndiePage";
 import ThemeToggle from "./ThemeToggle";
 import SearchBox, { matches, queryFromUrl, urlFor } from "./SearchBox";
 import { setSeo, PAGES } from "./seo";
@@ -15,6 +18,7 @@ const CharacterCreator = lazy(() => import("./CharacterCreator"));
 const GameBoard = lazy(() => import("./GameBoard"));
 import { Game, gameReturnUrl, HANGOUT, isInAppGame, playableUrl, toCard } from "./games";
 import { CreatorsPage, CreatorsSection } from "./Creators";
+import { LeaderboardPage, TournamentBanner, TournamentPage, useTournament } from "./Tournament";
 
 // Set when a game sent the user here to sign in: we send them back afterwards.
 const returnTo = gameReturnUrl();
@@ -42,9 +46,13 @@ type Approval =
 
 /** The homepage, and /games (every game, PER_PAGE at a time). They share sign-in, the profile
  *  and the "sign in or play as a guest?" question. */
-export default function App({ view = "home" }: { view?: "home" | "games" | "creators" }) {
+export default function App({ view = "home", gameName, indieId }: { view?: "home" | "games" | "creators" | "game" | "indie" | "tournament" | "leaderboard"; gameName?: string; indieId?: number }) {
+  const gamePage = view === "game";
+  const indiePage = view === "indie";
   const allGames = view === "games";
   const creatorsPage = view === "creators";
+  const tournamentPage = view === "tournament";
+  const leaderboardPage = view === "leaderboard";
   const [page, setPage] = useState(pageFromUrl);
   const [q, setQ] = useState(queryFromUrl); // /games search
   const [favoritesOpen, setFavoritesOpen] = useState(openFavorites);
@@ -61,6 +69,12 @@ export default function App({ view = "home" }: { view?: "home" | "games" | "crea
   const [board, setBoard] = useState<Game | null>(null);
   // The signed-in builder's newest game, for the example address in the hero.
   const [myLatest, setMyLatest] = useState<Game | null>(null);
+  // The signed-in admin's access (null for everyone else): shows the Admin link and the Flag button.
+  const [adminAccess, setAdminAccess] = useState<AdminMe | null>(null);
+  useEffect(() => {
+    if (!user) return setAdminAccess(null);
+    adminMe(localStorage.getItem("token")).then(setAdminAccess).catch(() => setAdminAccess(null));
+  }, [user]);
 
   // Keep the games current without a page refresh: on load, when the profile closes
   // (after an upload or a new cover), when you come back to the tab, and every 30 seconds.
@@ -98,8 +112,9 @@ export default function App({ view = "home" }: { view?: "home" | "games" | "crea
 
   // Titles and link previews for the page that's open (the served HTML has them too, see seo.ts).
   useEffect(() => {
+    if (tournamentPage || leaderboardPage) return; // they set their own
     setSeo(approveCode ? PAGES.approve : allGames ? PAGES.games : creatorsPage ? PAGES.creators : PAGES.home);
-  }, [allGames, creatorsPage]);
+  }, [allGames, creatorsPage, tournamentPage, leaderboardPage]);
 
   // /games: the back and forward buttons move between pages and searches.
   useEffect(() => {
@@ -123,6 +138,8 @@ export default function App({ view = "home" }: { view?: "home" | "games" | "crea
   }
 
   const favs = useFavorites(user);
+  // Today's tournament: the homepage banner, the badge on game pages, and /tournament.
+  const tournament = useTournament(user, view === "home" || gamePage || tournamentPage);
 
   // The Hangout is always first; the rest come from the API (newest first). The homepage shows the
   // most played this week; ties keep the newest first.
@@ -189,6 +206,14 @@ export default function App({ view = "home" }: { view?: "home" | "games" | "crea
     setChosen(g);
   }
 
+  // A card opens the game's page on start.ng first (its details, leaderboard and Play button), so the page
+  // can be found by search and shared. The Hangout lives in this app, so it opens straight away.
+  function cardLink(g: Game) {
+    return isInAppGame(g)
+      ? { href: g.url, onClick: (e: React.MouseEvent) => pickGame(e, g) }
+      : { href: `/games/${g.slug}` };
+  }
+
   function playAsGuest(g: Game) {
     // ?guest tells games that support it to skip their own "sign in or guest?" question.
     const url = new URL(g.url);
@@ -210,6 +235,7 @@ export default function App({ view = "home" }: { view?: "home" | "games" | "crea
   }
 
   function onSuccess(res: TokenResponse) {
+    analytics.login();
     localStorage.setItem("token", res.access_token);
     setUser(res.user);
     setSignInOpen(false);
@@ -228,6 +254,7 @@ export default function App({ view = "home" }: { view?: "home" | "games" | "crea
     setApproval({ step: "working", info });
     try {
       const live = await approvePendingGame(localStorage.getItem("token"), approveCode);
+      analytics.publishGame(live.name);
       setApproval({ step: "done", name: live.name, url: playableUrl(live.url) });
       refreshGames();
     } catch (err) {
@@ -258,15 +285,16 @@ export default function App({ view = "home" }: { view?: "home" | "games" | "crea
       <header className="container nav">
         <a className="logo" href="/"><b>start<span>.ng</span></b></a>
         <nav aria-label="Pages">
-          <a href="/games" aria-current={allGames ? "page" : undefined}>Games</a>
-          <a href="/creators" aria-current={creatorsPage ? "page" : undefined}>Creators</a>
+          <a href="/games" aria-current={allGames || gamePage ? "page" : undefined}>Games</a>
+          <a href="/tournament" aria-current={tournamentPage || leaderboardPage ? "page" : undefined}>Tournament</a>
+          <a href="/creators" aria-current={creatorsPage || indiePage ? "page" : undefined}>Creators</a>
           <a href={view === "home" ? "#how" : "/#how"}>How it works</a>
           <a href="/docs">Docs</a>
         </nav>
         <div className="nav-account">
           <ThemeToggle />
           {user ? (
-            <AccountMenu user={user} onProfile={() => setEditing(true)} onFavorites={() => setFavoritesOpen(true)} onSignOut={signOut} />
+            <AccountMenu user={user} isAdmin={!!adminAccess} onProfile={() => setEditing(true)} onFavorites={() => setFavoritesOpen(true)} onSignOut={signOut} />
           ) : (
             <button onClick={() => setSignInOpen(true)}>Sign in</button>
           )}
@@ -275,6 +303,28 @@ export default function App({ view = "home" }: { view?: "home" | "games" | "crea
 
       <main>
         {creatorsPage && <CreatorsPage user={user} onSignIn={() => setSignInOpen(true)} />}
+
+        {tournamentPage && <TournamentPage user={user} state={tournament} onSignIn={() => setSignInOpen(true)} onPlay={pickGame} />}
+
+        {leaderboardPage && <LeaderboardPage user={user} />}
+
+        {indiePage && indieId && <IndiePage id={indieId} user={user} onSignIn={() => setSignInOpen(true)} />}
+
+        {gamePage && (
+          <GamePage
+            name={gameName ?? ""}
+            game={[HANGOUT, ...community].find((g) => g.slug === gameName)}
+            loading={games === null}
+            user={user}
+            playerId={user?.id ?? null}
+            favorite={{ on: favs.has(`g:${gameName}`), toggle: () => favs.toggle(`g:${gameName}`) }}
+            onPlay={pickGame}
+            onSignIn={() => setSignInOpen(true)}
+            inTournament={!!tournament.tournament?.games.some((g) => g.name === gameName)}
+            canFlag={!!adminAccess && (adminAccess.is_super || adminAccess.permissions.includes("games.flag"))}
+            onHidden={refreshGames}
+          />
+        )}
 
         {view === "home" && (
         <section className="container hero">
@@ -296,7 +346,9 @@ export default function App({ view = "home" }: { view?: "home" | "games" | "crea
         </section>
         )}
 
-        {!creatorsPage && (
+        {view === "home" && <TournamentBanner tournament={tournament.tournament} />}
+
+        {(view === "home" || allGames) && (
         <section id="games" className={allGames ? "container all-games" : "container"}>
           <div className="section-head">
             {allGames ? <h1>All games from the community</h1> : (
@@ -308,7 +360,7 @@ export default function App({ view = "home" }: { view?: "home" | "games" | "crea
           </div>
           {allGames && (
             <div className="list-tools">
-              <SearchBox value={q} onChange={search} label="Search games" placeholder="Search games by name or creator" suggestions={suggestions} />
+              <SearchBox value={q} onChange={search} label="Search games" placeholder="Search games or creators" suggestions={suggestions} />
               {games && (
                 <span className="count">
                   {searching
@@ -333,7 +385,7 @@ export default function App({ view = "home" }: { view?: "home" | "games" | "crea
           <div className="grid" aria-busy={games === null}>
             {shown.map((g) => (
               <article key={g.slug} className={g.slug === HANGOUT.slug ? "game legendary" : "game"}>
-                <a className="game-link" href={g.url} {...(isInAppGame(g) ? {} : { target: "_blank", rel: "noreferrer" })} onClick={(e) => pickGame(e, g)}>
+                <a className="game-link" {...cardLink(g)}>
                   <div className="art" style={{ background: `linear-gradient(135deg, ${g.colors[0]}, ${g.colors[1]})` }}>
                     {g.cover ? <img src={g.cover} alt="" loading="lazy" decoding="async" /> : <span>{g.title.charAt(0)}</span>}
                   </div>
@@ -346,7 +398,7 @@ export default function App({ view = "home" }: { view?: "home" | "games" | "crea
                 <div className="meta">
                   <FavoriteButton user={user} on={favs.has(gameKey(g))} name={g.title} onToggle={() => favs.toggle(gameKey(g))} onSignIn={() => setSignInOpen(true)} />
                   {g.board && <button type="button" className="link board-btn" onClick={() => setBoard(g)}>Leaderboard</button>}
-                  <a className="play" href={g.url} {...(isInAppGame(g) ? {} : { target: "_blank", rel: "noreferrer" })} onClick={(e) => pickGame(e, g)}>{isInAppGame(g) ? "Play" : "Play ↗"}</a>
+                  <a className="play" {...cardLink(g)}>{isInAppGame(g) ? "Play" : "View"}</a>
                 </div>
               </article>
             ))}
