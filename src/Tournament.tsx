@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { analytics } from "./analytics";
 import {
   enterTournament, getTournament, OverallEntry, overallLeaderboard, recentTournaments, Standing, Tournament, TournamentGame,
@@ -6,7 +6,7 @@ import {
 } from "./api";
 import { formatStat } from "./BoardTable";
 import { Game, toCard } from "./games";
-import { PAGES, setSeo } from "./seo";
+import { PAGES, setSeo, TOURNAMENT_IMAGE } from "./seo";
 
 // Daily tournaments (startng-be app/tournaments.py): every day 5 random games for 24 hours, ending at 18:00
 // Nigeria time. Sharing on X enters you; your runs on those games count, and places give points
@@ -14,6 +14,19 @@ import { PAGES, setSeo } from "./seo";
 
 const POINTS_NOTE = "1st on a game gets 10 points, 2nd 7, 3rd 5, 4th 3, and everyone else who plays it 1.";
 const ENTER_DELAY_MS = 2500; // a moment to post the share before entry unlocks (we can't check the post)
+
+/** The tournament picture as a file, for phones that can attach it to a post (Web Share API), else null. */
+async function shareImageFile(): Promise<File | null> {
+  // Phones and tablets only: on computers the share window is the system's, not X, so they go straight to X.
+  if (typeof navigator.canShare !== "function" || !matchMedia("(pointer: coarse)").matches) return null;
+  try {
+    const blob = await fetch(TOURNAMENT_IMAGE).then((r) => (r.ok ? r.blob() : Promise.reject(new Error("no image"))));
+    const file = new File([blob], "startng-tournament.png", { type: "image/png" });
+    return navigator.canShare({ files: [file] }) ? file : null;
+  } catch {
+    return null;
+  }
+}
 
 const token = () => localStorage.getItem("token");
 
@@ -146,6 +159,11 @@ export function TournamentPage({ user, state, onSignIn, onPlay }: {
   const playerId = user?.id ?? null;
 
   useEffect(() => setSeo(PAGES.tournament), []);
+  // Ready before the click, so sharing the picture still counts as part of the tap (browsers require that).
+  const imageFile = useRef<File | null>(null);
+  useEffect(() => {
+    shareImageFile().then((file) => { imageFile.current = file; });
+  }, []);
   useEffect(() => {
     recentTournaments(7).then(setPast).catch(() => setPast([]));
   }, [t?.id]);
@@ -157,17 +175,35 @@ export function TournamentPage({ user, state, onSignIn, onPlay }: {
     }
     if (!t) return;
     const text = `I'm in today's start.ng tournament: ${t.games.length} games, 24 hours, one winner. Come and play!`;
-    const share = `https://twitter.com/intent/tweet?${new URLSearchParams({ text, url: `${location.origin}/tournament` })}`;
-    window.open(share, "_blank", "noopener,noreferrer");
-    analytics.share("tournament", String(t.id), "x");
-    setEntering(true);
-    setEnterError("");
-    window.setTimeout(() => {
-      enterTournament(token())
-        .then((next) => { analytics.enterTournament(next.id); setTournament(next); })
-        .catch((err) => setEnterError(err instanceof Error ? err.message : "Could not enter the tournament"))
-        .finally(() => setEntering(false));
-    }, ENTER_DELAY_MS);
+    const url = `${location.origin}/tournament`;
+    const id = t.id;
+    const enter = (delay: number) => {
+      setEntering(true);
+      setEnterError("");
+      window.setTimeout(() => {
+        enterTournament(token())
+          .then((next) => { analytics.enterTournament(next.id); setTournament(next); })
+          .catch((err) => setEnterError(err instanceof Error ? err.message : "Could not enter the tournament"))
+          .finally(() => setEntering(false));
+      }, delay);
+    };
+    // Phones: the share menu, with the tournament picture attached (pick X there). Sharing it enters you.
+    const file = imageFile.current;
+    if (file) {
+      navigator
+        .share({ files: [file], text: `${text} ${url}` })
+        .then(() => { analytics.share("tournament", String(id), "x"); enter(0); })
+        .catch((err) => { if (err?.name !== "AbortError") openTweet(); }); // cancelled: not entered
+      return;
+    }
+    openTweet();
+
+    // Computers (and phones that can't share files): X's post page. The link shows the picture as its preview card.
+    function openTweet() {
+      window.open(`https://twitter.com/intent/tweet?${new URLSearchParams({ text, url })}`, "_blank", "noopener,noreferrer");
+      analytics.share("tournament", String(id), "x");
+      enter(ENTER_DELAY_MS);
+    }
   }
 
   return (
