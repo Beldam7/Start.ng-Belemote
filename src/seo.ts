@@ -12,6 +12,9 @@ export const DEFAULT_SITE_URL = "https://start.ng";
 /** The picture shown in link previews (in public/). */
 export const SHARE_IMAGE = "/hangout-cover.jpg";
 export const SHARE_IMAGE_ALT = "A screenshot of the Hangout, start.ng's own multiplayer game";
+/** The tournament's own preview picture (in public/): shown on X and in chats when /tournament is shared. */
+export const TOURNAMENT_IMAGE = "/tournament-share.png";
+export const TOURNAMENT_IMAGE_ALT = "start.ng's daily tournament: 5 games, 24 hours, one winner, with covers of games from the community";
 
 export type Seo = {
   title: string;
@@ -20,6 +23,9 @@ export type Seo = {
   path: string;
   /** Keep the page out of search results (sign-in flows, 404). */
   noindex?: boolean;
+  /** Its own preview picture: a path in public/ or a full address, like a game's cover (default SHARE_IMAGE). */
+  image?: string;
+  imageAlt?: string;
 };
 
 const HOME_DESCRIPTION =
@@ -51,11 +57,15 @@ export const PAGES: Record<string, Seo> = {
     title: "Today's tournament · start.ng",
     description: "Every day, a few start.ng games for 24 hours and one winner. Share to enter, play, and climb the standings.",
     path: "/tournament",
+    image: TOURNAMENT_IMAGE,
+    imageAlt: TOURNAMENT_IMAGE_ALT,
   },
   leaderboard: {
     title: "Leaderboard · start.ng",
     description: "The best players on start.ng: points from the daily tournaments, all time and this week.",
     path: "/leaderboard",
+    image: TOURNAMENT_IMAGE,
+    imageAlt: TOURNAMENT_IMAGE_ALT,
   },
   // The plain page nginx falls back to for /games/<name> when the API can't render that game's page.
   game: {
@@ -93,12 +103,15 @@ export const STATIC_PAGES: [string, Seo][] = [
 /** Pages that belong in sitemap.xml. */
 export const SITEMAP_PATHS = ["home", "games", "creators", "tournament", "leaderboard", "hangout", "docs"].map((k) => PAGES[k].path);
 
+/** A picture's full address: paths in public/ get the site in front, full addresses stay as they are. */
+const imageUrl = (site: string, image: string) => (/^https?:\/\//.test(image) ? image : site + image);
+
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
 
 /** The <head> tags for a page, as HTML. `site` is the public origin, like https://start.ng. */
 export function headTags(seo: Seo, site: string): string {
   const url = site + (seo.path === "/" ? "/" : seo.path);
-  const image = site + SHARE_IMAGE;
+  const image = imageUrl(site, seo.image ?? SHARE_IMAGE);
   const tags = [
     `<title>${esc(seo.title)}</title>`,
     `<meta name="description" content="${esc(seo.description)}" />`,
@@ -110,7 +123,7 @@ export function headTags(seo: Seo, site: string): string {
     `<meta property="og:description" content="${esc(seo.description)}" />`,
     `<meta property="og:url" content="${esc(url)}" />`,
     `<meta property="og:image" content="${esc(image)}" />`,
-    `<meta property="og:image:alt" content="${esc(SHARE_IMAGE_ALT)}" />`,
+    `<meta property="og:image:alt" content="${esc(seo.imageAlt ?? SHARE_IMAGE_ALT)}" />`,
     `<meta name="twitter:card" content="summary_large_image" />`,
     `<meta name="twitter:title" content="${esc(seo.title)}" />`,
     `<meta name="twitter:description" content="${esc(seo.description)}" />`,
@@ -161,5 +174,9 @@ export function setSeo(seo: Seo) {
   meta("property", "og:url", url);
   meta("name", "twitter:title", seo.title);
   meta("name", "twitter:description", seo.description);
+  const image = imageUrl(siteUrl(), seo.image ?? SHARE_IMAGE);
+  meta("property", "og:image", image);
+  meta("property", "og:image:alt", seo.imageAlt ?? SHARE_IMAGE_ALT);
+  meta("name", "twitter:image", image);
   upsert("link", 'link[rel="canonical"]', { rel: "canonical", href: url });
 }
