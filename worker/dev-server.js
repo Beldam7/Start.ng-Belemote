@@ -35,6 +35,7 @@ const env = {
   BASE_DOMAIN: baseDomain,
   RESERVED_NAMES: process.env.RESERVED_NAMES || "api,auth,login,www,3rdmainland",
   CACHE_CONTROL: "no-store", // always show the latest files while developing
+  SITE_URL: process.env.SITE_URL, // where "Find other games" links on a hidden game (default https://<BASE_DOMAIN>)
   GAMES_BUCKET: bucket,
 };
 

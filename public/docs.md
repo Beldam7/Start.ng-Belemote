@@ -138,6 +138,34 @@ Your game's card on start.ng shows a cover picture. Put **`cover.png`** (or `cov
 - Or upload one from **Your games** on your start.ng profile; that one wins over the repo's.
 - Without one, the card shows the first letter of the game's name.
 
+## Game standards
+
+Every game on start.ng meets three standards. They keep the experience the same across games and help players find their way around and bring friends in. A game that doesn't meet them is **not published** (and a push that no longer meets them doesn't go live: see "When an update doesn't pass" below).
+
+1. **A way back to start.ng.** A visible link to `https://start.ng`.
+2. **start.ng branding.** The name "start.ng" shown in the game, for example on the start screen or the end screen.
+3. **Share your result on X.** When a round ends, a **Share** button that opens an X (Twitter) post with the player's result and a link to your game.
+
+The smallest way to meet the first two:
+
+```html
+<footer>Play more on <a href="https://start.ng">start.ng</a></footer>
+```
+
+And the share button:
+
+```js
+shareButton.onclick = () => {
+  const text = `I scored ${score} on Lane Dash! Can you beat me?`;
+  const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(location.href)}`;
+  window.open(url, '_blank', 'noopener');
+};
+```
+
+For the link, use your game's start.ng page (`https://start.ng/games/<your-game>`) if you want people to land on its page with the leaderboard.
+
+start.ng reads your game's files to check these, so it can tell the code is there, not that it's on screen. Please make them easy to see: players share more when the button is easy to find. `POST /games/check` reports anything missing (codes `missing_back_link`, `missing_branding`, `missing_share`), so run it before you publish.
+
 ## Checks before anything goes live
 
 Every time a game is published or updated (through the API, or by a push), start.ng downloads the repo and checks it **before** anything goes live. It reports **every** problem at once, so you can fix them in one go.
@@ -181,6 +209,9 @@ Every refusal from publish and check has this shape: `detail` for people, and `e
 | 422 | `password_field` | The game asks for a password | Remove it: start.ng handles sign-in |
 | 422 | `redirect` | A page sends players to another site as soon as it opens | Remove the redirect |
 | 422 | `hidden_program` | A file is really a program (for example an `.exe` renamed to `.png`), or carries one as text | Remove it |
+| 422 | `missing_back_link` | No link to `https://start.ng` in the game | Add a "Back to start.ng" link (see Game standards) |
+| 422 | `missing_branding` | The name "start.ng" isn't written anywhere in the game | Show "start.ng" on the start or end screen |
+| 422 | `missing_share` | No share-on-X link (`twitter.com/intent/tweet` or `x.com/intent/post`) | Add a Share button that opens one |
 | 429 | `rate_limited` | Too many new games or checks from your address | Try again in an hour |
 | 502 / 503 | `download_failed`, `upload_failed`, `not_set_up` | GitHub or start.ng had a hiccup | Try again later |
 
@@ -415,6 +446,16 @@ Add a file called **`startng.json`** next to your `index.html` (or at the top of
 - **1 to 5 stats.** Players are ranked by the **first** stat; the next ones break ties, then whoever got there first.
 - start.ng reads `startng.json` when the game is published (and on every update). If something's wrong in it, publishing tells you what to fix.
 
+### Your game's page: `description`
+
+Every game gets its own page on start.ng, at `start.ng/games/<your-game>`. It's the page that search engines and shared links show, and players land there before they open your game. Add a one-line **`description`** to `startng.json` and it's used there (plain text, up to 300 characters):
+
+```json
+{ "description": "Dodge the lava and climb as high as you can.", "leaderboard": { "stats": [ ... ] } }
+```
+
+Without one, start.ng writes a simple line from your game's name. A `startng.json` with only a `description` is fine: it doesn't give your game a leaderboard on its own.
+
 Examples:
 
 | Game | `stats` |
@@ -514,12 +555,14 @@ Base URL: `https://api.start.ng`. Games on `*.start.ng` can call it straight fro
 
 ## Full example
 
-A game using the HTTP API: a sign-in link, saving a run, and showing the board.
+A game using the HTTP API: a sign-in link, saving a run, and showing the board. It also meets the game standards (a link back, the start.ng name, and a Share button).
 
 ```html
 <a id="signin" hidden>Sign in with start.ng to save your score</a>
 <p id="message"></p>
 <ol id="board"></ol>
+<button id="share" type="button" hidden>Share on X</button>
+<footer>Play more on <a href="https://start.ng">start.ng</a></footer>
 
 <script type="module">
   const API = 'https://api.start.ng';
@@ -553,6 +596,14 @@ A game using the HTTP API: a sign-in link, saving a run, and showing the board.
         signin.hidden = false;
       }
     }
+    // the share standard: a button that opens an X post with the result and a link to the game
+    const share = document.getElementById('share');
+    share.hidden = false;
+    share.onclick = () => {
+      const text = `I got ${stats.waves} waves on ${GAME}! Can you beat me?`;
+      const post = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(`https://start.ng/games/${GAME}`)}`;
+      window.open(post, '_blank', 'noopener');
+    };
     const top = await fetch(`${API}/games/${GAME}/leaderboard?limit=10`).then((r) => r.json());
     const board = document.getElementById('board');
     board.replaceChildren(...top.map((e) => {
@@ -579,7 +630,8 @@ A game using the HTTP API: a sign-in link, saving a run, and showing the board.
 4. It shows the player's start.ng character, or a profile card if the game has no character.
 5. Guests see the guest look and a way to sign in.
 6. Want a leaderboard? A `startng.json` if you want your own columns, then save runs and read the board through start.ng.
-7. There's a `cover.png` (16:10) next to `index.html`.
-8. The repo is public on GitHub and pushed.
-9. `POST /games/check` passes with no errors (and you've looked at the warnings).
-10. Publish with the API and open the `approve_url` the first time. After that, pushing to the branch is enough.
+7. It meets the game standards: a link back to `https://start.ng`, the start.ng name shown, and a Share-on-X button when a round ends.
+8. There's a `cover.png` (16:10) next to `index.html`.
+9. The repo is public on GitHub and pushed.
+10. `POST /games/check` passes with no errors (and you've looked at the warnings).
+11. Publish with the API and open the `approve_url` the first time. After that, pushing to the branch is enough.

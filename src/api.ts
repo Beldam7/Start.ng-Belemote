@@ -1,4 +1,5 @@
 import type { Character } from "./character";
+import { analytics } from "./analytics";
 
 const API_URL = (import.meta.env.VITE_API_URL ?? "http://localhost:8000").replace(/\/$/, "");
 
@@ -38,12 +39,14 @@ export type BoardStat = { key: string; label: string; order: "highest" | "lowest
 export type PublishedGame = {
   name: string; url: string; repo_url: string; by: string; updated_at: string; cover_url: string | null;
   leaderboard: BoardStat[] | null; // null: this game has no leaderboard
+  description?: string | null; // one line from the game's startng.json, for its page on start.ng
   plays?: number; // opened from start.ng in the last 7 days (the homepage shows the most played)
   update_problem?: UpdateProblem | null;
   // Only for the owner (myGames): how start.ng is keeping the game up to date from its repo.
   checked_at?: string | null; // when the repo was last checked for a push (null: not yet)
   live_commit?: string | null; // the first 7 characters of the commit that's live (null: not known yet)
   updates_paused_until?: string | null; // set while GitHub's limit has paused all checking
+  hidden?: "reported" | "flagged" | "blocked" | null; // only for the owner: hidden from start.ng while admins look at it
 };
 
 export async function listGames(): Promise<PublishedGame[]> {
@@ -214,6 +217,14 @@ export async function listIndieGames(token: string | null, limit = 200, sort: "n
   return res.json();
 }
 
+/** One game by an independent creator (for its page on start.ng). Null when there's no game with that id. */
+export async function getIndieGame(token: string | null, id: number): Promise<IndieGame | null> {
+  const res = await fetch(`${API_URL}/indie/${id}`, token ? { headers: { Authorization: `Bearer ${token}` } } : undefined);
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error("Could not load the game");
+  return res.json();
+}
+
 export async function submitIndieGame(token: string | null, game: IndieGameIn): Promise<IndieGame> {
   const res = await fetch(`${API_URL}/indie`, {
     method: "POST",
@@ -235,6 +246,7 @@ export async function removeIndieGame(token: string | null, id: number): Promise
 
 /** Someone opened a game from start.ng: counted for "most played". Fire and forget, survives leaving the page. */
 export function trackPlay(game: string) {
+  analytics.play(game);
   const url = `${API_URL}/games/${encodeURIComponent(game)}/plays`;
   try {
     if (navigator.sendBeacon?.(url)) return;
@@ -244,6 +256,7 @@ export function trackPlay(game: string) {
 
 /** Someone opened a game by an independent creator: counted for "most clicked". */
 export function trackIndiePlay(id: number) {
+  analytics.playIndie(id);
   const url = `${API_URL}/indie/${id}/plays`;
   try {
     if (navigator.sendBeacon?.(url)) return;
@@ -266,3 +279,156 @@ export const listFavorites = (token: string | null) => favoritesCall(token, "");
 export const syncFavorites = (token: string | null, keys: string[]) => favoritesCall(token, "/sync", { method: "POST", body: JSON.stringify({ keys }) });
 export const addFavorite = (token: string | null, key: string) => favoritesCall(token, `/${encodeURIComponent(key)}`, { method: "PUT" });
 export const removeFavorite = (token: string | null, key: string) => favoritesCall(token, `/${encodeURIComponent(key)}`, { method: "DELETE" });
+
+// ---- Daily tournaments: 5 random games for 24 hours, points by place, one winner a day (startng-be app/tournaments.py)
+export type TournamentRun = { rank: number; player_id: number; name: string; color: string | null; stats: Record<string, number | null>; points: number };
+export type TournamentGame = {
+  name: string;
+  url: string;
+  cover_url: string | null;
+  description: string | null;
+  leaderboard: BoardStat[];
+  players: number;
+  top: TournamentRun[];
+};
+export type Standing = { place: number; player_id: number; name: string; color: string | null; points: number; firsts: number };
+export type Tournament = {
+  id: number;
+  starts_at: string;
+  ends_at: string;
+  finished: boolean;
+  games: TournamentGame[];
+  entrants: number;
+  entered: boolean;
+  standings: Standing[];
+  me: Standing | null;
+  winner: Standing | null;
+  next_starts_at: string | null; // when the next tournament starts (its games stay hidden until then)
+};
+export type TournamentSummary = { id: number; starts_at: string; ends_at: string; games: string[]; winner: Standing | null; podium: Standing[] };
+export type OverallEntry = { rank: number; player_id: number; name: string; color: string | null; points: number; wins: number; firsts: number };
+
+const authHeader = (token: string | null): HeadersInit => (token ? { Authorization: `Bearer ${token}` } : {});
+
+/** Today's tournament (made automatically), or null when there aren't enough games for one. */
+export async function getTournament(token: string | null): Promise<Tournament | null> {
+  const res = await fetch(`${API_URL}/tournaments/current`, { headers: authHeader(token) });
+  if (!res.ok) throw new Error("Could not load today's tournament");
+  return res.json();
+}
+
+/** Enter today's tournament (after sharing it). From then on your runs on its games count. */
+export async function enterTournament(token: string | null): Promise<Tournament> {
+  const res = await fetch(`${API_URL}/tournaments/current/enter`, { method: "POST", headers: authHeader(token) });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Could not enter the tournament");
+  return data;
+}
+
+export async function recentTournaments(limit = 7): Promise<TournamentSummary[]> {
+  const res = await fetch(`${API_URL}/tournaments/recent?limit=${limit}`);
+  if (!res.ok) throw new Error("Could not load past tournaments");
+  return res.json();
+}
+
+/** The overall leaderboard: tournament points, all time or this week. */
+export async function overallLeaderboard(period: "all" | "week", limit = 50): Promise<OverallEntry[]> {
+  const res = await fetch(`${API_URL}/tournaments/leaderboard?period=${period}&limit=${limit}`);
+  if (!res.ok) throw new Error("Could not load the leaderboard");
+  return res.json();
+}
+
+// ---- Reports and the admin page (start.ng/admin). The API checks every permission; the website only hides buttons.
+
+export const REPORT_REASONS = [
+  ["broken", "It's broken or buggy"],
+  ["obscene", "Obscene or sexual content"],
+  ["offensive", "Hateful or offensive"],
+  ["harmful", "Scam, malware or phishing"],
+  ["stolen", "It copies someone else's game"],
+  ["other", "Something else"],
+] as const;
+export type ReportReason = (typeof REPORT_REASONS)[number][0];
+export const reasonLabel = (r: string) => REPORT_REASONS.find(([k]) => k === r)?.[1] ?? r;
+
+export type Report = {
+  id: number; game: string; reason: string; details: string | null; by_admin: boolean;
+  reporter_id: number | null; reporter: string | null; status: "open" | "approved" | "dismissed";
+  created_at: string; closed_at: string | null; closed_by: string | null; note: string | null;
+};
+export type AdminMe = { email: string; is_super: boolean; role: string | null; permissions: string[] };
+export type Permission = { key: string; label: string };
+export type Role = { id: number; name: string; permissions: string[]; admins: number };
+export type AdminAccount = { id: number | null; email: string; is_super: boolean; role_id: number | null; role: string | null; added_by: string | null; created_at: string | null; signed_up: boolean };
+// A game as the admin page shows it (a card with its picture). hidden: why it's hidden from start.ng, or null.
+export type GameCard = { name: string; url: string; cover_url: string | null; by: string; description: string | null; hidden: string | null };
+export type ReviewGame = GameCard & {
+  hidden_at: string | null; developer_id: number; developer: string; developer_contacts: number; open_reports: number; reports: Report[];
+};
+export type Contact = { id: number; issue: string; game_name: string | null; report_id: number | null; admin_email: string; created_at: string };
+export type Developer = { id: number; email: string; name: string | null; blocked_at: string | null; games: string[]; contacts: Contact[]; contacts_needed: number; can_block: boolean };
+export type AdminTournament = { id: number; starts_at: string; ends_at: string; started: boolean; games: GameCard[] };
+export type AdminTournaments = { tournaments: AdminTournament[]; eligible: GameCard[]; min_games: number; max_games: number };
+export type ActivityKind = "player" | "developer" | "admin" | "system";
+export type LogEntry = { id: number; actor: string | null; kind: ActivityKind; action: string; target: string | null; detail: Record<string, unknown> | null; at: string };
+export type Overview = { open_reports: number; games_waiting: number; hidden_games: number; blocked_developers: number; admins: number };
+
+async function call<T>(token: string | null, path: string, init: RequestInit = {}): Promise<T> {
+  const res = await fetch(`${API_URL}${path}`, {
+    ...init,
+    headers: { ...(init.body ? { "Content-Type": "application/json" } : {}), ...authHeader(token), ...(init.headers ?? {}) },
+  });
+  if (res.status === 204) return undefined as T;
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Something went wrong");
+  return data;
+}
+const send = (method: string, body?: unknown): RequestInit => ({ method, body: body === undefined ? undefined : JSON.stringify(body) });
+
+/** Report a game (signed in). It's hidden from start.ng until an admin looks at it. */
+export const reportGame = (token: string | null, game: string, reason: ReportReason, details: string) =>
+  call<Report>(token, `/games/${encodeURIComponent(game)}/report`, send("POST", { reason, details: details || null }));
+
+/** The signed-in admin's access, or null for everyone else. */
+export async function adminMe(token: string | null): Promise<AdminMe | null> {
+  if (!token) return null;
+  const res = await fetch(`${API_URL}/admin/me`, { headers: authHeader(token) });
+  return res.ok ? res.json() : null;
+}
+
+export const admin = {
+  overview: (t: string | null) => call<Overview>(t, "/admin/overview"),
+  permissions: (t: string | null) => call<Permission[]>(t, "/admin/permissions"),
+  review: (t: string | null) => call<ReviewGame[]>(t, "/admin/games/review"),
+  reports: (t: string | null, state = "open") => call<Report[]>(t, `/admin/reports?state=${state}`),
+  flag: (t: string | null, game: string, reason: ReportReason, details: string) =>
+    call<Report>(t, `/admin/games/${encodeURIComponent(game)}/flag`, send("POST", { reason, details: details || null })),
+  closeReport: (t: string | null, id: number, outcome: "approved" | "dismissed", note: string) =>
+    call<Report>(t, `/admin/reports/${id}/close`, send("POST", { outcome, note: note || null })),
+  restore: (t: string | null, game: string, note: string) =>
+    call<void>(t, `/admin/games/${encodeURIComponent(game)}/restore`, send("POST", { note: note || null })),
+  developer: (t: string | null, id: number) => call<Developer>(t, `/admin/developers/${id}`),
+  contact: (t: string | null, id: number, issue: string, game_name: string | null, report_id: number | null) =>
+    call<Developer>(t, `/admin/developers/${id}/contacts`, send("POST", { issue, game_name, report_id })),
+  block: (t: string | null, id: number) => call<Developer>(t, `/admin/developers/${id}/block`, send("POST")),
+  unblock: (t: string | null, id: number) => call<Developer>(t, `/admin/developers/${id}/unblock`, send("POST")),
+  deleteDeveloper: (t: string | null, id: number) => call<void>(t, `/admin/developers/${id}`, send("DELETE")),
+  tournaments: (t: string | null) => call<AdminTournaments>(t, "/admin/tournaments"),
+  setTournamentGames: (t: string | null, id: number, games: string[]) => call<AdminTournaments>(t, `/admin/tournaments/${id}/games`, send("PUT", { games })),
+  reroll: (t: string | null, id: number) => call<AdminTournaments>(t, `/admin/tournaments/${id}/reroll`, send("POST")),
+  roles: (t: string | null) => call<Role[]>(t, "/admin/roles"),
+  createRole: (t: string | null, name: string, permissions: string[]) => call<Role>(t, "/admin/roles", send("POST", { name, permissions })),
+  updateRole: (t: string | null, id: number, name: string, permissions: string[]) => call<Role>(t, `/admin/roles/${id}`, send("PUT", { name, permissions })),
+  deleteRole: (t: string | null, id: number) => call<void>(t, `/admin/roles/${id}`, send("DELETE")),
+  admins: (t: string | null) => call<AdminAccount[]>(t, "/admin/admins"),
+  addAdmin: (t: string | null, email: string, role_id: number | null) => call<AdminAccount>(t, "/admin/admins", send("POST", { email, role_id })),
+  setAdminRole: (t: string | null, id: number, role_id: number | null) => call<AdminAccount>(t, `/admin/admins/${id}`, send("PUT", { role_id })),
+  removeAdmin: (t: string | null, id: number) => call<void>(t, `/admin/admins/${id}`, send("DELETE")),
+  log: (t: string | null, kind: ActivityKind | null, before?: number) => {
+    const q = new URLSearchParams();
+    if (kind) q.set("kind", kind);
+    if (before) q.set("before", String(before));
+    const query = q.toString();
+    return call<LogEntry[]>(t, `/admin/log${query ? `?${query}` : ""}`);
+  },
+};

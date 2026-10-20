@@ -5,8 +5,8 @@ import { styleFor } from "./character";
 
 // The signed-in player's face in the top bar, with their name and the profile and sign-out
 // options. Shared by the homepage and the docs page so the top bar is the same on both.
-export default function AccountMenu({ user, onProfile, onFavorites, onSignOut }: {
-  user: User; onProfile: () => void; onFavorites: () => void; onSignOut: () => void;
+export default function AccountMenu({ user, isAdmin = false, onProfile, onFavorites, onSignOut }: {
+  user: User; isAdmin?: boolean; onProfile: () => void; onFavorites: () => void; onSignOut: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -39,6 +39,7 @@ export default function AccountMenu({ user, onProfile, onFavorites, onSignOut }:
           </div>
           <button role="menuitem" onClick={() => { setOpen(false); onProfile(); }}>View profile</button>
           <button role="menuitem" onClick={() => { setOpen(false); onFavorites(); }}>Favorites</button>
+          {isAdmin && <a role="menuitem" href="/admin">Admin</a>}
           <button role="menuitem" onClick={() => { setOpen(false); onSignOut(); }}>Sign out</button>
         </div>
       )}
