@@ -255,10 +255,35 @@ export async function removeIndieGame(token: string | null, id: number): Promise
 export function trackPlay(game: string) {
   analytics.play(game);
   const url = `${API_URL}/games/${encodeURIComponent(game)}/plays`;
+  // A signed-in player's open is remembered on their account (the progress features), which needs their sign-in on the
+  // request. A beacon can't carry headers, so this is a fetch that survives the page being left. Anyone else still
+  // uses the beacon. A token that has run out is left off. The API counts a token it can't use as a visitor's play.
+  const token = usableToken();
+  if (token) {
+    fetch(url, { method: "POST", keepalive: true, headers: { Authorization: `Bearer ${token}` } })
+      .catch(() => anonymousPlay(url)); // the call itself failed (network, CORS): count it as a visitor's play
+    return;
+  }
+  anonymousPlay(url);
+}
+
+function anonymousPlay(url: string) {
   try {
     if (navigator.sendBeacon?.(url)) return;
   } catch { /* fall back to fetch */ }
   fetch(url, { method: "POST", keepalive: true }).catch(() => {});
+}
+
+/** The saved sign-in, unless it is missing or its expiry has passed (a start.ng token is a JWT with an "exp"). */
+function usableToken(): string | null {
+  const token = localStorage.getItem("token");
+  if (!token) return null;
+  try {
+    const exp = JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/"))).exp;
+    return typeof exp === "number" && exp * 1000 < Date.now() + 30_000 ? null : token;
+  } catch {
+    return token; // not something we can read: let the API decide
+  }
 }
 
 /** Someone opened a game by an independent creator: counted for "most clicked". */
