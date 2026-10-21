@@ -67,6 +67,21 @@ export type ScoreResult = { best: number; improved: boolean; rank: number; stats
 export type LeaderboardEntry = { rank: number; player_id: number; name: string; color: string | null; score: number; stats: Record<string, number | null> };
 
 /** A game's run: a plain score, or its own stats from startng.json ({ stats: { waves: 5, kills: 10 } }). */
+/** Passes on a play-session ping from a game that uses the Kit (start, heartbeat or end). Never throws: a lost
+ *  ping only makes a session look a little shorter. The API answers 404 while the "kit" flag is off. */
+export async function pingSession(token: string | null, game: string, ping: { session_id: string; event: string; kit?: string }): Promise<void> {
+  try {
+    await fetch(`${API_URL}/kit/games/${encodeURIComponent(game)}/sessions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      body: JSON.stringify(ping),
+      keepalive: true, // the "end" ping is sent as the player leaves the game
+    });
+  } catch {
+    // Telemetry must never break a game.
+  }
+}
+
 export async function submitScore(token: string | null, game: string, run: { score?: number; stats?: Record<string, unknown> }): Promise<ScoreResult> {
   const res = await fetch(`${API_URL}/games/${encodeURIComponent(game)}/scores`, {
     method: "POST",
