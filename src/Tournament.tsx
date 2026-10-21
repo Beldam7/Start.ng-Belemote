@@ -5,6 +5,7 @@ import {
   TournamentSummary, User,
 } from "./api";
 import { formatStat, shortName } from "./BoardTable";
+import { useFeature } from "./features/flags";
 import { Game, toCard } from "./games";
 import { PAGES, setSeo, TOURNAMENT_IMAGE } from "./seo";
 
@@ -157,6 +158,7 @@ export function TournamentPage({ user, state, onSignIn, onPlay }: {
   const [enterError, setEnterError] = useState("");
   const left = useTimeLeft(t?.ends_at);
   const playerId = user?.id ?? null;
+  const withFriends = useFeature("private_tournaments"); // tournaments with friends (src/features/private_tournaments)
 
   useEffect(() => setSeo(PAGES.tournament), []);
   // Ready before the click, so sharing the picture still counts as part of the tap (browsers require that).
@@ -314,6 +316,16 @@ export function TournamentPage({ user, state, onSignIn, onPlay }: {
           </div>
         </>
       )}
+
+        {withFriends && (
+          <aside className="friends-card">
+            <div>
+              <h2>Play with your friends</h2>
+              <p>Make your own tournament: pick any games, set how long it runs, and send the link. Only the friends you invite are in it.</p>
+            </div>
+            <a className="btn" href="/friends">Start a tournament</a>
+          </aside>
+        )}
     </section>
   );
 }
