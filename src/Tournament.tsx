@@ -4,7 +4,7 @@ import {
   enterTournament, getTournament, OverallEntry, overallLeaderboard, recentTournaments, Standing, Tournament, TournamentGame,
   TournamentSummary, User,
 } from "./api";
-import { formatStat } from "./BoardTable";
+import { formatStat, shortName } from "./BoardTable";
 import { Game, toCard } from "./games";
 import { PAGES, setSeo, TOURNAMENT_IMAGE } from "./seo";
 
@@ -125,17 +125,17 @@ export function TournamentBanner({ tournament }: { tournament: Tournament | null
 function StandingsTable({ rows, playerId, label }: { rows: Standing[]; playerId: number | null; label: string }) {
   const cols = "36px minmax(0, 1fr) auto auto";
   return (
-    <div className="board-table" role="table" aria-label={label}>
-      <div className="board-row board-head" role="row" style={{ gridTemplateColumns: cols }}>
+    <div className="board-table" role="table" aria-label={label} style={{ gridTemplateColumns: cols }}>
+      <div className="board-row board-head" role="row">
         <span role="columnheader">#</span>
         <span role="columnheader">Player</span>
         <span role="columnheader" className="num">Firsts</span>
         <span role="columnheader" className="num">Points</span>
       </div>
       {rows.map((s) => (
-        <div key={s.player_id} role="row" className={`board-row ${s.player_id === playerId ? "me" : ""}`} style={{ gridTemplateColumns: cols }}>
+        <div key={s.player_id} role="row" className={`board-row ${s.player_id === playerId ? "me" : ""}`}>
           <span className="rk">{s.place}</span>
-          <span className="nm"><Dot color={s.color} />{s.name}{s.player_id === playerId && <em> (you)</em>}</span>
+          <span className="nm" title={s.name}><Dot color={s.color} />{shortName(s.name)}{s.player_id === playerId && <em> (you)</em>}</span>
           <span className="num">{s.firsts}</span>
           <span className="num sc">{s.points}</span>
         </div>
@@ -270,7 +270,7 @@ export function TournamentPage({ user, state, onSignIn, onPlay }: {
                     {g.top.length === 0 && <li className="none">No runs yet. Be the first.</li>}
                     {g.top.map((r) => (
                       <li key={r.player_id} className={r.player_id === playerId ? "me" : ""}>
-                        <span className="nm"><Dot color={r.color} />{r.name}</span>
+                        <span className="nm" title={r.name}><Dot color={r.color} />{shortName(r.name)}</span>
                         <span className="sc">{formatStat(g.leaderboard[0], r.stats[g.leaderboard[0].key])}</span>
                       </li>
                     ))}
@@ -302,7 +302,7 @@ export function TournamentPage({ user, state, onSignIn, onPlay }: {
                     <li key={p.id}>
                       <span className="when">{dayText(p.ends_at)}</span>
                       {p.winner ? (
-                        <span className="nm"><Dot color={p.winner.color} /><b>{p.winner.name}</b> · {p.winner.points} pts</span>
+                        <span className="nm"><Dot color={p.winner.color} /><b title={p.winner.name}>{shortName(p.winner.name)}</b> · {p.winner.points} pts</span>
                       ) : (
                         <span className="nm none">No one played</span>
                       )}
@@ -356,8 +356,8 @@ export function LeaderboardPage({ user }: { user: User | null }) {
         <p className="board-empty">No points {period === "week" ? "this week" : "yet"}. They come from the daily tournament: <a href="/tournament">enter today's</a>.</p>
       )}
       {rows && rows.length > 0 && (
-        <div className="board-table overall-board" role="table" aria-label="Overall leaderboard">
-          <div className="board-row board-head" role="row" style={{ gridTemplateColumns: cols }}>
+        <div className="board-table overall-board" role="table" aria-label="Overall leaderboard" style={{ gridTemplateColumns: cols }}>
+          <div className="board-row board-head" role="row">
             <span role="columnheader">#</span>
             <span role="columnheader">Player</span>
             <span role="columnheader" className="num">Days won</span>
@@ -365,9 +365,9 @@ export function LeaderboardPage({ user }: { user: User | null }) {
             <span role="columnheader" className="num">Points</span>
           </div>
           {rows.map((r) => (
-            <div key={r.player_id} role="row" className={`board-row ${r.player_id === playerId ? "me" : ""}`} style={{ gridTemplateColumns: cols }}>
+            <div key={r.player_id} role="row" className={`board-row ${r.player_id === playerId ? "me" : ""}`}>
               <span className="rk">{r.rank}</span>
-              <span className="nm"><Dot color={r.color} />{r.name}{r.player_id === playerId && <em> (you)</em>}</span>
+              <span className="nm" title={r.name}><Dot color={r.color} />{shortName(r.name)}{r.player_id === playerId && <em> (you)</em>}</span>
               <span className="num">{r.wins}</span>
               <span className="num">{r.firsts}</span>
               <span className="num sc">{r.points}</span>

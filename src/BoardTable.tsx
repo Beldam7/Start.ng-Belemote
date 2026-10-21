@@ -9,6 +9,14 @@ export const formatStat = (stat: BoardStat, v: number | null | undefined) => {
   return v.toLocaleString();
 };
 
+/** A name as boards show it: whole when it fits, else just the first name (or cut with … if that's long too). */
+export const shortName = (name: string, max = 14) => {
+  const n = name.trim();
+  if (n.length <= max) return n;
+  const first = n.split(/\s+/)[0];
+  return first.length > max ? `${first.slice(0, max - 1)}…` : first;
+};
+
 /** A game's shared leaderboard table: the top players' best scores, saved in start.ng's database.
  *  Used in the leaderboard popup and on the game's own page. */
 export default function BoardTable({ game, playerId }: { game: Game; playerId: number | null }) {
@@ -16,11 +24,12 @@ export default function BoardTable({ game, playerId }: { game: Game; playerId: n
   const [error, setError] = useState("");
   // The game's own columns (startng.json); first one ranks, the rest break ties.
   const stats = game.board ?? [{ key: "score", label: "Score", order: "highest" as const, format: "number" as const }];
+  // One set of columns for the whole table (see .board-table), so every number sits under its heading.
   const cols = `28px minmax(0, 1fr) ${stats.map(() => "auto").join(" ")}`;
 
   useEffect(() => {
     getLeaderboard(game.slug, 10)
-      .then(setEntries)
+      .then((rows) => setEntries(rows.slice(0, 10)))
       .catch(() => setError("Couldn't load the leaderboard. Try again in a moment."));
   }, [game.slug]);
 
@@ -30,18 +39,18 @@ export default function BoardTable({ game, playerId }: { game: Game; playerId: n
       {!error && entries === null && <p className="board-sub">Loading…</p>}
       {entries?.length === 0 && <p className="board-empty">No scores yet. Play it and be the first.</p>}
       {entries && entries.length > 0 && (
-        <div className="board-table" role="table" aria-label={`${game.title} leaderboard`}>
-          <div className="board-row board-head" role="row" style={{ gridTemplateColumns: cols }}>
+        <div className="board-table" role="table" aria-label={`${game.title} leaderboard`} style={{ gridTemplateColumns: cols }}>
+          <div className="board-row board-head" role="row">
             <span role="columnheader">#</span>
             <span role="columnheader">Player</span>
             {stats.map((s) => <span key={s.key} role="columnheader" className="num">{s.label}</span>)}
           </div>
           {entries.map((e) => (
-            <div key={e.player_id} role="row" className={`board-row ${e.player_id === playerId ? "me" : ""}`} style={{ gridTemplateColumns: cols }}>
+            <div key={e.player_id} role="row" className={`board-row ${e.player_id === playerId ? "me" : ""}`}>
               <span className="rk">{e.rank}</span>
-              <span className="nm">
+              <span className="nm" title={e.name}>
                 <span className="dot" style={{ background: e.color ?? "var(--line)" }} />
-                {e.name}{e.player_id === playerId && <em> (you)</em>}
+                {shortName(e.name)}{e.player_id === playerId && <em> (you)</em>}
               </span>
               {stats.map((s) => <span key={s.key} className="num sc">{formatStat(s, e.stats?.[s.key] ?? (s.key === "score" ? e.score : null))}</span>)}
             </div>
