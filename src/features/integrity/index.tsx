@@ -5,4 +5,4 @@ import ScoreFlagsTab from "./ScoreFlagsTab";
 
 const FEATURE = "integrity";
 
-registerAdminTab({ feature: FEATURE, key: "score-flags", label: "Score flags", order: 15, permission: "scores.review", Component: ScoreFlagsTab });
+registerAdminTab({ feature: FEATURE, key: "score-flags", label: "Score flags", order: 16, permission: "scores.review", Component: ScoreFlagsTab });
