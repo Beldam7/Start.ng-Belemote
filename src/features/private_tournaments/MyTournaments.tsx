@@ -5,7 +5,7 @@ import { PAGES, setSeo } from "../../seo";
 import { createTournament, myTournaments, Summary } from "./api";
 import { timeLeft } from "./time";
 
-const DURATIONS: [string, number][] = [["1 hour", 1], ["6 hours", 6], ["1 day", 24], ["3 days", 72], ["7 days", 168]];
+const DURATIONS: [string, number][] = [["1 day", 24], ["3 days", 72], ["1 week", 168], ["2 weeks", 336], ["1 month", 720]];
 const MAX_GAMES = 5;
 
 /** start.ng/t: your tournaments with friends, and a form to start one. */
@@ -14,19 +14,21 @@ export default function MyTournaments({ user, onSignIn }: PageProps) {
   const [games, setGames] = useState<PublishedGame[]>([]);
   const [title, setTitle] = useState("");
   const [picked, setPicked] = useState<string[]>([]);
-  const [hours, setHours] = useState(24);
+  const [hours, setHours] = useState(168);
+  const [query, setQuery] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => setSeo(PAGES.privateTournament), []);
   useEffect(() => {
-    listGames().then((all) => setGames(all.filter((g) => g.leaderboard && g.name !== "hangout"))).catch(() => setGames([]));
+    listGames().then((all) => setGames(all.filter((g) => g.name !== "hangout"))).catch(() => setGames([]));
   }, []);
   useEffect(() => {
     if (!user) { setMine([]); return; }
     myTournaments().then(setMine).catch(() => setMine([]));
   }, [user?.id]);
 
+  const shown = games.filter((g) => g.name.replace(/-/g, " ").includes(query.trim().toLowerCase()));
   const toggle = (name: string) =>
     setPicked((p) => (p.includes(name) ? p.filter((n) => n !== name) : p.length < MAX_GAMES ? [...p, name] : p));
 
@@ -59,13 +61,16 @@ export default function MyTournaments({ user, onSignIn }: PageProps) {
           <input value={title} onChange={(e) => setTitle(e.target.value)} minLength={3} maxLength={60} required placeholder="e.g. Family Cup" />
         </label>
         <fieldset className="field private-games">
-          <span>Games ({picked.length}/{MAX_GAMES})</span>
+          <span>Games ({picked.length}/{MAX_GAMES} picked)</span>
+          <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={`Search ${games.length} games`} aria-label="Search games" />
           {games.length === 0 && <p className="board-sub">Loading games…</p>}
+          {games.length > 0 && shown.length === 0 && <p className="board-sub">No game matches “{query}”.</p>}
           <div className="private-game-list">
-            {games.map((g) => (
+            {shown.map((g) => (
               <label key={g.name} className={picked.includes(g.name) ? "on" : ""}>
                 <input type="checkbox" checked={picked.includes(g.name)} disabled={!picked.includes(g.name) && picked.length >= MAX_GAMES} onChange={() => toggle(g.name)} />
-                {g.name.replace(/-/g, " ")}
+                <span className="thumb">{g.cover_url ? <img src={g.cover_url} alt="" loading="lazy" decoding="async" /> : g.name.charAt(0).toUpperCase()}</span>
+                <span className="gname">{g.name.replace(/-/g, " ")}</span>
               </label>
             ))}
           </div>
@@ -79,9 +84,9 @@ export default function MyTournaments({ user, onSignIn }: PageProps) {
           </div>
         </div>
         {error && <p className="error">{error}</p>}
-        <div>
+        <div className="private-submit">
           <button type="submit" disabled={busy || (!!user && picked.length === 0)}>{!user ? "Sign in to start" : busy ? "Starting…" : "Start tournament"}</button>
-          <p className="note">It starts now. Only runs played after you join count.</p>
+          <p className="note">It starts as soon as you tap the button. Only runs played after a player joins count.</p>
         </div>
       </form>
 

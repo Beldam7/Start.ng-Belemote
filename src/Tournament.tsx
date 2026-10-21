@@ -215,7 +215,6 @@ export function TournamentPage({ user, state, onSignIn, onPlay }: {
           <h1>Today's tournament</h1>
           <p className="tournament-sub">
             A few games, 24 hours, one winner. <a href="/leaderboard">Overall leaderboard →</a>
-            {withFriends && <> · <a href="/t">Start one with friends →</a></>}
           </p>
         </div>
       </div>
@@ -317,6 +316,16 @@ export function TournamentPage({ user, state, onSignIn, onPlay }: {
           </div>
         </>
       )}
+
+        {withFriends && (
+          <aside className="friends-card">
+            <div>
+              <h2>Race your friends</h2>
+              <p>Make your own tournament: pick any games, set how long it runs, and send the link. Only your friends are on the table.</p>
+            </div>
+            <a className="btn" href="/t">Start a tournament</a>
+          </aside>
+        )}
     </section>
   );
 }
