@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useFeature } from "../flags";
-import { follow, followState, signedIn, unfollow, type FollowState } from "./api";
+import { follow, followState, FollowsError, signedIn, unfollow, type FollowState } from "./api";
 import "./follows.css";
 
 /** The Follow button (PRD S2, for profiles and creator pages): Follow, Following, or Friends when it's mutual.
@@ -20,15 +20,22 @@ export default function FollowButton({ userId, name, onSignIn, showCount = false
   const [state, setState] = useState<FollowState | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [loadFailed, setLoadFailed] = useState(false);
 
   useEffect(() => {
     if (!on) return;
     let live = true;
-    followState(userId).then((s) => live && setState(s)).catch(() => live && setState(null));
+    setState(null);
+    setLoadFailed(false);
+    followState(userId)
+      .then((s) => live && setState(s))
+      .catch((e) => { if (live && !(e instanceof FollowsError && e.status === 404)) setLoadFailed(true); }); // no such player: no button
     return () => { live = false; };
   }, [on, userId]);
 
-  if (!on || !state) return null;
+  if (!on) return null;
+  if (loadFailed) return <span className="error">Couldn't load the Follow button. Try again later.</span>;
+  if (!state) return null;
 
   async function toggle() {
     if (!state) return;

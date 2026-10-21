@@ -26,12 +26,14 @@ const headers = (): HeadersInit => (token() ? { Authorization: `Bearer ${token()
 async function call<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${API_URL}${path}`, { ...init, headers: headers() });
   if (res.status === 204) return undefined as T;
-  const data = await res.json().catch(() => ({}));
+  const data: unknown = await res.json().catch(() => ({}));
   if (!res.ok) {
-    const message = typeof data.detail === "string" ? data.detail : "Something went wrong. Try again.";
-    throw new FollowsError(message, res.status, data.errors?.[0]?.code ?? null);
+    const body = (data ?? {}) as { detail?: unknown; errors?: { code?: unknown }[] };
+    const message = typeof body.detail === "string" ? body.detail : "Something went wrong. Try again.";
+    const code = body.errors?.[0]?.code;
+    throw new FollowsError(message, res.status, typeof code === "string" ? code : null);
   }
-  return data;
+  return data as T;
 }
 
 export const followState = (userId: number) => call<FollowState>(`/follows/${userId}`);

@@ -6,7 +6,12 @@ import { followState, type FollowState } from "./api";
 /** The friends section on a player's profile (the profile page, S1, shows it): counts, and Follow or your own lists. */
 export default function ProfileFriends({ userId, isMe }: ProfileSectionProps) {
   const [state, setState] = useState<FollowState | null>(null);
-  useEffect(() => { followState(userId).then(setState).catch(() => setState(null)); }, [userId]);
+  useEffect(() => {
+    let live = true;
+    setState(null);
+    followState(userId).then((s) => live && setState(s)).catch(() => live && setState(null));
+    return () => { live = false; };
+  }, [userId]);
   if (!state) return null;
   return (
     <div className="follows-profile">

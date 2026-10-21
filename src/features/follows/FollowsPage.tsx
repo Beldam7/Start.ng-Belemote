@@ -95,9 +95,9 @@ export default function FollowsPage({ user, onSignIn }: PageProps) {
         )}
       </div>
 
-      <div className="follows-tabs" role="tablist" aria-label="Your lists">
+      <div className="follows-tabs" role="group" aria-label="Your lists">
         {TABS.map((t) => (
-          <button key={t.kind} type="button" role="tab" aria-selected={tab === t.kind} className={tab === t.kind ? "on" : ""} onClick={() => setTab(t.kind)}>
+          <button key={t.kind} type="button" aria-pressed={tab === t.kind} className={tab === t.kind ? "on" : ""} onClick={() => setTab(t.kind)}>
             {t.label}{lists[t.kind] ? ` (${lists[t.kind]!.count})` : ""}
           </button>
         ))}
