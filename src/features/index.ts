@@ -3,4 +3,5 @@
 // import "./wardrobe";
 import "./private_tournaments";
 import "./moderation"; // H2 name filter (Hamzat)
+import "./integrity/owner"; // score integrity: held scores in Your games (Dean)
 export {};

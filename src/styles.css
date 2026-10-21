@@ -329,6 +329,9 @@ input:focus { outline: 2px solid var(--ink); outline-offset: -1px; }
 .update-problem { grid-column: 1 / -1; display: grid; gap: 4px; padding: 10px 12px; border-radius: 12px; background: var(--bad-bg); border: 1px solid var(--bad-line); font-size: .84rem; line-height: 1.45; }
 .update-problem b { color: var(--danger); }
 .update-problem code { font-size: .8rem; }
+.score-notice { grid-column: 1 / -1; display: grid; gap: 4px; padding: 10px 12px; border-radius: 12px; background: var(--warn-bg); border: 1px solid var(--warn-line); font-size: .84rem; line-height: 1.45; }
+.score-notice b { color: var(--warn-ink); }
+.score-notice ul { margin: 2px 0 0; padding-left: 18px; display: grid; gap: 2px; }
 
 /* /games: every game, a page at a time (Pagination.tsx) */
 .all-games { padding-top: 24px; padding-bottom: 72px; min-height: 60vh; }
