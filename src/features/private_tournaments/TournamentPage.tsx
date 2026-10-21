@@ -19,7 +19,11 @@ export default function TournamentPage({ user, onSignIn, params }: PageProps) {
   const playerId = user?.id ?? null;
   const link = `${location.origin}/t/${code}`;
 
-  useEffect(() => setSeo(PAGES.privateTournament), []);
+  // The invite page is private (noindex), but its title names the tournament, so a link pasted in a chat says what it is.
+  useEffect(() => {
+    const base = PAGES.privateTournament;
+    setSeo(t ? { ...base, title: `${t.title} · tournament with friends · start.ng`, description: `Join "${t.title}" on start.ng: ${t.games.length} ${t.games.length === 1 ? "game" : "games"}, ${t.members} ${t.members === 1 ? "player" : "players"}.` } : base);
+  }, [t]);
   useEffect(() => {
     const load = () => getTournament(code).then(setT).catch((e) => (/no tournament/i.test(String(e?.message)) ? setT(null) : setError("Couldn't load this tournament. Try again in a moment.")));
     load();
@@ -84,7 +88,7 @@ export default function TournamentPage({ user, onSignIn, params }: PageProps) {
               <button type="button" disabled={busy} onClick={() => (user ? act(() => joinTournament(code)) : onSignIn())}>
                 {user ? (busy ? "Joining…" : "Join this tournament") : "Sign in to join"}
               </button>
-              <p className="note">Only runs you play after joining count.</p>
+              <p className="note">Scores count from the moment you join.</p>
             </>
           )}
           {!t.joined && t.finished && <p className="note">This tournament has ended.</p>}
@@ -118,7 +122,7 @@ export default function TournamentPage({ user, onSignIn, params }: PageProps) {
                     </div>
                   </a>
                   <ol className="tournament-top">
-                    {g.top.length === 0 && <li className="none">No runs yet. Be the first.</li>}
+                    {g.top.length === 0 && <li className="none">No scores yet. Be the first.</li>}
                     {g.top.slice(0, 3).map((r) => (
                       <li key={r.player_id} className={r.player_id === playerId ? "me" : ""}>
                         <span className="nm" title={r.name}><Dot color={r.color} />{shortName(r.name)}</span>
@@ -160,7 +164,7 @@ export default function TournamentPage({ user, onSignIn, params }: PageProps) {
             {t.mine ? (
               <button type="button" className="link flag" disabled={busy} onClick={() => { if (confirm("Delete this tournament for everyone?")) act(() => deleteTournament(code), () => location.assign("/t")); }}>Delete tournament</button>
             ) : (
-              <button type="button" className="link" disabled={busy} onClick={() => { if (confirm("Leave this tournament? Your runs in it are removed.")) act(() => leaveTournament(code), () => location.assign("/t")); }}>Leave tournament</button>
+              <button type="button" className="link" disabled={busy} onClick={() => { if (confirm("Leave this tournament? Your scores in it are removed.")) act(() => leaveTournament(code), () => location.assign("/t")); }}>Leave tournament</button>
             )}
           </div>
         </>

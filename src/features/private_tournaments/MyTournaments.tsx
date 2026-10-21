@@ -19,7 +19,7 @@ export default function MyTournaments({ user, onSignIn }: PageProps) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
-  useEffect(() => setSeo(PAGES.privateTournament), []);
+  useEffect(() => setSeo(PAGES.friendsTournaments), []);
   useEffect(() => {
     listGames().then((all) => setGames(all.filter((g) => g.name !== "hangout"))).catch(() => setGames([]));
   }, []);
@@ -61,8 +61,8 @@ export default function MyTournaments({ user, onSignIn }: PageProps) {
           <input value={title} onChange={(e) => setTitle(e.target.value)} minLength={3} maxLength={60} required placeholder="e.g. Family Cup" />
         </label>
         <fieldset className="field private-games">
-          <span>Games ({picked.length}/{MAX_GAMES} picked)</span>
-          <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={`Search ${games.length} games`} aria-label="Search games" />
+          <span>Pick up to {MAX_GAMES} games ({picked.length} picked, {games.length} to choose from)</span>
+          <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search games" aria-label="Search games" />
           {games.length === 0 && <p className="board-sub">Loading games…</p>}
           {games.length > 0 && shown.length === 0 && <p className="board-sub">No game matches “{query}”.</p>}
           <div className="private-game-list">
@@ -86,7 +86,7 @@ export default function MyTournaments({ user, onSignIn }: PageProps) {
         {error && <p className="error">{error}</p>}
         <div className="private-submit">
           <button type="submit" disabled={busy || (!!user && picked.length === 0)}>{!user ? "Sign in to start" : busy ? "Starting…" : "Start tournament"}</button>
-          <p className="note">It starts as soon as you tap the button. Only runs played after a player joins count.</p>
+          <p className="note">It starts as soon as you tap the button. Scores count from the moment each player joins.</p>
         </div>
       </form>
 

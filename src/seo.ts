@@ -79,11 +79,17 @@ export const PAGES: Record<string, Seo> = {
     path: "/",
     noindex: true,
   },
-  privateTournament: {
-    title: "Tournament with friends · start.ng",
-    description: "Pick games, set a time and see who comes out on top among your friends.",
+  // Tournaments with friends (src/features/private_tournaments): the page that starts one, and an invite link's page.
+  friendsTournaments: {
+    title: "Start a tournament with your friends · start.ng",
+    description: "Pick any games on start.ng, set how long it runs, and share a link. Your friends join and you all follow one table of scores.",
     path: "/t",
-    noindex: true,
+  },
+  privateTournament: {
+    title: "Join a tournament with friends · start.ng",
+    description: "You've been invited to a tournament on start.ng. Join it, play its games and see where you stand.",
+    path: "/t",
+    noindex: true, // an invite link is private; the page sets its own title once it knows the tournament
   },
   notFound: {
     title: "Page not found · start.ng",
@@ -103,6 +109,7 @@ export const STATIC_PAGES: [string, Seo][] = [
   ["leaderboard.html", PAGES.leaderboard],
   ["game.html", PAGES.game],
   ["approve.html", PAGES.approve],
+  ["friends-tournaments.html", PAGES.friendsTournaments],
   ["private-tournament.html", PAGES.privateTournament],
   ["404.html", PAGES.notFound],
 ];
