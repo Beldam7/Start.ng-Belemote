@@ -53,6 +53,12 @@ on the API; when it refuses a name, the form shows the API's message.
 - Admin tab **Email** (permission `email.view`): subscribers by topic, the outbox by status, and "Send me a test email".
 - An **Emails** section on your own profile, shown once the profile page shows sections.
 
+## Game health (PRD H2)
+`src/features/game_health`; flag `game_health`.
+- Admin tab **Game health** (permission `games.health`): counts by status, failing and unhealthy games with what's
+  wrong, "Check now" and "Check all again".
+- Your games: a **Not loading** notice on an unhealthy game, with "check again".
+
 ## Deploy (Coolify)
 Dockerfile build pack (nginx, port 80). VITE_API_URL and VITE_GOOGLE_CLIENT_ID are build-time, so mark them as
 Build Variables in Coolify. GitHub secrets: COOLIFY_WEBHOOK_URL (optional COOLIFY_TOKEN); the
