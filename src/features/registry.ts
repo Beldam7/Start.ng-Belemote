@@ -111,3 +111,20 @@ export function registerYourGamePart(p: Omit<YourGamePart, "order"> & { order?: 
   yourGameParts.sort((a, b) => a.order - b.order);
 }
 export const allYourGameParts = () => yourGameParts;
+
+// ---- parts of start.ng's own pages
+
+/** A start.ng page with a place for features to add a box (the tournament page: an email sign-up, crew invites). */
+export type PageSlot = "tournament";
+export type PagePartProps = { user: User | null; onSignIn: () => void };
+type PagePart = { feature: string; key: string; page: PageSlot; order: number; Component: ComponentType<PagePartProps> };
+const pageParts: PagePart[] = [];
+
+/** A box a feature adds to one of start.ng's pages, in order. Render nothing when it doesn't apply. */
+export function registerPagePart(p: Omit<PagePart, "order"> & { order?: number }) {
+  const i = pageParts.findIndex((x) => x.key === p.key && x.page === p.page);
+  if (i >= 0) pageParts.splice(i, 1);
+  pageParts.push({ order: 100, ...p });
+  pageParts.sort((a, b) => a.order - b.order);
+}
+export const pagePartsFor = (page: PageSlot) => pageParts.filter((p) => p.page === page);

@@ -799,3 +799,6 @@ button.small { padding: 7px 12px; font-size: .85rem; border-radius: 8px; }
 
 /* H2 game health: problems listed under a game */
 .health-problems { margin: 6px 0 0; padding-left: 18px; font-size: .86rem; line-height: 1.5; }
+.tournament-email { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; justify-content: space-between; margin: 18px 0; padding: 16px 18px; border-radius: 16px; background: var(--card); border: 1px solid var(--line); }
+.tournament-email p { margin: 2px 0 0; }
+.tournament-email .email-signup-row { flex: 1 1 280px; max-width: 420px; }
