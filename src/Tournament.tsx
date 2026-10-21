@@ -320,8 +320,8 @@ export function TournamentPage({ user, state, onSignIn, onPlay }: {
         {withFriends && (
           <aside className="friends-card">
             <div>
-              <h2>Race your friends</h2>
-              <p>Make your own tournament: pick any games, set how long it runs, and send the link. Only your friends are on the table.</p>
+              <h2>Play with your friends</h2>
+              <p>Make your own tournament: pick any games, set how long it runs, and send the link. Only the friends you invite are in it.</p>
             </div>
             <a className="btn" href="/t">Start a tournament</a>
           </aside>

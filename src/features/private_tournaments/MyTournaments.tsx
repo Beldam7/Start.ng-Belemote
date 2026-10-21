@@ -51,7 +51,7 @@ export default function MyTournaments({ user, onSignIn }: PageProps) {
       <div className="section-head">
         <div>
           <h1>Tournament with friends</h1>
-          <p className="tournament-sub">Pick up to {MAX_GAMES} games and how long it runs, send the link, and see who tops the table. <a href="/tournament">Today's tournament →</a></p>
+          <p className="tournament-sub">Pick up to {MAX_GAMES} games and how long it runs, send the link, and see how everyone scores. <a href="/tournament">Today's tournament →</a></p>
         </div>
       </div>
 

@@ -81,7 +81,7 @@ export const PAGES: Record<string, Seo> = {
   },
   privateTournament: {
     title: "Tournament with friends · start.ng",
-    description: "Pick games, set a time and race your friends on a table of your own.",
+    description: "Pick games, set a time and see who comes out on top among your friends.",
     path: "/t",
     noindex: true,
   },
