@@ -6,4 +6,5 @@ import "./moderation"; // H2 name filter (Hamzat)
 import "./needs_fixing"; // H2 "needs fixing" label (Hamzat)
 import "./duplicates"; // H2 duplicate finder (Hamzat)
 import "./email"; // H1 email and notifications (Hamzat)
+import "./game_health"; // H2 game health checks (Hamzat)
 export {};
