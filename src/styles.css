@@ -713,3 +713,20 @@ button.small { padding: 7px 12px; font-size: .85rem; border-radius: 8px; }
 .card-badges { position: absolute; top: 8px; left: 8px; right: 8px; display: flex; gap: 6px; flex-wrap: wrap; pointer-events: none; }
 .card-stats { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 6px; font-size: .8rem; color: var(--muted); }
 .card-actions { display: flex; gap: 10px; align-items: center; }
+
+/* tournaments with friends (src/features/private_tournaments) */
+.private-form { display: grid; gap: 18px; padding: 22px; border: 1px solid var(--line); border-radius: 18px; background: var(--card); max-width: 760px; }
+.private-form fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+.private-game-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.private-game-list label { display: inline-flex; gap: 8px; align-items: center; padding: 8px 14px; border: 1px solid var(--line); border-radius: 999px; background: var(--bg); cursor: pointer; font-weight: 600; font-size: .92rem; text-transform: capitalize; }
+.private-game-list label.on { background: var(--lime); border-color: var(--lime); color: var(--on-lime); }
+.private-game-list input { width: auto; padding: 0; }
+.private-form .segmented { flex-wrap: wrap; border-radius: 18px; }
+.private-heading { font-size: 1.5rem; letter-spacing: -.03em; margin: 0 0 12px; }
+.private-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; max-width: 760px; }
+.private-list li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); }
+.private-list a { display: grid; gap: 2px; min-width: 0; }
+.private-list a span { color: var(--muted); font-size: .88rem; }
+.tag.done { background: var(--line); color: var(--muted); }
+.private-share { display: flex; flex-wrap: wrap; gap: 8px; }
+.private-manage { padding-top: 8px; }

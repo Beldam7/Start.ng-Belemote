@@ -79,6 +79,12 @@ export const PAGES: Record<string, Seo> = {
     path: "/",
     noindex: true,
   },
+  privateTournament: {
+    title: "Tournament with friends · start.ng",
+    description: "Pick games, set a time and race your friends on a table of your own.",
+    path: "/t",
+    noindex: true,
+  },
   notFound: {
     title: "Page not found · start.ng",
     description: "There's nothing at this address. Browse the games on start.ng instead.",
@@ -97,6 +103,7 @@ export const STATIC_PAGES: [string, Seo][] = [
   ["leaderboard.html", PAGES.leaderboard],
   ["game.html", PAGES.game],
   ["approve.html", PAGES.approve],
+  ["private-tournament.html", PAGES.privateTournament],
   ["404.html", PAGES.notFound],
 ];
 
