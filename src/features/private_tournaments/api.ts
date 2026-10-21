@@ -33,3 +33,4 @@ export const getTournament = (code: string) => call<Summary | Detail>(`/${encode
 export const joinTournament = (code: string) => call<Summary>(`/${encodeURIComponent(code)}/join`, { method: "POST", headers: headers() });
 export const leaveTournament = (code: string) => call<void>(`/${encodeURIComponent(code)}/members/me`, { method: "DELETE", headers: headers() });
 export const deleteTournament = (code: string) => call<void>(`/${encodeURIComponent(code)}`, { method: "DELETE", headers: headers() });
+export const newInviteLink = (code: string) => call<Summary>(`/${encodeURIComponent(code)}/new-link`, { method: "POST", headers: headers() });

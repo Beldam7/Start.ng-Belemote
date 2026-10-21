@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { PageProps } from "../registry";
 import { formatStat, shortName } from "../../BoardTable";
 import { PAGES, setSeo } from "../../seo";
-import { deleteTournament, Detail, getTournament, isDetail, joinTournament, leaveTournament, Summary } from "./api";
+import { deleteTournament, Detail, getTournament, isDetail, joinTournament, leaveTournament, newInviteLink, Summary } from "./api";
 import { endsText, timeLeft } from "./time";
 
 function Dot({ color }: { color: string | null }) {
@@ -18,6 +18,7 @@ export default function TournamentPage({ user, onSignIn, params }: PageProps) {
   const [copied, setCopied] = useState(false);
   const playerId = user?.id ?? null;
   const link = `${location.origin}/friends/${code}`;
+  const canShare = typeof navigator.share === "function" && matchMedia("(pointer: coarse)").matches; // phones and tablets
 
   // The invite page is private (noindex), but its title names the tournament, so a link pasted in a chat says what it is.
   useEffect(() => {
@@ -50,6 +51,27 @@ export default function TournamentPage({ user, onSignIn, params }: PageProps) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch { /* the address bar has the link */ }
+  }
+
+  async function swapLink() {
+    if (!confirm("Make a new invite link? The old link stops working. Everyone who has joined stays in.")) return;
+    setBusy(true);
+    setError("");
+    try {
+      location.assign(`/friends/${(await newInviteLink(code)).code}`);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Something went wrong");
+      setBusy(false);
+    }
+  }
+
+  async function share() {
+    // Phones and tablets: the share menu (WhatsApp, Telegram, SMS...). Elsewhere there is no menu, so copy the link.
+    try {
+      await navigator.share({ title: t?.title, text: `Join my start.ng tournament${t ? ` "${t.title}"` : ""}!`, url: link });
+    } catch (e) {
+      if ((e as Error)?.name !== "AbortError") copy();
+    }
   }
 
   if (t === undefined && !error) return <section className="container tournament-page"><p className="board-sub">Loading…</p></section>;
@@ -97,7 +119,8 @@ export default function TournamentPage({ user, onSignIn, params }: PageProps) {
               <p className="ok">You're in.{detail?.me ? ` You're #${detail.me.place} with ${detail.me.points} ${detail.me.points === 1 ? "point" : "points"}.` : " Play a game below to get on the table."}</p>
               {!t.finished && (
                 <div className="private-share">
-                  <a className="btn" href={whatsapp} target="_blank" rel="noreferrer">Invite on WhatsApp</a>
+                  {canShare && <button type="button" onClick={share}>Share the link</button>}
+                  <a className={canShare ? "btn ghost" : "btn"} href={whatsapp} target="_blank" rel="noreferrer">Invite on WhatsApp</a>
                   <button type="button" className="ghost" onClick={copy}>{copied ? "Link copied" : "Copy link"}</button>
                 </div>
               )}
@@ -161,6 +184,9 @@ export default function TournamentPage({ user, onSignIn, params }: PageProps) {
           </section>
 
           <div className="private-manage">
+            {t.mine && !t.finished && (
+              <button type="button" className="link" disabled={busy} onClick={swapLink}>New invite link</button>
+            )}
             {t.mine ? (
               <button type="button" className="link flag" disabled={busy} onClick={() => { if (confirm("Delete this tournament for everyone?")) act(() => deleteTournament(code), () => location.assign("/friends")); }}>Delete tournament</button>
             ) : (
