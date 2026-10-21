@@ -262,7 +262,7 @@ export function trackPlay(game: string) {
   if (token) {
     fetch(url, { method: "POST", keepalive: true, headers: { Authorization: `Bearer ${token}` } })
       .then((res) => { if (res.status === 401) anonymousPlay(url); }) // refused anyway: count it as a visitor's play
-      .catch(() => {});
+      .catch(() => anonymousPlay(url)); // the call itself failed (network, CORS): count it as a visitor's play
     return;
   }
   anonymousPlay(url);
