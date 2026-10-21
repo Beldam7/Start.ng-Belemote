@@ -24,6 +24,10 @@
 
   // ---------- Talking to start.ng (same protocol as the manual helper) ----------
 
+  // Random ids from the browser's secure generator (not Math.random).
+  const randomId = () => (crypto.randomUUID ? crypto.randomUUID()
+    : Array.from(crypto.getRandomValues(new Uint32Array(4)), (n) => n.toString(36)).join(''));
+
   let frame;
   function connectFrame() {
     frame ??= new Promise((resolve, reject) => {
@@ -47,7 +51,7 @@
       return null;
     }
     return new Promise((resolve) => {
-      const requestId = Math.random().toString(36).slice(2);
+      const requestId = randomId();
       const done = (reply) => {
         clearTimeout(timer);
         removeEventListener('message', onMessage);
@@ -120,7 +124,7 @@
   // start, a heartbeat every 30 s while the tab is visible, and end. The connect
   // page ignores these until game_sessions exists on the server.
 
-  const sessionId = Math.random().toString(36).slice(2);
+  const sessionId = randomId();
   let beat;
   function startBeats() {
     clearInterval(beat);
