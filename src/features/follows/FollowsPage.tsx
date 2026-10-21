@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { PageProps } from "../registry";
 import { PAGES, setSeo } from "../../seo";
 import FollowButton from "./FollowButton";
@@ -20,16 +20,27 @@ export default function FollowsPage({ user, onSignIn }: PageProps) {
   const [invite, setInvite] = useState<Invite | null>(null);
   const [copied, setCopied] = useState(false);
   const [busy, setBusy] = useState(false);
+  const reloadGeneration = useRef(0); // only the newest reload may update the page
 
   useEffect(() => setSeo(PAGES.follows), []);
 
   function reload() {
+    const generation = ++reloadGeneration.current;
     setError("");
     Promise.all(TABS.map((t) => myPeople(t.kind)))
-      .then(([friends, following, followers]) => setLists({ friends, following, followers }))
-      .catch(() => setError("Couldn't load your lists. Try again in a moment."));
+      .then(([friends, following, followers]) => {
+        if (generation === reloadGeneration.current) setLists({ friends, following, followers });
+      })
+      .catch(() => {
+        if (generation === reloadGeneration.current) setError("Couldn't load your lists. Try again in a moment.");
+      });
   }
-  useEffect(() => { if (user) reload(); }, [user?.id]);
+  // A different account must never see the last account's private lists, even for a moment.
+  useEffect(() => {
+    reloadGeneration.current++;
+    setLists({});
+    if (user) reload();
+  }, [user?.id]);
 
   if (!user) {
     return (
