@@ -46,6 +46,13 @@ on the API; when it refuses a name, the form shows the API's message.
   (type DELETE to confirm), keep both; scan all games; put hidden copies back.
 - Your games: "Hidden: looks like a copy", naming the original. Hidden games show a **Hidden** tag instead of Live.
 
+## Email (PRD H1)
+`src/features/email`; flag `email`.
+- **start.ng/emails**: signed-in players switch topics on and off; visitors sign up and confirm by link. The confirm
+  and unsubscribe links in emails land here (`?confirm=`, `?unsubscribe=&topic=`).
+- Admin tab **Email** (permission `email.view`): subscribers by topic, the outbox by status, and "Send me a test email".
+- An **Emails** section on your own profile, shown once the profile page shows sections.
+
 ## Deploy (Coolify)
 Dockerfile build pack (nginx, port 80). VITE_API_URL and VITE_GOOGLE_CLIENT_ID are build-time, so mark them as
 Build Variables in Coolify. GitHub secrets: COOLIFY_WEBHOOK_URL (optional COOLIFY_TOKEN); the

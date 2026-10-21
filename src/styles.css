@@ -780,3 +780,19 @@ button.small { padding: 7px 12px; font-size: .85rem; border-radius: 8px; }
 .dup-side h3 a { color: inherit; }
 .dup-side .note { margin: 0; }
 .dup-side .row-actions { grid-column: 1 / -1; }
+
+/* H1 email: start.ng/emails and the admin Email tab */
+.emails-page { display: grid; gap: 18px; max-width: 720px; }
+.emails-result { padding: 14px 16px; border-radius: 14px; background: var(--card); border: 1px solid var(--line); }
+.emails-result p { margin: 0; }
+.email-prefs, .email-signup { display: grid; gap: 12px; }
+.email-topics { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.email-topics label { display: flex; gap: 12px; align-items: center; padding: 12px 14px; border-radius: 12px; background: var(--card); border: 1px solid var(--line); cursor: pointer; }
+.email-topics input { width: 18px; height: 18px; accent-color: var(--ink); flex: none; }
+.email-signup-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.email-signup-row input { flex: 1 1 220px; min-width: 0; }
+.email-stats { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 16px; }
+.email-stats div { display: grid; padding: 10px 14px; border-radius: 12px; background: var(--card); border: 1px solid var(--line); min-width: 96px; }
+.email-stats b { font-size: 1.3rem; }
+.email-stats span { font-size: .78rem; color: var(--muted); text-transform: capitalize; }
+.email-row h3 { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
