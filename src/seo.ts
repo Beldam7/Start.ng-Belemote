@@ -91,6 +91,19 @@ export const PAGES: Record<string, Seo> = {
     path: "/friends",
     noindex: true, // an invite link is private; the page sets its own title once it knows the tournament
   },
+  // Friends & follows (src/features/follows): your lists and an invite link's page. Both private.
+  follows: {
+    title: "Your friends · start.ng",
+    description: "Your friends on start.ng, who you follow and who follows you, and a link to invite new friends.",
+    path: "/follows",
+    noindex: true,
+  },
+  friendInvite: {
+    title: "You're invited to be friends · start.ng",
+    description: "Someone wants to be friends with you on start.ng. Accept and you'll follow each other.",
+    path: "/follows",
+    noindex: true, // an invite link is private
+  },
   notFound: {
     title: "Page not found · start.ng",
     description: "There's nothing at this address. Browse the games on start.ng instead.",
@@ -111,6 +124,8 @@ export const STATIC_PAGES: [string, Seo][] = [
   ["approve.html", PAGES.approve],
   ["friends-tournaments.html", PAGES.friendsTournaments],
   ["private-tournament.html", PAGES.privateTournament],
+  ["follows.html", PAGES.follows],
+  ["friend-invite.html", PAGES.friendInvite],
   ["404.html", PAGES.notFound],
 ];
 

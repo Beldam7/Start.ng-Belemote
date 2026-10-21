@@ -1,0 +1,14 @@
+// Friends & follows (PRD S2, owner: Seyi): follow players, friends when it's mutual, invite links.
+// The flag is "follows" (the same as NAME in startng-be app/features/follows).
+// Other features show the Follow button with: import FollowButton from "../follows/FollowButton";
+import { registerPage, registerProfileSection } from "../registry";
+import ProfileFriends from "./ProfileFriends";
+
+const FEATURE = "follows";
+
+// Your friends, following and followers, and your invite link.
+registerPage({ feature: FEATURE, path: "/follows", shell: "app", load: () => import("./FollowsPage") });
+// An invite link: start.ng/f/<code>.
+registerPage({ feature: FEATURE, path: /^\/f\/(?<code>[\w-]{8,16})\/?$/, shell: "app", load: () => import("./InvitePage") });
+// Follower counts and the Follow button on a player's profile (shown by the profile page, S1).
+registerProfileSection({ feature: FEATURE, key: "follows", title: "Friends", Component: ProfileFriends });
