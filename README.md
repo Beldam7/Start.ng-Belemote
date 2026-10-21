@@ -22,9 +22,17 @@ Every new feature lives in `src/features/<feature>/` with one owner (the PRD, se
      Return `null` to leave a card alone. Cards are `src/GameCard.tsx`; don't edit it for a feature.
    - **Admin tabs:** `registerAdminTab({ feature, key, label, permission, Component })`. You get `access`, `can`,
      `go` and the shared confirm dialog `ask`. Register the permission on the API side (`PERMISSIONS`).
+   - **Your games:** `registerYourGamePart({ feature, key, Component })`, shown on each of the owner's games (with
+     `game` and `reload`).
    - **Profile sections:** `registerProfileSection({ feature, key, title, Component })`. The profile page shows them
      with `<ProfileSections userId isMe />`.
-3. Your API calls live in your folder too, not in `src/api.ts`.
+3. Your API calls live in your folder too (`src/features/<feature>/api.ts`), using `call` and `send` from `src/api.ts`.
+   Admin tabs and profile sections are wrapped in an error boundary, so a crash in yours doesn't take down the page.
+
+## Name filter (PRD H2)
+`src/features/moderation`; flag `moderation`. Admin tab **Name filter** (permission `moderation.words`): try a name,
+add blocked or allowed words, see names already on start.ng that fail, and the built-in lists. The filter itself runs
+on the API; when it refuses a name, the form shows the API's message.
 
 ## Deploy (Coolify)
 Dockerfile build pack (nginx, port 80). VITE_API_URL and VITE_GOOGLE_CLIENT_ID are build-time, so mark them as
