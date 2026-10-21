@@ -39,7 +39,7 @@ export default function MyTournaments({ user, onSignIn }: PageProps) {
     setError("");
     try {
       const t = await createTournament({ title, games: picked, hours });
-      location.assign(`/t/${t.code}`);
+      location.assign(`/friends/${t.code}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not start the tournament");
       setBusy(false);
@@ -97,7 +97,7 @@ export default function MyTournaments({ user, onSignIn }: PageProps) {
         <ul className="private-list">
           {mine?.map((t) => (
             <li key={t.code}>
-              <a href={`/t/${t.code}`}>
+              <a href={`/friends/${t.code}`}>
                 <b>{t.title}</b>
                 <span>{t.games.length} {t.games.length === 1 ? "game" : "games"} · {t.members} {t.members === 1 ? "player" : "players"}</span>
               </a>

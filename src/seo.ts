@@ -83,12 +83,12 @@ export const PAGES: Record<string, Seo> = {
   friendsTournaments: {
     title: "Start a tournament with your friends · start.ng",
     description: "Pick any games on start.ng, set how long it runs, and share a link. Your friends join and you all follow one table of scores.",
-    path: "/t",
+    path: "/friends",
   },
   privateTournament: {
     title: "Join a tournament with friends · start.ng",
     description: "You've been invited to a tournament on start.ng. Join it, play its games and see where you stand.",
-    path: "/t",
+    path: "/friends",
     noindex: true, // an invite link is private; the page sets its own title once it knows the tournament
   },
   notFound: {

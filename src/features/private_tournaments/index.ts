@@ -4,5 +4,5 @@ import { registerPage } from "../registry";
 
 const FEATURE = "private_tournaments";
 
-registerPage({ feature: FEATURE, path: "/t", shell: "app", load: () => import("./MyTournaments") });
-registerPage({ feature: FEATURE, path: /^\/t\/(?<code>[\w-]{8,16})\/?$/, shell: "app", load: () => import("./TournamentPage") });
+registerPage({ feature: FEATURE, path: "/friends", shell: "app", load: () => import("./MyTournaments") });
+registerPage({ feature: FEATURE, path: /^\/friends\/(?<code>[\w-]{8,16})\/?$/, shell: "app", load: () => import("./TournamentPage") });

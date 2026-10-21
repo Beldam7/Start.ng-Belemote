@@ -9,7 +9,7 @@ function Dot({ color }: { color: string | null }) {
   return <span className="dot" style={{ background: color ?? "var(--line)" }} />;
 }
 
-/** start.ng/t/<code>: the invite link (join), then the games, standings and how long is left. */
+/** start.ng/friends/<code>: the invite link (join), then the games, standings and how long is left. */
 export default function TournamentPage({ user, onSignIn, params }: PageProps) {
   const code = params.code;
   const [t, setT] = useState<Summary | Detail | null | undefined>(undefined); // null: no such tournament
@@ -17,7 +17,7 @@ export default function TournamentPage({ user, onSignIn, params }: PageProps) {
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
   const playerId = user?.id ?? null;
-  const link = `${location.origin}/t/${code}`;
+  const link = `${location.origin}/friends/${code}`;
 
   // The invite page is private (noindex), but its title names the tournament, so a link pasted in a chat says what it is.
   useEffect(() => {
@@ -56,7 +56,7 @@ export default function TournamentPage({ user, onSignIn, params }: PageProps) {
   if (t === null) {
     return (
       <section className="container tournament-page">
-        <p className="empty">There's no tournament at this link. <a href="/t">Start your own</a></p>
+        <p className="empty">There's no tournament at this link. <a href="/friends">Start your own</a></p>
       </section>
     );
   }
@@ -72,7 +72,7 @@ export default function TournamentPage({ user, onSignIn, params }: PageProps) {
       <div className="section-head">
         <div>
           <h1>{t.title}</h1>
-          <p className="tournament-sub">By {t.owner} · {t.members} {t.members === 1 ? "player" : "players"} · <a href="/t">Your tournaments →</a></p>
+          <p className="tournament-sub">By {t.owner} · {t.members} {t.members === 1 ? "player" : "players"} · <a href="/friends">Your tournaments →</a></p>
         </div>
       </div>
 
@@ -162,9 +162,9 @@ export default function TournamentPage({ user, onSignIn, params }: PageProps) {
 
           <div className="private-manage">
             {t.mine ? (
-              <button type="button" className="link flag" disabled={busy} onClick={() => { if (confirm("Delete this tournament for everyone?")) act(() => deleteTournament(code), () => location.assign("/t")); }}>Delete tournament</button>
+              <button type="button" className="link flag" disabled={busy} onClick={() => { if (confirm("Delete this tournament for everyone?")) act(() => deleteTournament(code), () => location.assign("/friends")); }}>Delete tournament</button>
             ) : (
-              <button type="button" className="link" disabled={busy} onClick={() => { if (confirm("Leave this tournament? Your scores in it are removed.")) act(() => leaveTournament(code), () => location.assign("/t")); }}>Leave tournament</button>
+              <button type="button" className="link" disabled={busy} onClick={() => { if (confirm("Leave this tournament? Your scores in it are removed.")) act(() => leaveTournament(code), () => location.assign("/friends")); }}>Leave tournament</button>
             )}
           </div>
         </>
