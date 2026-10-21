@@ -46,7 +46,7 @@ export type PublishedGame = {
   checked_at?: string | null; // when the repo was last checked for a push (null: not yet)
   live_commit?: string | null; // the first 7 characters of the commit that's live (null: not known yet)
   updates_paused_until?: string | null; // set while GitHub's limit has paused all checking
-  hidden?: "reported" | "flagged" | "blocked" | null; // only for the owner: hidden from start.ng while admins look at it
+  hidden?: "reported" | "flagged" | "blocked" | (string & {}) | null; // only for the owner: why it's hidden (features add reasons)
 };
 
 /** The feature flags that are on (see src/features/flags.ts). ["*"] means all of them. */

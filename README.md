@@ -34,6 +34,12 @@ Every new feature lives in `src/features/<feature>/` with one owner (the PRD, se
 add blocked or allowed words, see names already on start.ng that fail, and the built-in lists. The filter itself runs
 on the API; when it refuses a name, the form shows the API's message.
 
+## Needs fixing (PRD H2)
+`src/features/needs_fixing`; flag `needs_fixing`.
+- Admin tab **Needs fixing**: mark a game with a note for its owner; games their owners say are fixed come first,
+  then games waiting for the owner. Put back, send back, or change the note.
+- Your games: the owner sees what's wrong and "tell us it's fixed".
+
 ## Deploy (Coolify)
 Dockerfile build pack (nginx, port 80). VITE_API_URL and VITE_GOOGLE_CLIENT_ID are build-time, so mark them as
 Build Variables in Coolify. GitHub secrets: COOLIFY_WEBHOOK_URL (optional COOLIFY_TOKEN); the
