@@ -25,6 +25,12 @@ reviews:
         React 18 + TypeScript strict. Flag any use of `any`, unhandled promise rejections,
         missing loading/error states, stale-closure bugs in hooks, and accessibility problems.
         VITE_* variables are public; flag anything secret read from import.meta.env.
+    - path: src/**/*.{tsx,css}
+      instructions: >
+        Styling must follow CONTRIBUTING.md: the new UI has to look like the rest of start.ng.
+        Flag hard-coded hex or rgb colours (use the CSS variables in src/styles.css), a new CSS
+        framework, UI library or font, new components that duplicate an existing one, colours
+        with no dark-mode value, and layouts that break at phone width.
     - path: src/three/**
       instructions: >
         three.js code. Flag undisposed geometries, materials, textures and renderers,
