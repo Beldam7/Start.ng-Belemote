@@ -1,6 +1,6 @@
 // The "Score flags" tab on start.ng/admin: runs held back for looking too good to be true (startng-be app/features/integrity).
 // The API checks the scores.review permission; the registry only shows the tab to admins who have it.
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { AdminTabProps } from "../registry";
 import { flagsApi, type Flag, type FlagStatus } from "./api";
 
@@ -20,9 +20,14 @@ export default function ScoreFlagsTab({ ask }: AdminTabProps) {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
+  const latest = useRef(0); // the newest request: an older one that lands late must not replace the list or the error
+
   const load = useCallback(() => {
+    const id = ++latest.current;
     setError("");
-    flagsApi.list(status).then(setFlags).catch((e) => setError(e instanceof Error ? e.message : "Couldn't load this"));
+    flagsApi.list(status)
+      .then((rows) => { if (id === latest.current) setFlags(rows); })
+      .catch((e) => { if (id === latest.current) setError(e instanceof Error ? e.message : "Couldn't load this"); });
   }, [status]);
   useEffect(() => { setFlags(null); load(); }, [load]);
 
@@ -62,6 +67,7 @@ export default function ScoreFlagsTab({ ask }: AdminTabProps) {
         ))}
       </div>
       {error && <p className="error" role="alert">{error}</p>}
+      {flags === null && !error && <p className="note">Loading…</p>}
       {flags && flags.length === 0 && !error && <p className="empty">{EMPTY[status]}</p>}
       <div className="admin-list flags-list">
         {flags?.map((f) => (
