@@ -254,8 +254,9 @@ input:focus { outline: 2px solid var(--ink); outline-offset: -1px; }
 .board-sub { margin: -6px 0 4px; color: var(--muted); font-size: .9rem; }
 .board-empty { margin: 0; padding: 20px; border: 1px dashed var(--line); border-radius: 14px; color: var(--muted); text-align: center; }
 .board { max-width: 560px; }
-.board-table { display: grid; gap: 4px; font-variant-numeric: tabular-nums; overflow-x: auto; }
-.board-row { display: grid; gap: 12px; align-items: center; padding: 9px 12px; border-radius: 10px; background: var(--bg); min-width: 0; }
+/* the table owns the columns (set inline) and every row shares them, so numbers line up under their headings */
+.board-table { display: grid; gap: 4px 12px; font-variant-numeric: tabular-nums; overflow-x: auto; }
+.board-row { display: grid; grid-column: 1 / -1; grid-template-columns: subgrid; align-items: center; padding: 9px 12px; border-radius: 10px; background: var(--bg); min-width: 0; }
 .board-head { background: none; padding-top: 0; padding-bottom: 2px; font-family: var(--mono); font-size: .68rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
 .board-row:nth-child(2) .rk { background: var(--lime); }
 .board-row.me { box-shadow: inset 0 0 0 2px var(--ink); } /* inside the row: the table scrolls sideways, which would clip an outline */
@@ -546,9 +547,10 @@ code { color: var(--on-lime); }
   .game-page-actions .btn, .game-page-actions .ghost { flex: 1 1 auto; text-align: center; }
 }
 
-/* the leaderboard on a game's page, beside its details */
-.game-page-board { display: grid; gap: 10px; padding: 16px; background: var(--card); border: 1px solid var(--line); border-radius: 16px; box-shadow: 4px 4px 0 var(--lime); min-width: 0; }
-.game-page-board h2 { margin: 0; font-size: 1.1rem; letter-spacing: -.02em; }
+/* the leaderboard on a game's page, in its own card under the details */
+.game-page-board { display: grid; max-width: 760px; margin-top: 36px; gap: 10px; padding: 16px; background: var(--card); border: 1px solid var(--line); border-radius: 16px; box-shadow: 4px 4px 0 var(--lime); min-width: 0; }
+.game-page-board h2 { margin: 0; font-size: 1.3rem; letter-spacing: -.03em; display: flex; align-items: baseline; gap: 10px; }
+.game-page-board h2 span { font-family: var(--mono); font-size: .7rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); font-weight: 400; }
 .game-page-board .board-sub, .game-page-board .board-empty { margin: 0; }
 
 /* daily tournament: homepage banner, /tournament and /leaderboard (Tournament.tsx) */
@@ -572,6 +574,9 @@ code { color: var(--on-lime); }
 .tournament-status p { margin: 8px 0 0; }
 .tournament-enter { display: grid; gap: 8px; align-content: start; }
 .tournament-enter button { width: 100%; }
+/* same start and height in every card, so a game with fewer runs doesn't sit lower than its neighbours */
+.tournament-games .game-link { flex: none; }
+.tournament-games .tournament-top { flex: 1; align-content: start; }
 .tournament-top { list-style: none; margin: 0; padding: 0 6px; display: grid; gap: 4px; font-size: .84rem; counter-reset: run; }
 .tournament-top li { display: flex; justify-content: space-between; gap: 8px; padding: 5px 8px; border-radius: 8px; background: var(--bg); counter-increment: run; }
 .tournament-top li::before { content: counter(run); font-family: var(--mono); color: var(--muted); margin-right: 2px; }

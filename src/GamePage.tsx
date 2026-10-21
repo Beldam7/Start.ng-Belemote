@@ -93,12 +93,6 @@ export default function GamePage({ name, game, loading, user, playerId, favorite
             </a>
             <FavoriteButton user={user} on={favorite.on} name={g.title} onToggle={favorite.toggle} onSignIn={onSignIn} />
           </div>
-          {g.board && (
-            <aside className="game-page-board" aria-labelledby="board-heading">
-              <h2 id="board-heading">Leaderboard</h2>
-              <BoardTable game={g} playerId={playerId} />
-            </aside>
-          )}
           <div className="game-page-share">
             <span>Share it</span>
             <a className="ghost btn" href={tweet} target="_blank" rel="noreferrer" onClick={() => analytics.share("game", g.slug, "x")}>Share on X</a>
@@ -114,6 +108,12 @@ export default function GamePage({ name, game, loading, user, playerId, favorite
           )}
         </div>
       </div>
+      {g.board && (
+        <aside className="game-page-board" aria-labelledby="board-heading">
+          <h2 id="board-heading">Leaderboard <span>Top 10</span></h2>
+          <BoardTable game={g} playerId={playerId} />
+        </aside>
+      )}
       {reporting && (
         <ReportDialog game={g.slug} title={g.title} mode={reporting} onClose={() => setReporting(null)}
           onDone={() => { setReporting(null); if (reporting === "flag") onHidden?.(); }} />
