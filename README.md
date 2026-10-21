@@ -40,6 +40,12 @@ on the API; when it refuses a name, the form shows the API's message.
   then games waiting for the owner. Put back, send back, or change the note.
 - Your games: the owner sees what's wrong and "tell us it's fixed".
 
+## Duplicate finder (PRD H2)
+`src/features/duplicates`; flag `duplicates`.
+- Admin tab **Duplicates**: look-alike pairs side by side (older first) with why they match; hide as copy, delete
+  (type DELETE to confirm), keep both; scan all games; put hidden copies back.
+- Your games: "Hidden: looks like a copy", naming the original. Hidden games show a **Hidden** tag instead of Live.
+
 ## Deploy (Coolify)
 Dockerfile build pack (nginx, port 80). VITE_API_URL and VITE_GOOGLE_CLIENT_ID are build-time, so mark them as
 Build Variables in Coolify. GitHub secrets: COOLIFY_WEBHOOK_URL (optional COOLIFY_TOKEN); the
