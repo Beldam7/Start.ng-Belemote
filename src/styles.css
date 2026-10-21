@@ -236,6 +236,7 @@ input:focus { outline: 2px solid var(--ink); outline-offset: -1px; }
 .game-card p { margin: 0; color: var(--muted); font-size: .88rem; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .game-card-meta { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; font-size: .8rem; color: var(--muted); margin-top: 2px; }
 .game-card-meta .tag { text-transform: capitalize; }
+.game-card-meta .tag.off { background: var(--bad-bg); color: var(--danger); box-shadow: inset 0 0 0 1px var(--bad-line); }
 .game-card-links { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; font-size: .82rem; margin-top: 2px; }
 .game-card-links a { font-weight: 700; white-space: nowrap; }
 .game-card-links span { font-family: var(--mono); color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -769,3 +770,13 @@ button.small { padding: 7px 12px; font-size: .85rem; border-radius: 8px; }
 .fix-notice i { font-style: normal; font-weight: 600; }
 .fix-notice-form { display: grid; gap: 8px; width: 100%; }
 .fix-notice .ok { color: var(--ok); }
+
+/* Duplicate finder (src/features/duplicates) */
+.dup-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+.dup-reasons { margin-bottom: 10px; }
+.dup-sides { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-bottom: 8px; }
+.dup-side { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 10px 12px; align-items: start; padding: 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); }
+.dup-side h3 { margin: 0; font-size: 1rem; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.dup-side h3 a { color: inherit; }
+.dup-side .note { margin: 0; }
+.dup-side .row-actions { grid-column: 1 / -1; }
