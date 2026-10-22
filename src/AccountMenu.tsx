@@ -44,11 +44,11 @@ export default function AccountMenu({ user, isAdmin = false, onProfile, onFavori
               <span>{user.email}</span>
             </div>
           </div>
-          <button role="menuitem" onClick={() => { setOpen(false); onProfile(); }}>Edit profile</button>
+          {profilesOn
+            ? <a role="menuitem" href="/me" onClick={() => setOpen(false)}>Profile</a>
+            : <button role="menuitem" onClick={() => { setOpen(false); onProfile(); }}>Profile</button>}
           <button role="menuitem" onClick={() => { setOpen(false); onFavorites(); }}>Favorites</button>
-          {profilesOn && <a role="menuitem" href="/me" onClick={() => setOpen(false)}>My page</a>}
           {friendsOn && <a role="menuitem" href="/follows" onClick={() => setOpen(false)}>Friends</a>}
-          {wardrobeOn && <a role="menuitem" href="/wardrobe" onClick={() => setOpen(false)}>Wardrobe</a>}
           {wardrobeOn && <a role="menuitem" href="/shop" onClick={() => setOpen(false)}>Shop</a>}
           {isAdmin && <a role="menuitem" href="/admin">Admin</a>}
           <button role="menuitem" onClick={() => { setOpen(false); onSignOut(); }}>Sign out</button>

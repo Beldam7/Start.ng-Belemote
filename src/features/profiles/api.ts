@@ -17,6 +17,7 @@ export type Profile = {
 const token = () => localStorage.getItem("token");
 
 export const getProfile = (id: number) => call<Profile>(token(), `/players/${id}/profile`);
+export const getProfileByUsername = (name: string) => call<Profile>(token(), `/players/by-username/${encodeURIComponent(name)}/profile`);
 export const myProfile = () => call<Profile>(token(), "/me/profile");
 export const badgeCatalog = () => call<Badge[]>(null, "/badges");
 export const saveSettings = (changes: Partial<Settings>) => call<Settings>(token(), "/me/profile-settings", send("PUT", changes));

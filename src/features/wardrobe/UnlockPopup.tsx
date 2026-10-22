@@ -6,6 +6,7 @@ import { dressed, useWorn, withItem } from "./dress";
 import { useDialog } from "./useDialog";
 import "./wardrobe.css";
 import { picture, share } from "./words";
+import { withHandle } from "../../share";
 
 const Viewer = lazy(() => import("../../three/Viewer"));
 
@@ -95,7 +96,7 @@ export default function UnlockPopup({ user }: { user: User }) {
   }
 
   const text = `I unlocked the ${item.name} (${item.rarity}) on start.ng! ${picture(item.key, item.slot)}`;
-  const shareUrl = `https://twitter.com/intent/tweet?${new URLSearchParams({ text, url: location.origin })}`;
+  const shareUrl = `https://twitter.com/intent/tweet?${new URLSearchParams({ text: withHandle(text), url: location.origin })}`;
 
   return (
     <div className="overlay" onClick={(e) => { if (e.target === e.currentTarget) next(); }}>
