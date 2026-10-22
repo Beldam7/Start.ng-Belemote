@@ -9,6 +9,7 @@ import { useFeature } from "./features/flags";
 import PageParts from "./features/PageParts";
 import { Game, toCard } from "./games";
 import { PAGES, setSeo, TOURNAMENT_IMAGE } from "./seo";
+import ShareButton from "./features/share_cards/ShareButton";
 
 // Daily tournaments (startng-be app/tournaments.py): every day 5 random games for 24 hours, ending at 18:00
 // Nigeria time. Sharing on X enters you; your runs on those games count, and places give points
@@ -300,6 +301,11 @@ export function TournamentPage({ user, state, onSignIn, onPlay }: {
             </section>
             <section aria-labelledby="winners-heading">
               <h2 id="winners-heading">Past winners</h2>
+              {/* Your card from the last tournament (share cards, src/features/share_cards); hidden if you didn't play it */}
+              {user && past?.[0] && (
+                <ShareButton kind="tournament_result" id={`${past[0].id}-${user.id}`} label="Share my result"
+                  intro={<>Your result on {dayText(past[0].ends_at)}</>} />
+              )}
               {past === null && <p className="board-sub">Loading…</p>}
               {past?.length === 0 && <p className="board-empty">The first winner is named when today's tournament ends.</p>}
               {past && past.length > 0 && (

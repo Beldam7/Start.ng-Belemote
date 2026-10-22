@@ -661,6 +661,15 @@ A game using the HTTP API: a sign-in link, saving a run, and showing the board. 
 </script>
 ```
 
+## Share links and cards
+
+When players share something from start.ng itself (a tournament result, and soon challenges, unlocks and league moves), the link looks like `https://start.ng/s/<kind>/<id>`. Pasted into X, WhatsApp or any chat, it shows a card with the result: the player's name, their place or score, and a "Play at start.ng" button. Opening the link takes people to the page it's about. This is being switched on in stages, so you may not see these links yet.
+
+For your own game:
+
+- Keep your Share-on-X button (it's one of the game standards) pointing at your game's page, `https://start.ng/games/<your-game>`. That link already shows your `cover.png` as its preview.
+- To read a card yourself: `GET /share/{kind}/{id}` (public, no sign-in) returns `{url, text, image_url, square_image_url, title, path}`. `image_url` is 1200x630 (X and link previews); `square_image_url` is 1080x1080 (WhatsApp and Instagram).
+
 ## Good to know
 
 - **Shared vs personal:** `localStorage` only lives in one browser, so other players never see what's in it. A personal best can live there, but anything other players should see must go to start.ng.
