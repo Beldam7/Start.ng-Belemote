@@ -576,8 +576,8 @@ code { color: var(--on-lime); }
 .tournament-banner-sub { margin: 0; color: var(--muted); }
 .tournament-banner .btn { grid-area: cta; justify-self: start; }
 .tournament-banner-games { grid-area: games; display: flex; gap: 8px; }
-.tournament-banner-games .art { width: 72px; aspect-ratio: 1; border-radius: 12px; border: 1px solid var(--line); }
-.tournament-banner-games .art span { font-size: 1.6rem; }
+.tournament-banner-games .art { width: 96px; aspect-ratio: 1; border-radius: 14px; border: 1px solid var(--line); }
+.tournament-banner-games .art span { font-size: 2.2rem; }
 .tournament-page { padding-top: 24px; padding-bottom: 72px; min-height: 60vh; display: grid; gap: 22px; align-content: start; }
 .tournament-page h1 { font-size: 2.4rem; letter-spacing: -.04em; margin: 0; }
 .tournament-page .section-head { margin-bottom: 0; }
