@@ -143,17 +143,21 @@ export default function Admin() {
 
   return (
     <div className="admin-shell">
-      <header className="admin-top">
-        <a className="logo" href="/">start.ng</a>
-        <span className="tag">Admin</span>
-        <span className="admin-who">{access.email} · {access.role ?? "No role yet"}</span>
-        <ThemeToggle />
-      </header>
-      <nav className="admin-tabs" aria-label="Admin sections">
-        {tabs.map((t) => (
-          <button key={t.key} type="button" className={t === shown ? "on" : "ghost"} aria-current={t === shown ? "page" : undefined} onClick={() => go(t.key)}>{t.label}</button>
-        ))}
-      </nav>
+      <aside className="admin-side">
+        <div className="admin-brand">
+          <a className="logo" href="/">start.ng</a>
+          <span className="tag">Admin</span>
+        </div>
+        <nav className="admin-tabs" aria-label="Admin sections">
+          {tabs.map((t) => (
+            <button key={t.key} type="button" className={t === shown ? "on" : ""} aria-current={t === shown ? "page" : undefined} onClick={() => go(t.key)}>{t.label}</button>
+          ))}
+        </nav>
+        <div className="admin-me">
+          <div className="admin-who"><b>{access.email}</b><span>{access.role ?? "No role yet"}</span></div>
+          <ThemeToggle />
+        </div>
+      </aside>
       <main className="admin-main">
         {shown && (
           <Boundary key={shown.key} name={shown.label}>
