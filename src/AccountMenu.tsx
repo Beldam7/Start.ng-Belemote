@@ -11,6 +11,7 @@ export default function AccountMenu({ user, isAdmin = false, onProfile, onFavori
 }) {
   const [open, setOpen] = useState(false);
   const friendsOn = useFeature("follows"); // Friends & follows (src/features/follows)
+  const profilesOn = useFeature("profiles"); // Player pages (src/features/profiles)
   const ref = useRef<HTMLDivElement>(null);
   const style = user.character?.style ?? styleFor(user.id);
   const firstName = (user.name ?? user.email ?? "").split(/[ @]/)[0];
@@ -41,6 +42,7 @@ export default function AccountMenu({ user, isAdmin = false, onProfile, onFavori
           </div>
           <button role="menuitem" onClick={() => { setOpen(false); onProfile(); }}>View profile</button>
           <button role="menuitem" onClick={() => { setOpen(false); onFavorites(); }}>Favorites</button>
+          {profilesOn && <a role="menuitem" href="/me" onClick={() => setOpen(false)}>My page</a>}
           {friendsOn && <a role="menuitem" href="/follows" onClick={() => setOpen(false)}>Friends</a>}
           {isAdmin && <a role="menuitem" href="/admin">Admin</a>}
           <button role="menuitem" onClick={() => { setOpen(false); onSignOut(); }}>Sign out</button>
