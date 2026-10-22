@@ -5,6 +5,7 @@ import {
 } from "./api";
 import { toCard } from "./games";
 import ThemeToggle from "./ThemeToggle";
+import Boundary from "./features/Boundary";
 import { useFeatures } from "./features/flags";
 import { allAdminTabs, registerAdminTab, type AdminTabProps } from "./features/registry";
 
@@ -154,7 +155,11 @@ export default function Admin() {
         ))}
       </nav>
       <main className="admin-main">
-        {shown && <shown.Component access={access} can={can} go={go} ask={ask} />}
+        {shown && (
+          <Boundary key={shown.key} name={shown.label}>
+            <shown.Component access={access} can={can} go={go} ask={ask} />
+          </Boundary>
+        )}
       </main>
       {dialog}
     </div>
@@ -265,7 +270,7 @@ function ReportsTab({ can, ask }: AdminTabProps) {
             {" "}· contacted {g.developer_contacts} of 3{g.hidden_at ? ` · hidden ${when(g.hidden_at)}` : ""}
           </p>
         </div>
-        {can("reports.close") && g.hidden && g.hidden !== "blocked" && (
+        {can("reports.close") && (g.hidden === "reported" || g.hidden === "flagged") && (
           <button type="button" className="ghost" disabled={busy} onClick={() => restore(g)}>Put back</button>
         )}
       </div>
