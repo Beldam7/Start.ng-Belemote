@@ -26,6 +26,8 @@ Every new feature lives in `src/features/<feature>/` with one owner (the PRD, se
      `game` and `reload`).
    - **Profile sections:** `registerProfileSection({ feature, key, title, Component })`. The profile page shows them
      with `<ProfileSections userId isMe />`.
+   - **Boxes on start.ng's own pages:** `registerPagePart({ feature, key, page: "tournament", Component })`, shown
+     where the page puts `<PageParts page="..." />` (with `user` and `onSignIn`).
 3. Your API calls live in your folder too (`src/features/<feature>/api.ts`), using `call` and `send` from `src/api.ts`.
    Admin tabs and profile sections are wrapped in an error boundary, so a crash in yours doesn't take down the page.
 
@@ -58,6 +60,10 @@ on the API; when it refuses a name, the form shows the API's message.
 - Admin tab **Game health** (permission `games.health`): counts by status, failing and unhealthy games with what's
   wrong, "Check now" and "Check all again".
 - Your games: a **Not loading** notice on an unhealthy game, with "check again".
+
+## Tournament emails (PRD H1)
+Part of `src/features/email`: the **Get the tournament by email** box on start.ng/tournament (a `registerPagePart`).
+Visitors leave an address and confirm by link; signed-in players turn on tournament and results emails in one click.
 
 ## Deploy (Coolify)
 Dockerfile build pack (nginx, port 80). VITE_API_URL and VITE_GOOGLE_CLIENT_ID are build-time, so mark them as

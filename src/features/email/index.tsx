@@ -1,7 +1,9 @@
 // H1 email and notifications (Hamzat): start.ng/emails (choose your emails; where confirm and unsubscribe links land),
-// the admin tab "Email", and the email section on your own profile. Sending runs on the API (app/features/email).
+// the admin tab "Email", the email section on your own profile, and the sign-up box on the tournament page.
+// Sending runs on the API (app/features/email).
 import { lazy, Suspense } from "react";
-import { registerAdminTab, registerPage, registerProfileSection, type AdminTabProps, type ProfileSectionProps } from "../registry";
+import { registerAdminTab, registerPage, registerPagePart, registerProfileSection, type AdminTabProps, type ProfileSectionProps } from "../registry";
+import TournamentEmail from "./TournamentEmail";
 
 const EmailTab = lazy(() => import("./EmailTab"));
 const EmailPrefs = lazy(() => import("./EmailPrefs"));
@@ -27,3 +29,5 @@ registerProfileSection({
   title: "Emails",
   Component: ({ isMe }: ProfileSectionProps) => (isMe ? <Suspense fallback={null}><EmailPrefs /></Suspense> : null),
 });
+
+registerPagePart({ feature: "email", key: "email", page: "tournament", Component: TournamentEmail });
