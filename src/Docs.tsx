@@ -75,7 +75,6 @@ export default function Docs() {
         <nav aria-label="Pages">
           <a href="/games">Games</a>
           <a href="/creators">Creators</a>
-          <a href="/#how">How it works</a>
           <a href="/docs" aria-current="page">Docs</a>
         </nav>
         <div className="nav-account">

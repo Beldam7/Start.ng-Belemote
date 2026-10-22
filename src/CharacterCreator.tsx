@@ -13,11 +13,13 @@ type Props = {
   email: string;
   onSave: (c: Character) => Promise<void>;
   onCancel: () => void;
+  /** Your games live in the modal unless the profile page shows them. */
+  showGames?: boolean;
 };
 
 const label = (v: string) => (v === "tophat" ? "top hat" : v);
 
-export default function CharacterCreator({ initial, editing, email, onSave, onCancel }: Props) {
+export default function CharacterCreator({ initial, editing, email, onSave, onCancel, showGames = true }: Props) {
   const [name, setName] = useState(initial.name);
   const [style, setStyle] = useState<CharacterStyle>(initial.style);
   // New players pick female or male first; editing goes straight to the details.
@@ -133,7 +135,7 @@ export default function CharacterCreator({ initial, editing, email, onSave, onCa
           <div className="field"><span>Hat</span>{chips("hat", HATS)}</div>
           <div className="field"><span>Extra</span>{chips("accessory", section.accessory)}</div>
 
-          {editing && <MyGames />}
+          {editing && showGames && <MyGames />}
           </>)}
 
           {error && <p className="error">{error}</p>}
