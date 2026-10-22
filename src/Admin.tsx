@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityKind, admin, AdminAccount, adminMe, AdminMe, AdminTournament, AdminTournaments, Developer, GameCard, LogEntry, me,
-  Overview, Permission, reasonLabel, Report, ReviewGame, Role, User,
+  Analytics, Overview, Permission, reasonLabel, Report, ReviewGame, Role, User,
 } from "./api";
 import { toCard } from "./games";
 import ThemeToggle from "./ThemeToggle";
@@ -143,20 +143,22 @@ export default function Admin() {
 
   return (
     <div className="admin-shell">
-      <aside className="admin-side">
+      <header className="admin-top">
         <div className="admin-brand">
           <a className="logo" href="/">start.ng</a>
           <span className="tag">Admin</span>
         </div>
+        <div className="admin-me">
+          <div className="admin-who"><b>{access.email}</b><span>{access.role ?? "No role yet"}</span></div>
+          <ThemeToggle />
+        </div>
+      </header>
+      <aside className="admin-side">
         <nav className="admin-tabs" aria-label="Admin sections">
           {tabs.map((t) => (
             <button key={t.key} type="button" className={t === shown ? "on" : ""} aria-current={t === shown ? "page" : undefined} onClick={() => go(t.key)}>{t.label}</button>
           ))}
         </nav>
-        <div className="admin-me">
-          <div className="admin-who"><b>{access.email}</b><span>{access.role ?? "No role yet"}</span></div>
-          <ThemeToggle />
-        </div>
       </aside>
       <main className="admin-main">
         {shown && (
@@ -186,24 +188,67 @@ function GameArt({ g }: { g: GameCard }) {
 
 const titleOf = (name: string) => name.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
 
+/** Bars for a 30 day series: the tallest day fills the height. */
+function DayBars({ title, series, total }: { title: string; series: { day: string; n: number }[]; total: number }) {
+  const max = Math.max(1, ...series.map((d) => d.n));
+  return (
+    <div className="an-card">
+      <div className="an-head"><b>{title}</b><span>{total.toLocaleString()} in 30 days</span></div>
+      <div className="an-bars" role="img" aria-label={`${title}, last 30 days: ${total} in total`}>
+        {series.map((d) => <i key={d.day} style={{ height: `${Math.max(3, (d.n / max) * 100)}%` }} className={d.n ? "" : "zero"} title={`${d.day}: ${d.n}`} />)}
+      </div>
+      <div className="an-axis"><span>{series[0]?.day.slice(5)}</span><span>today</span></div>
+    </div>
+  );
+}
+
 function OverviewTab({ access, go, can }: AdminTabProps) {
   const { data, error } = useLoad<Overview>(() => admin.overview(token()), []);
+  const { data: an } = useLoad<Analytics>(() => admin.analytics(token()), []);
+  const n = (x: number) => x.toLocaleString();
   return (
     <section>
       <h2>Overview</h2>
       <Problem error={error} />
+      {an && (
+        <>
+          <div className="an-kpis">
+            <div className="an-kpi"><span>Players</span><b>{n(an.players)}</b><em>+{n(an.new_players_7)} this week</em></div>
+            <div className="an-kpi"><span>Active today</span><b>{n(an.active_1)}</b><em>{n(an.active_7)} this week · {n(an.active_30)} this month</em></div>
+            <div className="an-kpi"><span>Plays this week</span><b>{n(an.plays_7)}</b><em>{n(an.plays_30)} in 30 days</em></div>
+            <div className="an-kpi"><span>Live games</span><b>{n(an.games)}</b><em>+{n(an.new_games_7)} this week</em></div>
+          </div>
+          <div className="an-grid">
+            <DayBars title="Plays per day" series={an.plays_per_day} total={an.plays_30} />
+            <DayBars title="New players per day" series={an.signups_per_day} total={an.new_players_30} />
+            <div className="an-card an-top">
+              <div className="an-head"><b>Most played this week</b></div>
+              {an.top_games_7.length === 0 ? <p className="note">No plays yet.</p> : (
+                <ol>
+                  {an.top_games_7.map((g, i) => (
+                    <li key={g.name}><span className="rank">{i + 1}</span><a href={`/games/${g.name}`}>{g.title}</a><b>{n(g.plays)}</b></li>
+                  ))}
+                </ol>
+              )}
+            </div>
+          </div>
+        </>
+      )}
       {data && (
-        <div className="admin-stats">
-          <button type="button" className={`ghost stat ${data.games_waiting ? "attention" : ""}`} disabled={!can("reports.view")} onClick={() => go("games")}>
-            <b>{data.games_waiting}</b><span>{data.games_waiting === 1 ? "game waiting for review" : "games waiting for review"}</span>
-          </button>
-          <button type="button" className="ghost stat" disabled={!can("reports.view")} onClick={() => go("games")}><b>{data.hidden_games}</b><span>hidden games</span></button>
-          <div className="stat"><b>{data.blocked_developers}</b><span>blocked developers</span></div>
-          <button type="button" className="ghost stat" disabled={!access.is_super} onClick={() => go("admins")}><b>{data.admins}</b><span>admins</span></button>
-        </div>
+        <>
+          <h3 className="an-sub">Needs attention</h3>
+          <div className="admin-stats">
+            <button type="button" className={`ghost stat ${data.games_waiting ? "attention" : ""}`} disabled={!can("reports.view")} onClick={() => go("games")}>
+              <b>{data.games_waiting}</b><span>{data.games_waiting === 1 ? "game waiting for review" : "games waiting for review"}</span>
+            </button>
+            <button type="button" className="ghost stat" disabled={!can("reports.view")} onClick={() => go("games")}><b>{data.hidden_games}</b><span>hidden games</span></button>
+            <div className="stat"><b>{data.blocked_developers}</b><span>blocked developers</span></div>
+            <button type="button" className="ghost stat" disabled={!access.is_super} onClick={() => go("admins")}><b>{data.admins}</b><span>admins</span></button>
+          </div>
+        </>
       )}
       <p className="note">
-        {access.is_super ? "You're a super admin: you can do everything, and add admins and roles." : `Your role lets you: ${access.permissions.join(", ") || "nothing yet. Ask a super admin for a role."}`}
+        {access.is_super ? "You're a super admin: you can do everything, and add admins and roles." : `Your role lets you: ${access.permissions.join(", ") || "nothing yet. Ask a super admin for a role"}.`}
       </p>
     </section>
   );

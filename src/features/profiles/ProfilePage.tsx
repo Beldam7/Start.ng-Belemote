@@ -4,7 +4,8 @@ import { PAGES, setSeo } from "../../seo";
 import { styleFor } from "../../character";
 import { dressed, useWorn } from "../wardrobe/dress";
 import ProfileSections from "../ProfileSections";
-import { badgeCatalog, getProfile, myProfile, saveSettings, type Badge, type Profile, type Settings } from "./api";
+import { changeUsername, checkUsername } from "../../api";
+import { badgeCatalog, getProfile, getProfileByUsername, myProfile, saveSettings, type Badge, type Profile, type Settings } from "./api";
 import "./profiles.css";
 
 const Viewer = lazy(() => import("../../three/Viewer"));
@@ -12,22 +13,22 @@ const MyGames = lazy(() => import("../../MyGames"));
 
 /** start.ng/p/<id>-<name> (and /me): a player's page. Only the name and character are public, never the email. */
 export default function ProfilePage({ user, onSignIn, params }: PageProps) {
-  const isMeRoute = params.id === undefined;
-  const id = isMeRoute ? user?.id : Number(params.id);
+  const isMeRoute = params.id === undefined && params.username === undefined;
+  const id = isMeRoute ? user?.id : params.username ? undefined : Number(params.id);
   const [p, setP] = useState<Profile | null | undefined>(undefined); // null: no such page (or a private one)
   const [catalog, setCatalog] = useState<Badge[]>([]);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState(false);
-  const worn = useWorn(user && id === user.id ? user.id : null);
+  const worn = useWorn(user && (id === user.id || (!!params.username && params.username === user.username)) ? user.id : null);
 
   useEffect(() => { setSeo(PAGES.profile); badgeCatalog().then(setCatalog).catch(() => {}); }, []);
 
   useEffect(() => {
-    if (id === undefined) { setP(undefined); return; }
+    if (id === undefined && !params.username) { setP(undefined); return; }
     let live = true;
     setError("");
-    (isMeRoute ? myProfile() : getProfile(id))
+    (isMeRoute ? myProfile() : params.username ? getProfileByUsername(params.username) : getProfile(id!))
       .then((got) => {
         if (!live) return;
         setP(got);
@@ -37,7 +38,7 @@ export default function ProfilePage({ user, onSignIn, params }: PageProps) {
       })
       .catch((e) => live && (e instanceof Error && /No player page/.test(e.message) ? setP(null) : setError("Couldn't load this page. Try again in a moment.")));
     return () => { live = false; };
-  }, [id, isMeRoute, user?.id]);
+  }, [id, isMeRoute, params.username, user?.id]);
 
   useEffect(() => {
     // The editor (in the top bar's shell) saved a new look or name.
@@ -45,6 +46,32 @@ export default function ProfilePage({ user, onSignIn, params }: PageProps) {
     window.addEventListener("startng:profile-saved", again);
     return () => window.removeEventListener("startng:profile-saved", again);
   }, []);
+
+  const [editName, setEditName] = useState<string | null>(null); // null: not editing
+  const [nameNote, setNameNote] = useState<{ ok: boolean; text: string } | null>(null);
+  useEffect(() => {
+    if (editName === null) return;
+    const wanted = editName.trim().replace(/^@/, "").toLowerCase();
+    if (wanted === (p?.slug ?? "")) { setNameNote({ ok: true, text: "That's your username now." }); return; }
+    if (!wanted) { setNameNote(null); return; }
+    let live = true;
+    const t = window.setTimeout(() => {
+      checkUsername(wanted).then((r) => live && setNameNote(r.available ? { ok: true, text: "Free, it's yours if you want it." } : { ok: false, text: r.reason ?? "Not available" })).catch(() => {});
+    }, 300);
+    return () => { live = false; window.clearTimeout(t); };
+  }, [editName, p?.slug]);
+
+  async function saveName() {
+    if (editName === null) return;
+    setSaving(true);
+    try {
+      const u = await changeUsername(localStorage.getItem("token"), editName);
+      history.replaceState(null, "", `/p/${u.username}`);
+      setEditName(null);
+      setNameNote(null);
+      await myProfile().then(setP).catch(() => {});
+    } catch (e) { setNameNote({ ok: false, text: e instanceof Error ? e.message : "Couldn't save that" }); } finally { setSaving(false); }
+  }
 
   const look = useMemo(() => {
     const base = p?.character?.style ?? styleFor(p?.id ?? 0);
@@ -99,6 +126,22 @@ export default function ProfilePage({ user, onSignIn, params }: PageProps) {
         <div className="profile-who">
           <span className="profile-level">Level {p.level}</span>
           <h1>{p.name}</h1>
+          {editName === null ? (
+            <p className="profile-handle">@{p.slug}{p.me && <button type="button" className="link" onClick={() => { setEditName(p.slug); setNameNote(null); }}>Change</button>}</p>
+          ) : (
+            <form className="profile-handle-edit" onSubmit={(e) => { e.preventDefault(); void saveName(); }}>
+              <label>
+                <span>Your username</span>
+                <input value={editName} onChange={(e) => setEditName(e.target.value)} maxLength={25} autoFocus autoCapitalize="none" spellCheck={false} />
+              </label>
+              <div className="profile-actions">
+                <button type="submit" disabled={saving || (nameNote !== null && !nameNote.ok)}>Save</button>
+                <button type="button" className="ghost" onClick={() => setEditName(null)}>Cancel</button>
+              </div>
+              {nameNote && <p className={nameNote.ok ? "wd-ok" : "error"} role="status">{nameNote.text}</p>}
+              <p className="note">3 to 24 letters, numbers or underscores. Your page is start.ng/p/{editName.trim().replace(/^@/, "").toLowerCase() || "username"}.</p>
+            </form>
+          )}
           <p className="lead-sm">{p.xp.toLocaleString()} XP{p.current_streak > 0 && <> · {p.current_streak}-day streak</>}</p>
           <div className="profile-actions">
             {p.me && <button type="button" onClick={() => window.dispatchEvent(new Event("startng:edit-profile"))}>Edit profile</button>}
