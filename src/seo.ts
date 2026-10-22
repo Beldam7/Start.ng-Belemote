@@ -109,6 +109,13 @@ export const PAGES: Record<string, Seo> = {
     path: "/follows",
     noindex: true, // an invite link is private
   },
+  // Leagues (src/features/leagues): your group, tier and countdown in each track. Signed in only, so private.
+  league: {
+    title: "Your league · start.ng",
+    description: "Your league on start.ng: play any game to score, finish in the top 5 of your group to move up a tier.",
+    path: "/league",
+    noindex: true,
+  },
   profile: {
     title: "A player on start.ng",
     description: "A player's page on start.ng: their character, level, badges and best scores.",
@@ -155,6 +162,7 @@ export const STATIC_PAGES: [string, Seo][] = [
   ["private-tournament.html", PAGES.privateTournament],
   ["follows.html", PAGES.follows],
   ["friend-invite.html", PAGES.friendInvite],
+  ["league.html", PAGES.league],
   ["profile.html", PAGES.profile],
   ["404.html", PAGES.notFound],
 ];

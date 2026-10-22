@@ -836,3 +836,31 @@ button.small { padding: 7px 12px; font-size: .85rem; border-radius: 8px; }
 .tournament-email { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; justify-content: space-between; margin: 18px 0; padding: 16px 18px; border-radius: 16px; background: var(--card); border: 1px solid var(--line); }
 .tournament-email p { margin: 2px 0 0; }
 .tournament-email .email-signup-row { flex: 1 1 280px; max-width: 420px; }
+
+/* M2 leagues (src/features/leagues): tier badge, countdown, zone edges on the group table, past rounds */
+.league-tier { justify-self: start; }
+.league-status .league-nudge { font-size: 1.15rem; }
+.league-clock { display: grid; align-content: center; justify-items: end; gap: 4px; }
+.league-clock b { font-family: var(--mono); font-size: 1.8rem; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.league-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 0 0 10px; }
+.zone-key { display: inline-block; width: 12px; height: 12px; border-radius: 3px; }
+.zone-key.up { background: var(--ok); }
+.zone-key.down { background: var(--danger); }
+.league-table .board-row:nth-child(2) .rk { color: var(--on-lime); }
+.league-table .board-row.zone-up { box-shadow: inset 4px 0 0 var(--ok); }
+.league-table .board-row.zone-down { box-shadow: inset 4px 0 0 var(--danger); }
+.league-table .board-row.me.zone-up { box-shadow: inset 0 0 0 2px var(--ink), inset 6px 0 0 var(--ok); }
+.league-table .board-row.me.zone-down { box-shadow: inset 0 0 0 2px var(--ink), inset 6px 0 0 var(--danger); }
+.league-history, .league-summary ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; max-width: 760px; }
+.league-history li, .league-summary li { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; padding: 10px 12px; border-radius: 10px; background: var(--bg); }
+.league-history li > :first-child { min-width: 9em; }
+.league-result { margin-left: auto; }
+.league-result.up { color: var(--ok); }
+.league-result.down { color: var(--danger); }
+.league-result.out { color: var(--muted); font-weight: 500; }
+.league-summary { display: grid; gap: 10px; }
+.league-summary b { min-width: 4.5em; }
+.league-page .board-empty p { margin: 0 0 12px; }
+@media (max-width: 760px) {
+  .league-clock { justify-items: start; }
+}
