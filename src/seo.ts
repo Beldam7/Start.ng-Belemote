@@ -115,6 +115,11 @@ export const PAGES: Record<string, Seo> = {
     path: "/me",
     noindex: true, // player pages stay out of search results
   },
+  spotlight: {
+    title: "Spotlight · start.ng",
+    description: "The Game of the Week and today's daily challenge on start.ng: one goal a day, set from how people really play.",
+    path: "/spotlight",
+  },
   creator: {
     title: "A creator on start.ng",
     description: "A creator's games on start.ng: play them free in your browser, follow them, and share.",
@@ -142,6 +147,7 @@ export const STATIC_PAGES: [string, Seo][] = [
   ["tournament.html", PAGES.tournament],
   ["leaderboard.html", PAGES.leaderboard],
   ["game.html", PAGES.game],
+  ["spotlight.html", PAGES.spotlight],
   ["creators-board.html", PAGES.creatorsBoard],
   ["creator.html", PAGES.creator],
   ["approve.html", PAGES.approve],
