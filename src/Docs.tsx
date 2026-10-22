@@ -23,6 +23,7 @@ export default function Docs() {
   function signOut() {
     localStorage.removeItem("token");
     setUser(null);
+    location.assign("/");
   }
 
   useEffect(() => {
@@ -36,6 +37,23 @@ export default function Docs() {
   // Jump to #section once the page has drawn.
   useEffect(() => {
     if (source && location.hash) document.getElementById(location.hash.slice(1))?.scrollIntoView();
+  }, [source]);
+
+  // The section being read, for the sidebar: the last heading that has scrolled past the top fifth of the window.
+  const [active, setActive] = useState("");
+  useEffect(() => {
+    if (!source) return;
+    const heads = [...document.querySelectorAll<HTMLElement>(".docs-body h2[id]")];
+    if (heads.length === 0 || typeof IntersectionObserver === "undefined") return;
+    const pick = () => {
+      const current = [...heads].reverse().find((h) => h.getBoundingClientRect().top <= window.innerHeight * 0.2) ?? heads[0];
+      setActive(current.id);
+    };
+    const observer = new IntersectionObserver(() => pick(), { rootMargin: "0px 0px -80% 0px", threshold: [0, 1] });
+    heads.forEach((h) => observer.observe(h));
+    window.addEventListener("scroll", pick, { passive: true });
+    pick();
+    return () => { observer.disconnect(); window.removeEventListener("scroll", pick); };
   }, [source]);
 
   const sections = (source ?? "").split("\n").filter((l) => l.startsWith("## ")).map((l) => l.slice(3));
@@ -81,8 +99,9 @@ export default function Docs() {
           </div>
           {sections.length > 0 && (
             <nav className="toc" aria-label="On this page">
+              <p className="toc-title">On this page</p>
               {sections.map((s) => (
-                <a key={s} href={`#${slug(s)}`}>{s.replace(/`/g, "")}</a>
+                <a key={s} href={`#${slug(s)}`} aria-current={active === slug(s) ? "true" : undefined}>{s.replace(/`/g, "")}</a>
               ))}
             </nav>
           )}
