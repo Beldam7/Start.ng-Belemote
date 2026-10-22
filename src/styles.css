@@ -236,6 +236,7 @@ input:focus { outline: 2px solid var(--ink); outline-offset: -1px; }
 .game-card p { margin: 0; color: var(--muted); font-size: .88rem; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .game-card-meta { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; font-size: .8rem; color: var(--muted); margin-top: 2px; }
 .game-card-meta .tag { text-transform: capitalize; }
+.game-card-meta .tag.off { background: var(--bad-bg); color: var(--danger); box-shadow: inset 0 0 0 1px var(--bad-line); }
 .game-card-links { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; font-size: .82rem; margin-top: 2px; }
 .game-card-links a { font-weight: 700; white-space: nowrap; }
 .game-card-links span { font-family: var(--mono); color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -672,6 +673,10 @@ button:disabled { opacity: .5; cursor: not-allowed; }
 .dialog-actions { display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
 button.small { padding: 7px 12px; font-size: .85rem; border-radius: 8px; }
 .pill.waiting { color: var(--warn-ink); border-color: currentColor; }
+.pill.open { color: var(--warn-ink); border-color: currentColor; }
+.pill.cleared { color: var(--ok); border-color: currentColor; }
+.pill.confirmed { color: var(--danger); border-color: currentColor; }
+.flags-list { margin-top: 14px; }
 .pill.live { color: var(--on-lime); background: var(--lime); border-color: var(--ink); }
 .admin-stats .stat.attention { border-color: var(--ink); box-shadow: 4px 4px 0 var(--lime); }
 .admin-item-head > .admin-art { width: 96px; flex: none; }
@@ -764,3 +769,43 @@ button.small { padding: 7px 12px; font-size: .85rem; border-radius: 8px; }
 .filter-strong { display: flex; gap: 6px; align-items: center; font-size: .9rem; }
 .filter-builtin { margin-top: 22px; }
 .filter-builtin summary { cursor: pointer; font-weight: 600; }
+
+/* Needs fixing (src/features/needs_fixing) */
+.fix-mark { display: grid; gap: 8px; max-width: 560px; margin: 10px 0 6px; }
+.fix-mark button { justify-self: start; }
+.fix-note { margin: 8px 0 0; font-size: .92rem; }
+.fix-notice i { font-style: normal; font-weight: 600; }
+.fix-notice-form { display: grid; gap: 8px; width: 100%; }
+.fix-notice .ok { color: var(--ok); }
+
+/* Duplicate finder (src/features/duplicates) */
+.dup-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+.dup-reasons { margin-bottom: 10px; }
+.dup-sides { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-bottom: 8px; }
+.dup-side { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 10px 12px; align-items: start; padding: 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); }
+.dup-side h3 { margin: 0; font-size: 1rem; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.dup-side h3 a { color: inherit; }
+.dup-side .note { margin: 0; }
+.dup-side .row-actions { grid-column: 1 / -1; }
+
+/* H1 email: start.ng/emails and the admin Email tab */
+.emails-page { display: grid; gap: 18px; max-width: 720px; }
+.emails-result { padding: 14px 16px; border-radius: 14px; background: var(--card); border: 1px solid var(--line); }
+.emails-result p { margin: 0; }
+.email-prefs, .email-signup { display: grid; gap: 12px; }
+.email-topics { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.email-topics label { display: flex; gap: 12px; align-items: center; padding: 12px 14px; border-radius: 12px; background: var(--card); border: 1px solid var(--line); cursor: pointer; }
+.email-topics input { width: 18px; height: 18px; accent-color: var(--ink); flex: none; }
+.email-signup-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.email-signup-row input { flex: 1 1 220px; min-width: 0; }
+.email-stats { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 16px; }
+.email-stats div { display: grid; padding: 10px 14px; border-radius: 12px; background: var(--card); border: 1px solid var(--line); min-width: 96px; }
+.email-stats b { font-size: 1.3rem; }
+.email-stats span { font-size: .78rem; color: var(--muted); text-transform: capitalize; }
+.email-row h3 { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+/* H2 game health: problems listed under a game */
+.health-problems { margin: 6px 0 0; padding-left: 18px; font-size: .86rem; line-height: 1.5; }
+.tournament-email { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; justify-content: space-between; margin: 18px 0; padding: 16px 18px; border-radius: 16px; background: var(--card); border: 1px solid var(--line); }
+.tournament-email p { margin: 2px 0 0; }
+.tournament-email .email-signup-row { flex: 1 1 280px; max-width: 420px; }

@@ -203,7 +203,7 @@ export default function MyGames() {
               <div className="game-card-body">
                 <h4>{card.title}</h4>
                 <div className="game-card-meta">
-                  <span className="tag">Live</span>
+                  {g.hidden ? <span className="tag off">Hidden</span> : <span className="tag">Live</span>}
                   <span>Updated {dateOf(g.updated_at)}</span>
                 </div>
                 <UpdateStatus game={g} />
