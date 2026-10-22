@@ -111,7 +111,7 @@ mark { background: linear-gradient(transparent 62%, var(--lime) 62%, var(--lime)
 .footer > span:first-child { color: var(--ink); font-weight: 800; }
 
 /* sign-in popup */
-.overlay { position: fixed; inset: 0; background: var(--scrim); backdrop-filter: blur(4px); display: grid; place-items: center; padding: 16px; z-index: 10; overflow-y: auto; overscroll-behavior: contain; }
+.overlay { position: fixed; inset: 0; background: var(--scrim); backdrop-filter: blur(4px); display: grid; place-items: center; padding: 16px; z-index: 60; overflow-y: auto; overscroll-behavior: contain; }
 /* A pop-up taller than the screen scrolls inside the overlay (auto margins keep its top reachable), and the page behind stays put. */
 .overlay > * { margin: auto; }
 html:has(.overlay) { overflow: hidden; }
@@ -909,3 +909,17 @@ option { background: var(--card); color: var(--ink); }
 
 .game-card > :not(.art):not(.game-card-body) { grid-column: 1 / -1; }
 .game-card p.update-status { display: block; -webkit-line-clamp: unset; overflow: visible; }
+
+/* dropdowns made of <details>: no triangle, a chevron on the right that turns when it opens, content that eases in */
+.your-stats-head, .feature-checklist > summary, .wd-history > summary, .filter-builtin > summary { display: flex; align-items: center; gap: 10px; cursor: pointer; list-style: none; }
+.your-stats-head::-webkit-details-marker, .feature-checklist > summary::-webkit-details-marker, .wd-history > summary::-webkit-details-marker, .filter-builtin > summary::-webkit-details-marker { display: none; }
+.feature-checklist > summary::after, .wd-history > summary::after, .filter-builtin > summary::after { content: ""; width: 10px; height: 7px; margin-left: auto; flex: none; transition: rotate .2s;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23909086' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat; }
+.feature-checklist[open] > summary::after, .wd-history[open] > summary::after, .filter-builtin[open] > summary::after { rotate: 180deg; }
+.your-stats[open] > :not(summary), .feature-checklist[open] > :not(summary), .wd-history[open] > :not(summary), .filter-builtin[open] > :not(summary) { animation: dd-open .22s ease-out; }
+@keyframes dd-open { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .your-stats[open] > :not(summary), .feature-checklist[open] > :not(summary), .wd-history[open] > :not(summary), .filter-builtin[open] > :not(summary) { animation: none; } }
+.wd-history { padding: 0; }
+.wd-history > summary { padding: 12px 16px; font-weight: 600; }
+.wd-history > :not(summary) { margin-left: 16px; margin-right: 16px; }
+.wd-history[open] { padding-bottom: 14px; }

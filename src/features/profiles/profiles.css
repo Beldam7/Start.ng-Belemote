@@ -44,3 +44,5 @@
   .profile-viewer { min-height: 220px; }
   .profile-who { padding: 4px 0 20px; }
 }
+.profile-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 0 24px; align-items: start; }
+.profile-cols > div { min-width: 0; }

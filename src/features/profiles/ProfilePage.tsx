@@ -131,24 +131,26 @@ export default function ProfilePage({ user, onSignIn, params }: PageProps) {
         {catalog.length === 0 && p.badges.map((b) => <li key={b.key} className="badge on"><b>{b.name}</b><span>{b.description}</span></li>)}
       </ul>
 
+      <div className="profile-cols">
       {p.bests && p.bests.length > 0 && (
-        <>
+        <div>
           <h2>Best scores</h2>
           <div className="profile-list">
             {p.bests.map((b) => (
               <a key={b.game} href={`/games/${b.game}`}><span>{b.title}</span><b>{b.best}</b>{b.rank && <em>#{b.rank}</em>}</a>
             ))}
           </div>
-        </>
+        </div>
       )}
       {p.most_played.length > 0 && (
-        <>
+        <div>
           <h2>Most played</h2>
           <div className="profile-list">
             {p.most_played.map((m) => <a key={m.game} href={`/games/${m.game}`}><span>{m.title}</span><b>{m.runs} {m.runs === 1 ? "run" : "runs"}</b></a>)}
           </div>
-        </>
+        </div>
       )}
+      </div>
       {p.favorites && p.favorites.length > 0 && (
         <>
           <h2>Favorites</h2>

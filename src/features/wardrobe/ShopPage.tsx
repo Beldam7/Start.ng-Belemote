@@ -96,14 +96,13 @@ export default function ShopPage({ user, onSignIn }: PageProps) {
 
   return (
     <section className="container wd-page">
-      <div className="section-head">
+      <header className="shop-hero">
         <div>
-          <p className="eyebrow">Shop</p>
           <h1>Shop</h1>
-          <p className="tournament-sub">Spend the coins you earn playing, then wear what you own in every game. New stock in {untilRestock(now)}. Epic and Legendary items can't be bought: <button type="button" className="link" onClick={() => setTab("wardrobe")}>earn them</button>.</p>
+          <p className="tournament-sub">Spend the coins you earn playing, then wear what you own in every game. Epic and Legendary items can't be bought: <button type="button" className="link" onClick={() => setTab("wardrobe")}>earn them</button>.</p>
         </div>
-        {user && balance !== null && <div className="wd-balance small"><span className="note">Your coins</span><b>🪙 {balance.toLocaleString()}</b></div>}
-      </div>
+        <span className="shop-restock">New stock in <b>{untilRestock(now)}</b></span>
+      </header>
 
       <div className="segmented wd-tabs" role="group" aria-label="Shop or wardrobe">
         <button type="button" className={tab === "shop" ? "on" : ""} aria-pressed={tab === "shop"} onClick={() => setTab("shop")}>Today's shop</button>

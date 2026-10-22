@@ -81,3 +81,11 @@
 .card.wd-tryon { max-width: 380px; border: 2px solid var(--r); box-shadow: 6px 6px 0 var(--r); }
 .card.wd-tryon h3 { margin: 0; }
 .wd-unlock-art .wd-viewer { width: 240px; height: 240px; }
+
+.wd-page { padding-top: 24px; }
+.shop-hero { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px 24px; margin: 0 0 22px; padding: 26px 30px; border: 1.5px solid var(--ink); border-radius: 24px; background: var(--card); box-shadow: 8px 8px 0 var(--lime); }
+.shop-hero h1 { margin: 0 0 6px; font-size: clamp(2rem, 4.6vw, 2.8rem); letter-spacing: -.045em; line-height: 1; }
+.shop-hero .tournament-sub { margin: 0; max-width: 52ch; }
+.shop-restock { padding: 8px 14px; border-radius: 999px; background: var(--lime); color: var(--on-lime); font-size: .88rem; white-space: nowrap; }
+.shop-restock b { font-family: var(--mono); }
+@media (max-width: 640px) { .shop-hero { padding: 20px 20px; } }

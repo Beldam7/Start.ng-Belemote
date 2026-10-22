@@ -10,8 +10,10 @@
 @media (prefers-reduced-motion: reduce) { .shelf .game { transition: none; } .shelf .game:hover { transform: none; } }
 @media (max-width: 600px) { .shelf ul { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; } }
 .play-next a { white-space: nowrap; }
-.feature-checklist { margin-top: 2px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); font-size: .88rem; }
-.feature-checklist summary { cursor: pointer; font-weight: 700; }
+.feature-checklist { margin-top: 2px; padding: 0; border: 1px solid var(--line); border-radius: 12px; background: var(--card); font-size: .88rem; }
+.feature-checklist summary { cursor: pointer; font-weight: 700; padding: 11px 16px; }
+.feature-checklist > :not(summary) { margin-left: 16px; margin-right: 16px; }
+.feature-checklist[open] { padding-bottom: 12px; }
 .feature-checklist[open] summary { margin-bottom: 4px; }
 .feature-checklist ul { list-style: none; margin: 8px 0; padding: 0; display: grid; gap: 4px; }
 .feature-checklist .ok { color: #2f7d32; }

@@ -34,11 +34,6 @@ export default function WardrobeTab({ user, onSignIn }: { user: User | null; onS
           </div>
           {wallet && (
             <div className="wd-wallet">
-              <div className="wd-balance">
-                <span className="note">Your coins</span>
-                <b>🪙 {wallet.balance.toLocaleString()}</b>
-                <a href="/shop">Go to the shop →</a>
-              </div>
               <div className="wd-today">
                 <span className="note">From playing today</span>
                 <div className="wd-meter" role="meter" aria-valuemin={0} aria-valuemax={wallet.daily_cap} aria-valuenow={wallet.earned_today}
