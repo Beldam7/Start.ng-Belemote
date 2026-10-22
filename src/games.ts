@@ -1,4 +1,4 @@
-import { BoardStat, getLeaderboard, getLiveTicket, me, PublishedGame, submitScore } from "./api";
+import { BoardStat, getLeaderboard, getLiveTicket, me, pingSession, PublishedGame, submitScore } from "./api";
 import { CharacterStyle, styleFor } from "./character";
 
 // A homepage card for a game from GET /games (games published with POST /games/publish).
@@ -144,7 +144,7 @@ function whoami(): Promise<object> {
 }
 
 // What /connect answers. Every reply echoes the request's requestId.
-type Message = { type: string; requestId?: unknown; score?: unknown; stats?: unknown; limit?: unknown };
+type Message = { type: string; requestId?: unknown; score?: unknown; stats?: unknown; limit?: unknown; sessionId?: unknown; event?: unknown; kit?: unknown };
 const handlers: Record<string, (msg: Message, game: string) => Promise<object>> = {
   // { type: "startng:whoami" }
   //   -> { type: "startng:user", user: { id, name, account, style, face } | null, guest: { name, style, face } }
@@ -176,6 +176,18 @@ const handlers: Record<string, (msg: Message, game: string) => Promise<object>> 
     } catch (err) {
       return { type: "startng:leaderboardData", ok: false, error: errorText(err, "Could not load the leaderboard") };
     }
+  },
+
+  // { type: "startng:session", event: "start" | "heartbeat" | "end", sessionId, kit? } from kit.js (no reply needed)
+  //   -> { type: "startng:sessionNoted" }
+  // How long people play (PRD M1, game_sessions). Signed-in players are linked; guests are counted without one.
+  "startng:session": async (msg, game) => {
+    const events = ["start", "heartbeat", "end"];
+    if (typeof msg.sessionId === "string" && typeof msg.event === "string" && events.includes(msg.event)) {
+      const kit = typeof msg.kit === "string" ? msg.kit.slice(0, 16) : undefined;
+      void pingSession(localStorage.getItem("token"), game, { session_id: msg.sessionId.slice(0, 64), event: msg.event, kit });
+    }
+    return { type: "startng:sessionNoted" };
   },
 
   // { type: "startng:ticket" } -> { type: "startng:ticketData", ok, ticket, url | error }
