@@ -27,7 +27,7 @@ export default function CreatorsBoard(_: PageProps) {
               <span className="rk">{i + 1}</span>
               {l.character?.style ? <AvatarFace style={l.character.style} size={40} /> : <span className="tile">{l.name.charAt(0)}</span>}
               <span className="nm"><b>{l.name}</b><em>{l.games} {l.games === 1 ? "game" : "games"}</em></span>
-              <span className="num">{l.players_30.toLocaleString()} <em>players</em></span>
+              <span className="num">{l.players_30.toLocaleString()} <em>{l.players_30 === 1 ? "player" : "players"}</em></span>
             </a>
           </li>
         ))}

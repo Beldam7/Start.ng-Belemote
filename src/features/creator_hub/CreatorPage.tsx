@@ -78,7 +78,7 @@ export default function CreatorPage({ user, onSignIn, params }: PageProps) {
       <div className="creator-stats">
         <div><b>{c.games.length}</b><span>{c.games.length === 1 ? "game" : "games"}</span></div>
         <div><b>{c.total_plays.toLocaleString()}</b><span>plays</span></div>
-        <div><b>{c.players_30.toLocaleString()}</b><span>players, 30 days</span></div>
+        <div><b>{c.players_30.toLocaleString()}</b><span>{c.players_30 === 1 ? "player" : "players"}, 30 days</span></div>
         {c.followers !== null && <div><b>{c.followers.toLocaleString()}</b><span>{c.followers === 1 ? "follower" : "followers"}</span></div>}
       </div>
 
