@@ -2,7 +2,22 @@ import { useEffect, useState } from "react";
 import type { PagePartProps } from "../registry";
 import { getSpotlight, type Spotlight } from "./api";
 
-/** On the homepage: today's daily challenge and the Game of the Week, as two small cards linking to /spotlight. */
+/** The picture on a homepage banner: the game's cover, or its first letter. */
+function Cover({ url, title }: { url: string | null; title: string }) {
+  return (
+    <span className="spot-cover" aria-hidden="true">
+      {url ? <img src={url} alt="" loading="lazy" decoding="async" /> : <span>{title.charAt(0)}</span>}
+    </span>
+  );
+}
+
+const left = (iso: string) => {
+  const ms = new Date(iso).getTime() - Date.now();
+  if (ms <= 0) return "resetting now";
+  return `${Math.floor(ms / 3_600_000)}h ${Math.floor((ms % 3_600_000) / 60_000)}m left`;
+};
+
+/** On the homepage: the Game of the Week and today's daily challenge, as large banners like the tournament's. */
 export function HomeSpotlight({ user }: PagePartProps) {
   const [s, setS] = useState<Spotlight | null>(null);
   useEffect(() => {
@@ -13,22 +28,36 @@ export function HomeSpotlight({ user }: PagePartProps) {
   if (!s || (!s.challenge && !s.game_of_the_week)) return null;
   const c = s.challenge, p = s.game_of_the_week;
   return (
-    <section className="container home-spotlight" aria-label="Spotlight">
-      {c && (
-        <a className="spot-mini" href="/spotlight">
-          <span className="eyebrow">Daily challenge</span>
-          <b>{c.goal_is_a_ceiling ? `Finish ${c.game_title} in ${c.goal_shown} or less` : `Reach ${c.goal_shown} in ${c.game_title}`}</b>
-          {c.done ? <em>Done today ✓</em> : <em>One goal a day</em>}
-        </a>
-      )}
+    <>
       {p && (
-        <a className="spot-mini" href="/spotlight">
-          <span className="eyebrow">Game of the Week</span>
-          <b>{p.title}</b>
-          {p.note && <em>{p.note}</em>}
-        </a>
+        <section className="container" aria-label="Game of the Week">
+          <a className="tournament-banner spot-banner" href={`/games/${p.game}`}>
+            <div>
+              <p className="eyebrow">Game of the Week</p>
+              <h2>{p.title}</h2>
+              <p className="tournament-banner-sub">{p.note ?? "This week's pick from the start.ng team."}</p>
+            </div>
+            <Cover url={p.cover_url} title={p.title} />
+            <span className="btn">Play {p.title} →</span>
+          </a>
+        </section>
       )}
-    </section>
+      {c && (
+        <section className="container" aria-label="Daily challenge">
+          <a className="tournament-banner spot-banner" href={`/games/${c.game}`}>
+            <div>
+              <p className="eyebrow">Daily challenge · {left(c.ends_at)}</p>
+              <h2>{c.goal_is_a_ceiling ? `Finish ${c.game_title} in ${c.goal_shown} or less` : `Reach ${c.goal_shown} in ${c.game_title}`}</h2>
+              <p className="tournament-banner-sub">
+                {c.done ? "Done for today. Come back tomorrow for the next one." : c.best ? `Your best today: ${c.best}. One goal a day, set from how people play.` : "One goal a day, set from how people really play."}
+              </p>
+            </div>
+            <Cover url={c.cover_url} title={c.game_title} />
+            <span className="btn">{c.done ? "Play again →" : "Take the challenge →"}</span>
+          </a>
+        </section>
+      )}
+    </>
   );
 }
 
