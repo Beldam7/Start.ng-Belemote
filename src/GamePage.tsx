@@ -94,27 +94,29 @@ export default function GamePage({ name, game, loading, user, playerId, favorite
             </a>
             <FavoriteButton user={user} on={favorite.on} name={g.title} onToggle={favorite.toggle} onSignIn={onSignIn} />
           </div>
-          <div className="game-page-share">
-            <span>Share it</span>
-            <a className="ghost btn" href={tweet} target="_blank" rel="noreferrer" onClick={() => analytics.share("game", g.slug, "x")}>Share on X</a>
-            <button type="button" className="ghost" onClick={copy}>{copied ? "Link copied" : "Copy link"}</button>
-          </div>
-          <PageParts page="game" user={user} onSignIn={onSignIn} game={g.slug} />
-          {g.slug !== "hangout" && (
-            <div className="game-page-report">
-              <button type="button" className="link" onClick={() => (user ? setReporting("report") : onSignIn())}>
-                Report this game
-              </button>
-              {canFlag && <button type="button" className="link flag" onClick={() => setReporting("flag")}>Flag game (admin)</button>}
-            </div>
-          )}
         </div>
+      </div>
+      <div className="game-page-rows">
+        <div className="game-page-share">
+          <span>Share it</span>
+          <a className="ghost btn" href={tweet} target="_blank" rel="noreferrer" onClick={() => analytics.share("game", g.slug, "x")}>Share on X</a>
+          <button type="button" className="ghost" onClick={copy}>{copied ? "Link copied" : "Copy link"}</button>
+        </div>
+        <PageParts page="game" user={user} onSignIn={onSignIn} game={g.slug} />
       </div>
       {g.board && (
         <aside className="game-page-board" aria-labelledby="board-heading">
           <h2 id="board-heading">Leaderboard <span>Top 10</span></h2>
           <BoardTable game={g} playerId={playerId} />
         </aside>
+      )}
+      {g.slug !== "hangout" && (
+        <div className="game-page-report">
+          <button type="button" className="link" onClick={() => (user ? setReporting("report") : onSignIn())}>
+            Report this game
+          </button>
+          {canFlag && <button type="button" className="link flag" onClick={() => setReporting("flag")}>Flag game (admin)</button>}
+        </div>
       )}
       {reporting && (
         <ReportDialog game={g.slug} title={g.title} mode={reporting} onClose={() => setReporting(null)}
