@@ -19,9 +19,11 @@ import { Character, styleFor } from "./character";
 // The creator (and three.js) loads only when someone opens it.
 const CharacterCreator = lazy(() => import("./CharacterCreator"));
 const GameBoard = lazy(() => import("./GameBoard"));
+const UnlockPopup = lazy(() => import("./features/wardrobe/UnlockPopup"));
 import { Game, gameReturnUrl, HANGOUT, isInAppGame, playableUrl, toCard } from "./games";
 import { CreatorsPage, CreatorsSection } from "./Creators";
 import PageParts from "./features/PageParts";
+import { useFeature } from "./features/flags";
 import { LeaderboardPage, TournamentBanner, TournamentPage, useTournament } from "./Tournament";
 
 // Set when a game sent the user here to sign in: we send them back afterwards.
@@ -101,6 +103,7 @@ export default function App({ view = "home", gameName, indieId, featurePage }: {
   }, [refreshGames]);
 
   const profileOpen = !!user && (!user.character || editing);
+  const wardrobeOn = useFeature("wardrobe"); // the unlock popup (src/features/wardrobe)
   const wasOpen = useRef(profileOpen);
   useEffect(() => {
     if (wasOpen.current && !profileOpen) refreshGames();
@@ -450,6 +453,7 @@ export default function App({ view = "home", gameName, indieId, featurePage }: {
         <span>Built by the HNG community</span>
       </footer>
       <ScrollJump />
+      {user && wardrobeOn && !profileOpen && <Suspense fallback={null}><UnlockPopup user={user} /></Suspense>}
 
       {profileOpen && (
         <Suspense fallback={null}>

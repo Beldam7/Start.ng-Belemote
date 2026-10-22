@@ -1,7 +1,9 @@
 // The start.ng character: the same 3D person as the start.ng profile (src/three/human.ts),
 // plus walking. In metres, about 1.7-1.75 m tall, facing +z. Keep the look in step with start.ng.
+// Wardrobe items are drawn by the profile's own code (../three/items.ts), so they look the same here.
 import * as THREE from "three";
-import type { CharacterStyle } from "../character";
+import type { DressedStyle } from "../character";
+import { dress } from "../three/items";
 
 const PI = Math.PI;
 const SHOE = "#2a211b";
@@ -59,8 +61,8 @@ export type Human = {
  * Missing or unknown style values fall back to sensible defaults. With { sitting: true } it sits,
  * hips at bench height (root on the ground, in front of the bench back).
  */
-export function buildHuman(style: Partial<CharacterStyle>, { sitting = false }: { sitting?: boolean } = {}): Human {
-  const s: CharacterStyle = { body: "female", primaryColor: "#9aa3b5", secondaryColor: "#4a4f60", skinColor: "#c68642", hairColor: "#17120f", hair: "short", hat: "none", accessory: "none", ...style };
+export function buildHuman(style: Partial<DressedStyle>, { sitting = false }: { sitting?: boolean } = {}): Human {
+  const s: DressedStyle = { body: "female", primaryColor: "#9aa3b5", secondaryColor: "#4a4f60", skinColor: "#c68642", hairColor: "#17120f", hair: "short", hat: "none", accessory: "none", ...style };
   const female = s.body === "female";
   const geos: THREE.BufferGeometry[] = [];
   const mats = new Map<string, THREE.MeshStandardMaterial>();
@@ -124,9 +126,11 @@ export function buildHuman(style: Partial<CharacterStyle>, { sitting = false }: 
 
   // ---- torso: one smooth shape from waist to collar
   const spine = group(hips, 0, 0.03, 0);
-  const torso = lathe(female
+  const torsoPts = female
     ? [[0.148, -0.05], [0.15, 0.0], [0.142, 0.06], [0.124, 0.13], [0.116, 0.19], [0.126, 0.25], [0.138, 0.31], [0.142, 0.36], [0.14, 0.4], [0.124, 0.44], [0.09, 0.47], [0.055, 0.49], [0.045, 0.5]]
-    : [[0.142, -0.05], [0.144, 0.0], [0.142, 0.07], [0.14, 0.15], [0.146, 0.23], [0.162, 0.31], [0.176, 0.38], [0.176, 0.43], [0.16, 0.475], [0.12, 0.51], [0.066, 0.53], [0.052, 0.54]], top, female ? 0.64 : 0.66);
+    : [[0.142, -0.05], [0.144, 0.0], [0.142, 0.07], [0.14, 0.15], [0.146, 0.23], [0.162, 0.31], [0.176, 0.38], [0.176, 0.43], [0.16, 0.475], [0.12, 0.51], [0.066, 0.53], [0.052, 0.54]];
+  const torsoDepth = female ? 0.64 : 0.66;
+  const torso = lathe(torsoPts, top, torsoDepth);
   spine.add(torso);
   if (female) {
     for (const side of [-1, 1]) spine.add(ball(0.058, top, side * 0.056, 0.325, 0.045, 1, 0.88, 0.75));
@@ -315,6 +319,10 @@ export function buildHuman(style: Partial<CharacterStyle>, { sitting = false }: 
     }
   }
 
+  // ---- wardrobe items (../three/items.ts): hats, extras, outfits, neck, back and aura
+  const dressing = dress({ female, sitting, sx, lift, neckTop, shoulderY, torsoPts, torsoDepth, root, spine, torso, head, arms,
+    mat, mesh, ball, group, limb, lathe }, s);
+
   // ---- animation: idle (breathing, weight shift, looking around), walking, waving
   const restArm = female ? 0.1 : 0.13;
   const WAVE = 1.8; // seconds
@@ -416,6 +424,7 @@ export function buildHuman(style: Partial<CharacterStyle>, { sitting = false }: 
         elbow.rotation.set(-1.0, 0, 0);
       });
     }
+    dressing.update(t);
   }
   update(0);
 
@@ -433,6 +442,7 @@ export function buildHuman(style: Partial<CharacterStyle>, { sitting = false }: 
     dispose() {
       geos.forEach((g) => g.dispose());
       mats.forEach((m) => m.dispose());
+      dressing.dispose();
     },
   };
 }

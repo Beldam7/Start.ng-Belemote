@@ -1,7 +1,7 @@
 // The live room on start.ng: everyone in the Hangout sees each other move and wave.
 // The server side is startng-be app/live.py; message types are described there.
 import { getLiveTicket } from "../api";
-import type { CharacterStyle } from "../character";
+import type { DressedStyle } from "../character";
 import type { ChatMessage } from "./chat";
 
 // Close codes from the server.
@@ -13,9 +13,9 @@ const REPLACED = 4409;
 const NO_GAME = "No game with that name";
 
 // x and z are null until the player first moves: they're standing at their seat.
-export type Player = { id: number; name: string; style?: Partial<CharacterStyle> | null; seat?: number | null; x: number | null; z: number | null; ry: number; moving: boolean };
+export type Player = { id: number; name: string; style?: Partial<DressedStyle> | null; seat?: number | null; x: number | null; z: number | null; ry: number; moving: boolean };
 /** Everyone who has a seat, in the room or not. */
-export type Resident = { id: number; name: string; style?: Partial<CharacterStyle> | null; seat: number };
+export type Resident = { id: number; name: string; style?: Partial<DressedStyle> | null; seat: number };
 export type RoomMessage =
   | { type: "welcome"; you: number; players: Player[]; seats?: Resident[]; chat?: ChatMessage[] } // chat: the room's earlier messages (older servers leave it out)
   | { type: "join"; player: Player }

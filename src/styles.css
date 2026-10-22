@@ -5,6 +5,8 @@
   --scrim: rgba(41, 42, 35, .45); --shimmer: #efede2; --code-bg: #292a23; --legendary-bg: #fafff0; --banner-tint: #f1fbd2;
   --dot: rgba(41, 42, 35, .16); --danger: #c0392b; --ok: #2e7d32; --warn-ink: #8a6d00;
   --warn-bg: #fff7d6; --warn-line: #f0d77a; --bad-bg: #fdecea; --bad-line: #f3b8b0;
+  /* wardrobe item rarities (src/features/wardrobe): at least 4.5:1 with the --on-solid label text, in both themes */
+  --r-common: #75766c; --r-uncommon: #278546; --r-rare: #346fdf; --r-epic: #8e4fd6; --r-legendary: #a9630a; --r-limited: #db2967;
   color-scheme: light;
 }
 :root[data-theme="dark"] {
@@ -13,6 +15,7 @@
   --scrim: rgba(20, 21, 17, .65); --shimmer: #44453b; --code-bg: #1f201b; --legendary-bg: #38402a; --banner-tint: #343b27;
   --dot: rgba(246, 245, 238, .12); --danger: #ff8a7d; --ok: #7fd884; --warn-ink: #e6c34d;
   --warn-bg: #4a4220; --warn-line: #7a6a2a; --bad-bg: #4a2a26; --bad-line: #7d4a43;
+  --r-common: #a6a79b; --r-uncommon: #5fcf82; --r-rare: #6f9bf0; --r-epic: #b383ef; --r-legendary: #f5a640; --r-limited: #f27aa3;
   color-scheme: dark;
 }
 * { box-sizing: border-box; }

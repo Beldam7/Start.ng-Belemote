@@ -116,6 +116,18 @@ export const PAGES: Record<string, Seo> = {
     path: "/league",
     noindex: true,
   },
+  // Wardrobe (src/features/wardrobe): your coins and items, and the daily shop.
+  wardrobe: {
+    title: "Your wardrobe · start.ng",
+    description: "Your coins and items on start.ng: earn them by playing any game, and wear them in every game.",
+    path: "/wardrobe",
+    noindex: true,
+  },
+  shop: {
+    title: "Shop · start.ng",
+    description: "Spend the coins you earn playing start.ng games on items for your character. New stock every day.",
+    path: "/shop",
+  },
   profile: {
     title: "A player on start.ng",
     description: "A player's page on start.ng: their character, level, badges and best scores.",
@@ -163,6 +175,8 @@ export const STATIC_PAGES: [string, Seo][] = [
   ["follows.html", PAGES.follows],
   ["friend-invite.html", PAGES.friendInvite],
   ["league.html", PAGES.league],
+  ["wardrobe.html", PAGES.wardrobe],
+  ["shop.html", PAGES.shop],
   ["profile.html", PAGES.profile],
   ["404.html", PAGES.notFound],
 ];
