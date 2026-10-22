@@ -11,4 +11,5 @@ import "./duplicates"; // H2 duplicate finder (Hamzat)
 import "./email"; // H1 email and notifications (Hamzat)
 import "./game_health"; // H2 game health checks (Hamzat)
 import "./share_cards";
+import "./challenges";
 export {};
