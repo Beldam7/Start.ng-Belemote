@@ -286,6 +286,12 @@ export default function App({ view = "home", gameName, indieId, featurePage }: {
     setEditing(false);
   }
 
+  // From the account menu: leave whatever page you were on (a wardrobe or friends list is for the signed-in player).
+  function signOutToHome() {
+    signOut();
+    if (location.pathname !== "/") location.assign("/");
+  }
+
   async function onSaveCharacter(c: Character) {
     setUser(await saveCharacter(localStorage.getItem("token"), c));
     setEditing(false);
@@ -307,7 +313,7 @@ export default function App({ view = "home", gameName, indieId, featurePage }: {
         <div className="nav-account">
           <ThemeToggle />
           {user ? (
-            <AccountMenu user={user} isAdmin={!!adminAccess} onProfile={() => setEditing(true)} onFavorites={() => setFavoritesOpen(true)} onSignOut={signOut} />
+            <AccountMenu user={user} isAdmin={!!adminAccess} onProfile={() => setEditing(true)} onFavorites={() => setFavoritesOpen(true)} onSignOut={signOutToHome} />
           ) : (
             <button onClick={() => setSignInOpen(true)}>Sign in</button>
           )}
