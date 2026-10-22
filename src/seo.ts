@@ -104,6 +104,11 @@ export const PAGES: Record<string, Seo> = {
     path: "/follows",
     noindex: true, // an invite link is private
   },
+  spotlight: {
+    title: "Spotlight · start.ng",
+    description: "The Game of the Week and today's daily challenge on start.ng: one goal a day, set from how people really play.",
+    path: "/spotlight",
+  },
   notFound: {
     title: "Page not found · start.ng",
     description: "There's nothing at this address. Browse the games on start.ng instead.",
@@ -121,6 +126,7 @@ export const STATIC_PAGES: [string, Seo][] = [
   ["tournament.html", PAGES.tournament],
   ["leaderboard.html", PAGES.leaderboard],
   ["game.html", PAGES.game],
+  ["spotlight.html", PAGES.spotlight],
   ["approve.html", PAGES.approve],
   ["friends-tournaments.html", PAGES.friendsTournaments],
   ["private-tournament.html", PAGES.privateTournament],
