@@ -4,6 +4,7 @@
 import "./private_tournaments";
 import "./integrity";
 import "./moderation"; // H2 name filter (Hamzat)
+import "./integrity/owner"; // score integrity: held scores in Your games (Dean)
 import "./needs_fixing"; // H2 "needs fixing" label (Hamzat)
 import "./duplicates"; // H2 duplicate finder (Hamzat)
 import "./email"; // H1 email and notifications (Hamzat)
