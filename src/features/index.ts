@@ -12,4 +12,5 @@ import "./email"; // H1 email and notifications (Hamzat)
 import "./game_health"; // H2 game health checks (Hamzat)
 import "./share_cards";
 import "./challenges";
+import "./creator_hub"; // T2 creator hub (Hamzat, for Tega)
 export {};
