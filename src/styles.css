@@ -834,6 +834,13 @@ button.small { padding: 7px 12px; font-size: .85rem; border-radius: 8px; }
 .newsletter-form label { display: grid; gap: 6px; font-weight: 600; }
 .newsletter-form input { padding: 13px 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: inherit; font: inherit; font-weight: 400; }
 .newsletter-form textarea { font-weight: 400; }
+.newsletter-form select, .newsletter-actions select, .newsletter-actions .btn { min-height: 46px; box-sizing: border-box; }
+.newsletter-form select, .newsletter-actions select { padding: 0 40px 0 14px; border-radius: 10px; border: 1px solid var(--line); background-color: var(--bg); color: inherit; font: inherit; font-weight: 400;
+  appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 14px center; cursor: pointer; }
+.newsletter-form select { width: 100%; }
+.newsletter-actions select { flex: 1 1 260px; max-width: 420px; }
+.newsletter-form select:focus-visible, .newsletter-form input:focus-visible, .newsletter-actions select:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
 .newsletter-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .newsletter-preview { max-width: 680px; margin: 0 0 20px; padding: 14px 18px; border-radius: 14px; background: var(--card); border: 1px solid var(--line); }
 .warn { margin: 12px 0; padding: 10px 14px; border-radius: 12px; background: #fef3c7; color: #78350f; font-size: .92rem; }

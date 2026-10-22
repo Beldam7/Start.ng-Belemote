@@ -31,14 +31,16 @@ export function HomeSpotlight({ user }: PagePartProps) {
     <>
       {p && (
         <section className="container" aria-label="Game of the Week">
-          <a className="tournament-banner spot-banner" href={`/games/${p.game}`}>
-            <div>
-              <p className="eyebrow">Game of the Week</p>
+          <a className="gotw" href={`/games/${p.game}`}>
+            <span className="gotw-cover" aria-hidden="true">
+              {p.cover_url ? <img src={p.cover_url} alt="" loading="lazy" decoding="async" /> : <span>{p.title.charAt(0)}</span>}
+            </span>
+            <div className="gotw-text">
+              <span className="gotw-badge">★ Game of the Week</span>
               <h2>{p.title}</h2>
-              <p className="tournament-banner-sub">{p.note ?? "This week's pick from the start.ng team."}</p>
+              <p>{p.note ?? "This week's pick from the start.ng team."}</p>
+              <span className="gotw-cta">Play {p.title} →</span>
             </div>
-            <Cover url={p.cover_url} title={p.title} />
-            <span className="btn">Play {p.title} →</span>
           </a>
         </section>
       )}
