@@ -11,4 +11,5 @@ import "./duplicates"; // H2 duplicate finder (Hamzat)
 import "./email"; // H1 email and notifications (Hamzat)
 import "./game_health"; // H2 game health checks (Hamzat)
 import "./catalog"; // T1 categories, ratings and filters (Hamzat, for Tega)
+import "./discovery"; // A1 discovery: shelves and ranking (Hamzat, for Ade)
 export {};
