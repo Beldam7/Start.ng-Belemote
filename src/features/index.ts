@@ -2,6 +2,7 @@
 // and profile sections (src/features/registry.ts). Copy src/features/_template to start a feature.
 // import "./wardrobe";
 import "./private_tournaments";
+import "./integrity";
 import "./moderation"; // H2 name filter (Hamzat)
 import "./needs_fixing"; // H2 "needs fixing" label (Hamzat)
 import "./duplicates"; // H2 duplicate finder (Hamzat)

@@ -670,6 +670,10 @@ button:disabled { opacity: .5; cursor: not-allowed; }
 .dialog-actions { display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
 button.small { padding: 7px 12px; font-size: .85rem; border-radius: 8px; }
 .pill.waiting { color: var(--warn-ink); border-color: currentColor; }
+.pill.open { color: var(--warn-ink); border-color: currentColor; }
+.pill.cleared { color: var(--ok); border-color: currentColor; }
+.pill.confirmed { color: var(--danger); border-color: currentColor; }
+.flags-list { margin-top: 14px; }
 .pill.live { color: var(--on-lime); background: var(--lime); border-color: var(--ink); }
 .admin-stats .stat.attention { border-color: var(--ink); box-shadow: 4px 4px 0 var(--lime); }
 .admin-item-head > .admin-art { width: 96px; flex: none; }
