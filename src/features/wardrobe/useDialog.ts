@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 
 const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
@@ -8,7 +8,10 @@ const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), [tabi
 export function useDialog<T extends HTMLElement = HTMLDivElement>(open: boolean, onClose: () => void) {
   const ref = useRef<T>(null);
   const close = useRef(onClose);
-  close.current = onClose;
+  // The latest onClose, saved once the render is committed (never during render), before any key can reach it.
+  useLayoutEffect(() => {
+    close.current = onClose;
+  });
 
   useEffect(() => {
     const el = ref.current;
