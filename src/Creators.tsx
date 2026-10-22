@@ -3,6 +3,7 @@ import {
   COVER_TYPES, IndieGame, indieCoverUrl, listIndieGames, MAX_COVER_BYTES, submitIndieGame, User,
 } from "./api";
 import { FavoriteButton, indieKey, useFavorites } from "./Favorites";
+import Pagination from "./Pagination";
 import SearchBox, { matches, queryFromUrl, urlFor } from "./SearchBox";
 import { hostOf, indiePath } from "./indie";
 import { PAGES, setSeo } from "./seo";
@@ -13,6 +14,8 @@ import { SkeletonCards } from "./Skeleton";
 // (start.ng/creators/<id>-<name>, see IndiePage.tsx), and Play there opens the game's own link in a new tab.
 
 const HOME_COUNT = 4;
+const PER_PAGE = 20; // the same page size as /games
+const pageFromUrl = () => Math.max(1, Number.parseInt(new URLSearchParams(location.search).get("page") ?? "1", 10) || 1);
 const token = () => localStorage.getItem("token");
 
 const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -227,25 +230,36 @@ export function CreatorsSection({ user, onSignIn }: { user: User | null; onSignI
   );
 }
 
-/** /creators: every game by independent creators, with a search. */
+/** /creators: every game by independent creators, PER_PAGE at a time, with a search. */
 export function CreatorsPage({ user, onSignIn }: { user: User | null; onSignIn: () => void }) {
   const { games } = useIndieGames(user);
   const { startSubmit, popups } = useSubmitPopup(user, onSignIn);
   const favs = useFavorites(user);
   const fav: FavProps = { user, has: favs.has, toggle: favs.toggle, onSignIn };
   const [q, setQ] = useState(queryFromUrl);
+  const [page, setPage] = useState(pageFromUrl);
   useEffect(() => {
     setSeo(PAGES.creators);
-    const onPop = () => setQ(queryFromUrl());
+    const onPop = () => { setPage(pageFromUrl()); setQ(queryFromUrl()); };
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
   }, []);
+  function goToPage(n: number) {
+    history.pushState(null, "", urlFor("/creators", q, n));
+    setPage(n);
+    window.scrollTo({ top: 0 });
+  }
+  // Searching starts again from the first page; the address follows what you type.
   function search(next: string) {
     setQ(next);
+    setPage(1);
     history.replaceState(null, "", urlFor("/creators", next));
   }
   const searching = q.trim() !== "";
   const found = (games ?? []).filter((g) => matches(q, g.name, g.by, g.description, hostOf(g.url)));
+  const pages = Math.max(1, Math.ceil(found.length / PER_PAGE));
+  const current = Math.min(page, pages); // a page past the end shows the last one
+  const shown = found.slice((current - 1) * PER_PAGE, current * PER_PAGE);
   return (
     <section className="container all-games creators-page">
       <div className="section-head">
@@ -258,7 +272,15 @@ export function CreatorsPage({ user, onSignIn }: { user: User | null; onSignIn: 
       <div className="list-tools">
         <SearchBox value={q} onChange={search} label="Search independent games" placeholder="Search games or creators"
           suggestions={(games ?? []).flatMap((g) => [g.name, g.by])} />
-        {games && <span className="count">{searching ? `${found.length} ${found.length === 1 ? "result" : "results"}` : `${games.length} ${games.length === 1 ? "game" : "games"}`}</span>}
+        {games && (
+          <span className="count">
+            {searching
+              ? `${found.length} ${found.length === 1 ? "result" : "results"}`
+              : pages > 1
+              ? `${(current - 1) * PER_PAGE + 1}–${(current - 1) * PER_PAGE + shown.length} of ${games.length}`
+              : `${games.length} ${games.length === 1 ? "game" : "games"}`}
+          </span>
+        )}
       </div>
       {games && games.length === 0 && (
         <p className="empty">No games from independent creators yet. <button type="button" className="link" onClick={startSubmit}>Be the first to add yours.</button></p>
@@ -267,8 +289,9 @@ export function CreatorsPage({ user, onSignIn }: { user: User | null; onSignIn: 
         <p className="empty">No games match “{q.trim()}”. <button type="button" className="link" onClick={() => search("")}>Clear search</button></p>
       )}
       <div className="grid" aria-busy={games === null}>
-        {games === null ? <SkeletonCards count={8} /> : found.map((g) => <IndieCard key={g.id} game={g} fav={fav} />)}
+        {games === null ? <SkeletonCards count={8} /> : shown.map((g) => <IndieCard key={g.id} game={g} fav={fav} />)}
       </div>
+      <Pagination page={current} pages={pages} onPage={goToPage} hrefFor={(n) => urlFor("/creators", q, n)} />
       {popups}
     </section>
   );
