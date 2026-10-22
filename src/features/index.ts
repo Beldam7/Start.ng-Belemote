@@ -13,4 +13,7 @@ import "./game_health"; // H2 game health checks (Hamzat)
 import "./catalog"; // T1 categories, ratings and filters (Hamzat, for Tega)
 import "./discovery"; // A1 discovery: shelves and ranking (Hamzat, for Ade)
 import "./spotlight"; // A2 Game of the Week and the daily challenge (Hamzat, for Ade)
+import "./share_cards";
+import "./challenges";
+import "./creator_hub"; // T2 creator hub (Hamzat, for Tega)
 export {};
