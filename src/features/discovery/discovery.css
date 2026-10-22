@@ -1,12 +1,12 @@
 .shelves { display: grid; gap: 22px; margin: 8px auto 28px; }
-.shelf h2 { font-size: 1.1rem; margin: 0 0 8px; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.shelf h2 { font-size: 1.1rem; margin: 0 0 18px; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
 .shelf ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; grid-template-columns: repeat(5, minmax(0, 1fr)); }
 .shelf .art span { font-size: 2.4rem; }
 .shelf .info { padding: 0 4px 4px; }
 .shelf .info h3 { font-size: 1rem; }
 /* a livelier pop than the grid cards: lifts higher, grows a little and overshoots slightly before it settles */
 .shelf .game { transition: transform .28s cubic-bezier(.34, 1.56, .64, 1), border-color .15s, box-shadow .15s; }
-.shelf .game:hover { transform: translateY(-8px) scale(1.05); border-color: var(--ink); box-shadow: 6px 8px 0 var(--lime); }
+.shelf .game:hover { transform: translateY(-4px) scale(1.03); border-color: var(--ink); box-shadow: 6px 8px 0 var(--lime); }
 @media (prefers-reduced-motion: reduce) { .shelf .game { transition: none; } .shelf .game:hover { transform: none; } }
 @media (max-width: 600px) { .shelf ul { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; } }
 .play-next a { white-space: nowrap; }
