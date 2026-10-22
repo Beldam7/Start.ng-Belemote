@@ -3,6 +3,9 @@ import {
   COVER_TYPES, GITHUB_REPO_RE, MAX_COVER_BYTES, myGames, myGamesOrThrow, Problem, publishGame, PublishedGame, PublishFailed, removeCover, unpublishGame, uploadCover,
 } from "./api";
 import { toCard } from "./games";
+import Boundary from "./features/Boundary";
+import { useFeatures } from "./features/flags";
+import { allYourGameParts } from "./features/registry";
 
 // A picture the owner uploaded (not the game's own cover.png), so it can be removed.
 const isUploaded = (g: PublishedGame) => !!g.cover_url && new URL(g.cover_url).pathname === "/startng-cover.webp";
@@ -61,6 +64,7 @@ export default function MyGames() {
   const [busy, setBusy] = useState(false);
   const [coverBusy, setCoverBusy] = useState<string | null>(null); // the game whose picture is uploading
   const token = localStorage.getItem("token");
+  const isOn = useFeatures();
 
   const refresh = () => myGames(token).then(setGames);
   useEffect(() => {
@@ -199,7 +203,7 @@ export default function MyGames() {
               <div className="game-card-body">
                 <h4>{card.title}</h4>
                 <div className="game-card-meta">
-                  <span className="tag">Live</span>
+                  {g.hidden ? <span className="tag off">Hidden</span> : <span className="tag">Live</span>}
                   <span>Updated {dateOf(g.updated_at)}</span>
                 </div>
                 <UpdateStatus game={g} />
@@ -219,8 +223,8 @@ export default function MyGames() {
                   )}
                 </div>
               </div>
-              {/* Reported or flagged: hidden from start.ng while admins look at it. */}
-              {g.hidden && (
+              {/* Reported, flagged or blocked: hidden from start.ng. Features with their own reason explain it themselves. */}
+              {(g.hidden === "reported" || g.hidden === "flagged" || g.hidden === "blocked") && (
                 <div className="update-problem" role="status">
                   <b>Hidden from start.ng</b>
                   <span>
@@ -230,6 +234,12 @@ export default function MyGames() {
                   </span>
                 </div>
               )}
+              {/* Features' own parts (src/features/registry.ts, registerYourGamePart) */}
+              {allYourGameParts().filter((p) => isOn(p.feature)).map((p) => (
+                <Boundary key={p.key} name={p.key}>
+                  <p.Component game={g} reload={refresh} />
+                </Boundary>
+              ))}
               {/* The latest push didn't pass the checks: the game kept its last version. */}
               {g.update_problem && (
                 <div className="update-problem" role="status">
