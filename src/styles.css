@@ -554,6 +554,7 @@ code { color: var(--on-lime); }
 .game-page-share { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding-top: 14px; border-top: 1px solid var(--line); color: var(--muted); }
 .game-page-share span { font-family: var(--mono); font-size: .75rem; text-transform: uppercase; letter-spacing: .12em; margin-right: 4px; }
 .game-page-share .btn, .game-page-share button { padding: 9px 16px; font-size: .9rem; }
+.game-page-rows { display: grid; gap: 14px; margin-top: 28px; min-width: 0; }
 .skeleton.line.big { height: 34px; width: 60%; margin-bottom: 6px; }
 @media (max-width: 760px) {
   .game-page-grid { grid-template-columns: minmax(0, 1fr); gap: 20px; }
@@ -561,7 +562,7 @@ code { color: var(--on-lime); }
 }
 
 /* the leaderboard on a game's page, in its own card under the details */
-.game-page-board { display: grid; max-width: 760px; margin-top: 36px; gap: 10px; padding: 16px; background: var(--card); border: 1px solid var(--line); border-radius: 16px; box-shadow: 4px 4px 0 var(--lime); min-width: 0; }
+.game-page-board { display: grid; margin-top: 36px; gap: 10px; padding: 16px; background: var(--card); border: 1px solid var(--line); border-radius: 16px; box-shadow: 4px 4px 0 var(--lime); min-width: 0; }
 .game-page-board h2 { margin: 0; font-size: 1.3rem; letter-spacing: -.03em; display: flex; align-items: baseline; gap: 10px; }
 .game-page-board h2 span { font-family: var(--mono); font-size: .7rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); font-weight: 400; }
 .game-page-board .board-sub, .game-page-board .board-empty { margin: 0; }
@@ -615,7 +616,7 @@ code { color: var(--on-lime); }
 }
 
 /* Reporting a game (Report.tsx) */
-.game-page-report { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 18px; font-size: .9rem; }
+.game-page-report { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 28px; font-size: .9rem; }
 .game-page-report .flag { color: var(--danger); }
 .card.report { max-width: 440px; }
 .reasons { border: 0; padding: 0; margin: 0; display: grid; gap: 6px; }
