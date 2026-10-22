@@ -40,7 +40,7 @@ export default function AccountMenu({ user, isAdmin = false, onProfile, onFavori
               <span>{user.email}</span>
             </div>
           </div>
-          <button role="menuitem" onClick={() => { setOpen(false); onProfile(); }}>View profile</button>
+          <button role="menuitem" onClick={() => { setOpen(false); onProfile(); }}>Edit profile</button>
           <button role="menuitem" onClick={() => { setOpen(false); onFavorites(); }}>Favorites</button>
           {profilesOn && <a role="menuitem" href="/me" onClick={() => setOpen(false)}>My page</a>}
           {friendsOn && <a role="menuitem" href="/follows" onClick={() => setOpen(false)}>Friends</a>}
