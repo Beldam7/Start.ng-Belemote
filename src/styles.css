@@ -661,7 +661,7 @@ button:disabled { opacity: .5; cursor: not-allowed; }
 .row-actions { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
 .admin-inline { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0 14px; }
 .admin-inline input { flex: 1 1 220px; min-width: 0; }
-.admin-inline select, .admin-table select { padding: 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: inherit; font: inherit; }
+.admin-inline select, .admin-table select { min-height: 36px; }
 .admin-table { width: 100%; border-collapse: collapse; margin: 8px 0 10px; font-size: .92rem; display: block; overflow-x: auto; }
 .admin-table th, .admin-table td { text-align: left; padding: 10px 12px 10px 0; border-bottom: 1px solid var(--line); vertical-align: middle; }
 .admin-table th { color: var(--muted); font-weight: 600; white-space: nowrap; }
@@ -835,12 +835,9 @@ button.small { padding: 7px 12px; font-size: .85rem; border-radius: 8px; }
 .newsletter-form label { display: grid; gap: 6px; font-weight: 600; }
 .newsletter-form input { padding: 13px 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: inherit; font: inherit; font-weight: 400; }
 .newsletter-form textarea { font-weight: 400; }
-.newsletter-form select, .newsletter-actions select, .newsletter-actions .btn { min-height: 46px; box-sizing: border-box; }
-.newsletter-form select, .newsletter-actions select { padding: 0 40px 0 14px; border-radius: 10px; border: 1px solid var(--line); background-color: var(--bg); color: inherit; font: inherit; font-weight: 400;
-  appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat; background-position: right 14px center; cursor: pointer; }
-.newsletter-form select { width: 100%; }
-.newsletter-actions select { flex: 1 1 260px; max-width: 420px; }
+.newsletter-actions select, .newsletter-actions .btn { min-height: 46px; }
+.newsletter-form select { width: 100%; min-height: 46px; padding-left: 14px; }
+.newsletter-actions select { flex: 1 1 260px; max-width: 420px; padding-left: 14px; }
 .newsletter-form select:focus-visible, .newsletter-form input:focus-visible, .newsletter-actions select:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
 .newsletter-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .newsletter-preview { max-width: 680px; margin: 0 0 20px; padding: 14px 18px; border-radius: 14px; background: var(--card); border: 1px solid var(--line); }
@@ -879,3 +876,30 @@ button.small { padding: 7px 12px; font-size: .85rem; border-radius: 8px; }
 @media (max-width: 760px) {
   .league-clock { justify-items: start; }
 }
+
+/* dropdowns: one look everywhere. Chrome's customisable select (appearance: base-select) also gets a styled list;
+   other browsers keep their own list but get the same closed look. */
+select { appearance: none; min-height: 38px; padding: 8px 36px 8px 12px; border-radius: 10px; border: 1px solid var(--line); color: inherit; font: inherit; font-size: .92rem; cursor: pointer;
+  background-color: var(--bg); background-repeat: no-repeat; background-position: right 12px center; background-size: 12px 8px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23909086' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  transition: border-color .15s, box-shadow .15s; }
+select:hover { border-color: var(--muted); }
+select:focus-visible { outline: none; border-color: var(--ink); box-shadow: 0 0 0 3px var(--lime); }
+select:disabled { opacity: .55; cursor: default; }
+option { background: var(--card); color: var(--ink); }
+@supports (appearance: base-select) {
+  select, ::picker(select) { appearance: base-select; }
+  select { background-image: none; display: inline-flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 12px; }
+  select::picker-icon { content: ""; width: 12px; height: 8px; flex: none; transition: rotate .2s;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23909086' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat; }
+  select:open::picker-icon { rotate: 180deg; }
+  ::picker(select) { margin-top: 6px; padding: 6px; border: 1px solid var(--line); border-radius: 14px; background: var(--card); color: var(--ink);
+    box-shadow: 0 14px 34px var(--scrim); min-width: anchor-size(width); }
+  option { display: flex; align-items: center; padding: 9px 12px; border-radius: 9px; font-size: .92rem; cursor: pointer; }
+  option:hover, option:focus-visible { background: var(--line); outline: none; }
+  option:checked { background: var(--lime); color: var(--on-lime); font-weight: 700; }
+  option::checkmark { display: none; }
+}
+
+.game-card > :not(.art):not(.game-card-body) { grid-column: 1 / -1; }
+.game-card p.update-status { display: block; -webkit-line-clamp: unset; overflow: visible; }

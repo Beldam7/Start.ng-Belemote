@@ -307,7 +307,6 @@ export default function App({ view = "home", gameName, indieId, featurePage }: {
           <a href="/games" aria-current={allGames || gamePage ? "page" : undefined}>Games</a>
           <a href="/tournament" aria-current={tournamentPage || leaderboardPage ? "page" : undefined}>Tournament</a>
           <a href="/creators" aria-current={creatorsPage || indiePage ? "page" : undefined}>Creators</a>
-          <a href={view === "home" ? "#how" : "/#how"}>How it works</a>
           <a href="/docs">Docs</a>
         </nav>
         <div className="nav-account">

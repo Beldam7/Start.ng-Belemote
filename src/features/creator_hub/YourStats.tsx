@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { YourGameProps } from "../registry";
 import { getDashboard, type Dashboard, type GameStats } from "./api";
+import "./creator_hub.css";
 
 // The creator dashboard, inside Your games: each game's numbers under its card. Aggregates only (never who played).
 // One request serves every game on the page.
