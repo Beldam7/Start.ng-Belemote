@@ -4,6 +4,10 @@
 .shelf .art span { font-size: 2.4rem; }
 .shelf .info { padding: 0 4px 4px; }
 .shelf .info h3 { font-size: 1rem; }
+/* a livelier pop than the grid cards: lifts higher, grows a little and overshoots slightly before it settles */
+.shelf .game { transition: transform .28s cubic-bezier(.34, 1.56, .64, 1), border-color .15s, box-shadow .15s; }
+.shelf .game:hover { transform: translateY(-8px) scale(1.05); border-color: var(--ink); box-shadow: 6px 8px 0 var(--lime); }
+@media (prefers-reduced-motion: reduce) { .shelf .game { transition: none; } .shelf .game:hover { transform: none; } }
 @media (max-width: 600px) { .shelf ul { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; } }
 .play-next a { white-space: nowrap; }
 .feature-checklist { margin-top: 8px; font-size: .9rem; }
