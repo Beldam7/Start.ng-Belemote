@@ -1,12 +1,10 @@
 .shelves { display: grid; gap: 22px; margin: 8px auto 28px; }
 .shelf h2 { font-size: 1.1rem; margin: 0 0 8px; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
-.shelf ul { list-style: none; margin: 0; padding: 0 0 6px; display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x proximity; }
-.shelf li { flex: 0 0 150px; scroll-snap-align: start; }
-.shelf a { display: grid; gap: 4px; color: inherit; text-decoration: none; }
-.shelf .art { display: grid; place-items: center; height: 96px; border-radius: 12px; overflow: hidden; font-weight: 800; font-size: 1.6rem; color: #fff; }
-.shelf .art img { width: 100%; height: 100%; object-fit: cover; }
-.shelf b { font-size: .92rem; }
-.shelf em { font-style: normal; font-size: .76rem; color: var(--muted); }
+.shelf ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.shelf .art span { font-size: 2.4rem; }
+.shelf .info { padding: 0 4px 4px; }
+.shelf .info h3 { font-size: 1rem; }
+@media (max-width: 600px) { .shelf ul { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; } }
 .play-next a { white-space: nowrap; }
 .feature-checklist { margin-top: 8px; font-size: .9rem; }
 .feature-checklist summary { cursor: pointer; font-weight: 600; }
