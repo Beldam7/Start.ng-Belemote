@@ -249,7 +249,7 @@ It adds a "← start.ng" button (top left) and a small "Made on start.ng" badge 
 | `startng.getLeaderboard(limit)` | The top players, for everyone. |
 | `startng.share({ score })` | Opens an X post with the result and a link to your game. |
 
-The back button, the badge and the card's **Share on X** button are the three game standards. Until the publish check learns to recognise the Kit, keep the start.ng link, name and X share in your own code as well.
+The back button, the badge and the card's **Share on X** button are the three game standards, so a game that loads the Kit and calls `startng.gameOver()` (or `startng.share()`) at the end of a round meets all three. If you turn the button or the badge off, add your own link back to https://start.ng or the start.ng name instead.
 
 Options go on the script tag: `data-back="off"` (no back button), `data-badge="off"` (no badge) and `data-position="right"` (back button top right). The Kit also sends start.ng a ping every 30 seconds while the game is on screen, so creators will be able to see how long people play. It sends nothing else.
 
