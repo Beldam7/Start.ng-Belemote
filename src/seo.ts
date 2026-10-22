@@ -116,6 +116,12 @@ export const PAGES: Record<string, Seo> = {
     path: "/league",
     noindex: true,
   },
+  profile: {
+    title: "A player on start.ng",
+    description: "A player's page on start.ng: their character, level, badges and best scores.",
+    path: "/me",
+    noindex: true, // player pages stay out of search results
+  },
   spotlight: {
     title: "Spotlight · start.ng",
     description: "The Game of the Week and today's daily challenge on start.ng: one goal a day, set from how people really play.",
@@ -157,6 +163,7 @@ export const STATIC_PAGES: [string, Seo][] = [
   ["follows.html", PAGES.follows],
   ["friend-invite.html", PAGES.friendInvite],
   ["league.html", PAGES.league],
+  ["profile.html", PAGES.profile],
   ["404.html", PAGES.notFound],
 ];
 

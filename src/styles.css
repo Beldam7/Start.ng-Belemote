@@ -821,6 +821,8 @@ button.small { padding: 7px 12px; font-size: .85rem; border-radius: 8px; }
 .email-stats b { font-size: 1.3rem; }
 .email-stats span { font-size: .78rem; color: var(--muted); text-transform: capitalize; }
 .email-row h3 { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.player-link { color: inherit; text-decoration: none; }
+.player-link:hover { text-decoration: underline; }
 .newsletter-form { display: grid; gap: 12px; margin: 16px 0; max-width: 680px; }
 .newsletter-form label { display: grid; gap: 6px; font-weight: 600; }
 .newsletter-form input { padding: 13px 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: inherit; font: inherit; font-weight: 400; }
