@@ -1,6 +1,5 @@
 // Every feature, ONE line each: importing it runs its index.ts, which registers its pages, card parts, admin tabs
 // and profile sections (src/features/registry.ts). Copy src/features/_template to start a feature.
-// import "./wardrobe";
 import "./private_tournaments";
 import "./follows";
 import "./integrity";
@@ -18,4 +17,5 @@ import "./spotlight"; // A2 Game of the Week and the daily challenge (Hamzat, fo
 import "./share_cards";
 import "./challenges";
 import "./creator_hub"; // T2 creator hub (Hamzat, for Tega)
+import "./wardrobe"; // wardrobe rewards: coins, rarity items and the shop (Kaka)
 export {};

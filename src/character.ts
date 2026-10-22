@@ -15,6 +15,12 @@ export type CharacterStyle = {
 
 export type Character = { name: string; style: CharacterStyle };
 
+/** A wardrobe item the character wears (src/features/wardrobe). The API sends objects; a plain key works too. */
+export type WornItem = string | { key: string; slot?: string };
+/** A style with wardrobe items on: `hat` and `accessory` may be an item's key (like "gele"), and `items` lists every
+ *  worn item, including the slots that have no style field (outfit, neck, back, aura). three/items.ts draws them. */
+export type DressedStyle = Omit<CharacterStyle, "hat" | "accessory"> & { hat: string; accessory: string; items?: WornItem[] };
+
 export const SKINS = ["#5c3a21", "#8d5524", "#a0662f", "#c68642", "#e0ac69", "#f1c27d"];
 export const HAIR_COLORS = ["#17120f", "#4a2c1a", "#8b5a2b", "#d9a441", "#b8b8b8", "#c0392b"];
 export const TOPS = ["#ff6b6b", "#1dd1a1", "#a55eea", "#4b7bec", "#f7b731", "#fd9644", "#eb3b5a", "#292a23"];

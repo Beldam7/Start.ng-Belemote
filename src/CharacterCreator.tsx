@@ -1,7 +1,11 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, lazy, Suspense, useMemo, useState } from "react";
 import MyGames from "./MyGames";
 import Viewer from "./three/Viewer";
 import { Body, BOTTOMS, Character, CharacterStyle, HAIR_COLORS, HATS, SECTIONS, SKINS, TOPS, withBody } from "./character";
+import { useFeature } from "./features/flags";
+import { dressed, useWorn } from "./features/wardrobe/dress";
+
+const WardrobePanel = lazy(() => import("./features/wardrobe/WardrobePanel"));
 
 type Props = {
   initial: Character;
@@ -20,6 +24,11 @@ export default function CharacterCreator({ initial, editing, email, onSave, onCa
   const [picked, setPicked] = useState(editing);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  // Your profile has a Wardrobe tab while the wardrobe is on (src/features/wardrobe).
+  const wardrobeOn = useFeature("wardrobe") && editing;
+  const [tab, setTab] = useState<"look" | "wardrobe">("look");
+  const worn = useWorn(wardrobeOn);
+  const preview = useMemo(() => (worn ? dressed(style, worn) : style), [style, worn]); // with your worn items on
   const set = <K extends keyof CharacterStyle>(k: K, v: CharacterStyle[K]) => setStyle((s) => ({ ...s, [k]: v }));
   // First pick starts with that section's main hairstyle; switching later keeps what still fits.
   const startAs = (b: Body) => ({ ...withBody(style, b), hair: SECTIONS[b].hair[0] });
@@ -82,7 +91,7 @@ export default function CharacterCreator({ initial, editing, email, onSave, onCa
     <div className="overlay creator-overlay">
       <form className={`creator ${editing ? "creator-profile" : ""}`} onSubmit={submit}>
         <div className="creator-preview">
-          <Viewer style={style} className="creator-viewer" />
+          <Viewer style={preview} className="creator-viewer" />
           <strong>{name.trim() || "Your character"}</strong>
           <span className="viewer-hint">Drag to turn · Click to say hi</span>
         </div>
@@ -91,6 +100,19 @@ export default function CharacterCreator({ initial, editing, email, onSave, onCa
           <h2>{editing ? "Your profile" : "Create your character"}</h2>
           <p className="lead-sm">{editing ? <>Signed in as {email}. Your character is you in every game.</> : "This is you in every game on start.ng."}</p>
 
+          {wardrobeOn && (
+            <div className="segmented" role="tablist" aria-label="Profile">
+              {(["look", "wardrobe"] as const).map((t) => (
+                <button type="button" role="tab" key={t} className={tab === t ? "on" : ""} aria-selected={tab === t} onClick={() => setTab(t)}>
+                  {t === "look" ? "Look" : "Wardrobe"}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {wardrobeOn && tab === "wardrobe" ? (
+            <Suspense fallback={<p className="board-sub">Loading…</p>}><WardrobePanel compact /></Suspense>
+          ) : (<>
           <div className="segmented" role="group" aria-label="Female or male">
             {(["female", "male"] as Body[]).map((b) => (
               <button type="button" key={b} className={style.body === b ? "on" : ""} onClick={() => pickBody(b)}>
@@ -112,6 +134,7 @@ export default function CharacterCreator({ initial, editing, email, onSave, onCa
           <div className="field"><span>Extra</span>{chips("accessory", section.accessory)}</div>
 
           {editing && <MyGames />}
+          </>)}
 
           {error && <p className="error">{error}</p>}
           <div className="creator-actions">
