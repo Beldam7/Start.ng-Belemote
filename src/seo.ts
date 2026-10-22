@@ -104,6 +104,16 @@ export const PAGES: Record<string, Seo> = {
     path: "/follows",
     noindex: true, // an invite link is private
   },
+  creator: {
+    title: "A creator on start.ng",
+    description: "A creator's games on start.ng: play them free in your browser, follow them, and share.",
+    path: "/by",
+  },
+  creatorsBoard: {
+    title: "Top creators · start.ng",
+    description: "The creators whose games the most different players opened this month on start.ng.",
+    path: "/by",
+  },
   notFound: {
     title: "Page not found · start.ng",
     description: "There's nothing at this address. Browse the games on start.ng instead.",
@@ -121,6 +131,8 @@ export const STATIC_PAGES: [string, Seo][] = [
   ["tournament.html", PAGES.tournament],
   ["leaderboard.html", PAGES.leaderboard],
   ["game.html", PAGES.game],
+  ["creators-board.html", PAGES.creatorsBoard],
+  ["creator.html", PAGES.creator],
   ["approve.html", PAGES.approve],
   ["friends-tournaments.html", PAGES.friendsTournaments],
   ["private-tournament.html", PAGES.privateTournament],
