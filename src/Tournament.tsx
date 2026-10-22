@@ -10,6 +10,7 @@ import PageParts from "./features/PageParts";
 import { Game, toCard } from "./games";
 import { PAGES, setSeo, TOURNAMENT_IMAGE } from "./seo";
 import ShareButton from "./features/share_cards/ShareButton";
+import { withHandle } from "./share";
 
 // Daily tournaments (startng-be app/tournaments.py): every day 5 random games for 24 hours, ending at 18:00
 // Nigeria time. Sharing on X enters you; your runs on those games count, and places give points
@@ -204,7 +205,7 @@ export function TournamentPage({ user, state, onSignIn, onPlay }: {
 
     // Computers (and phones that can't share files): X's post page. The link shows the picture as its preview card.
     function openTweet() {
-      window.open(`https://twitter.com/intent/tweet?${new URLSearchParams({ text, url })}`, "_blank", "noopener,noreferrer");
+      window.open(`https://twitter.com/intent/tweet?${new URLSearchParams({ text: withHandle(text), url })}`, "_blank", "noopener,noreferrer");
       analytics.share("tournament", String(id), "x");
       enter(ENTER_DELAY_MS);
     }

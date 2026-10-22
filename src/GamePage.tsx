@@ -7,6 +7,7 @@ import { Game, isInAppGame } from "./games";
 import PageParts from "./features/PageParts";
 import ReportDialog from "./Report";
 import { PAGES, setSeo } from "./seo";
+import { withHandle } from "./share";
 
 // start.ng/games/<name>: a game's own page on start.ng, shown before the game itself. Search engines
 // and shared links land here (the API serves this address with the text already in it, see
@@ -65,7 +66,7 @@ export default function GamePage({ name, game, loading, user, playerId, favorite
   const g = game;
   const pageUrl = `${location.origin}/games/${g.slug}`;
   const description = g.description ?? `Play ${g.title} free in your browser, right here on start.ng. A game by ${g.by}.`;
-  const tweet = `https://twitter.com/intent/tweet?${new URLSearchParams({ text: `Come play ${g.title} on start.ng!`, url: pageUrl })}`;
+  const tweet = `https://twitter.com/intent/tweet?${new URLSearchParams({ text: withHandle(`Come play ${g.title} on start.ng!`), url: pageUrl })}`;
 
   async function copy() {
     try {

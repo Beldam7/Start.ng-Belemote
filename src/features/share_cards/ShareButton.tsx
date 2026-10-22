@@ -8,6 +8,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { analytics } from "../../analytics";
 import { useFeature } from "../flags";
 import { getShare, type ShareInfo, type ShareKind } from "./api";
+import { withHandle } from "../../share";
 
 const FEATURE = "share_cards";
 
@@ -80,7 +81,7 @@ export default function ShareButton({ kind, id, label = "Share", intro, onShared
 
   const buttons = phone ? <button type="button" onClick={shareOnPhone} disabled={!ready}>{label}</button> : (
     <div className="share-row">
-      <a className="btn" href={`https://twitter.com/intent/tweet?${new URLSearchParams({ text: info.text, url: info.url })}`}
+      <a className="btn" href={`https://twitter.com/intent/tweet?${new URLSearchParams({ text: withHandle(info.text), url: info.url })}`}
         target="_blank" rel="noreferrer" onClick={() => shared("x")}>Post on X</a>
       <a className="btn ghost" href={`https://wa.me/?${new URLSearchParams({ text: post })}`} target="_blank" rel="noreferrer"
         onClick={() => shared("whatsapp")}>WhatsApp</a>

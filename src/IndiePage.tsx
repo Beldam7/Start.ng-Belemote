@@ -4,6 +4,7 @@ import { FavoriteButton, indieKey, useFavorites } from "./Favorites";
 import { getIndieGame, IndieGame, indieCoverUrl, removeIndieGame, trackIndiePlay, User } from "./api";
 import { hostOf, indiePath } from "./indie";
 import { PAGES, setSeo } from "./seo";
+import { withHandle } from "./share";
 
 // start.ng/creators/<id>-<name>: the page of a game by an independent creator, which is hosted outside
 // start.ng. Search engines and shared links land here (the API serves this address with the text
@@ -55,7 +56,7 @@ export default function IndiePage({ id, user, onSignIn }: { id: number; user: Us
 
   const g = game;
   const pageUrl = `${location.origin}${indiePath(g)}`;
-  const tweet = `https://twitter.com/intent/tweet?${new URLSearchParams({ text: `Come play ${g.name} on start.ng!`, url: pageUrl })}`;
+  const tweet = `https://twitter.com/intent/tweet?${new URLSearchParams({ text: withHandle(`Come play ${g.name} on start.ng!`), url: pageUrl })}`;
 
   async function copy() {
     try {
