@@ -46,8 +46,15 @@ export type PublishedGame = {
   checked_at?: string | null; // when the repo was last checked for a push (null: not yet)
   live_commit?: string | null; // the first 7 characters of the commit that's live (null: not known yet)
   updates_paused_until?: string | null; // set while GitHub's limit has paused all checking
-  hidden?: "reported" | "flagged" | "blocked" | null; // only for the owner: hidden from start.ng while admins look at it
+  hidden?: "reported" | "flagged" | "blocked" | (string & {}) | null; // only for the owner: why it's hidden (features add reasons)
 };
+
+/** The feature flags that are on (see src/features/flags.ts). ["*"] means all of them. */
+export async function getFeatures(): Promise<string[]> {
+  const res = await fetch(`${API_URL}/features`);
+  if (!res.ok) throw new Error("Could not load the feature list");
+  return res.json();
+}
 
 export async function listGames(): Promise<PublishedGame[]> {
   const res = await fetch(`${API_URL}/games`);
@@ -60,6 +67,21 @@ export type ScoreResult = { best: number; improved: boolean; rank: number; stats
 export type LeaderboardEntry = { rank: number; player_id: number; name: string; color: string | null; score: number; stats: Record<string, number | null> };
 
 /** A game's run: a plain score, or its own stats from startng.json ({ stats: { waves: 5, kills: 10 } }). */
+/** Passes on a play-session ping from a game that uses the Kit (start, heartbeat or end). Never throws: a lost
+ *  ping only makes a session look a little shorter. The API answers 404 while the "kit" flag is off. */
+export async function pingSession(token: string | null, game: string, ping: { session_id: string; event: string; kit?: string }): Promise<void> {
+  try {
+    await fetch(`${API_URL}/kit/games/${encodeURIComponent(game)}/sessions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      body: JSON.stringify(ping),
+      keepalive: true, // the "end" ping is sent as the player leaves the game
+    });
+  } catch {
+    // Telemetry must never break a game.
+  }
+}
+
 export async function submitScore(token: string | null, game: string, run: { score?: number; stats?: Record<string, unknown> }): Promise<ScoreResult> {
   const res = await fetch(`${API_URL}/games/${encodeURIComponent(game)}/scores`, {
     method: "POST",
@@ -248,10 +270,35 @@ export async function removeIndieGame(token: string | null, id: number): Promise
 export function trackPlay(game: string) {
   analytics.play(game);
   const url = `${API_URL}/games/${encodeURIComponent(game)}/plays`;
+  // A signed-in player's open is remembered on their account (the progress features), which needs their sign-in on the
+  // request. A beacon can't carry headers, so this is a fetch that survives the page being left. Anyone else still
+  // uses the beacon. A token that has run out is left off. The API counts a token it can't use as a visitor's play.
+  const token = usableToken();
+  if (token) {
+    fetch(url, { method: "POST", keepalive: true, headers: { Authorization: `Bearer ${token}` } })
+      .catch(() => anonymousPlay(url)); // the call itself failed (network, CORS): count it as a visitor's play
+    return;
+  }
+  anonymousPlay(url);
+}
+
+function anonymousPlay(url: string) {
   try {
     if (navigator.sendBeacon?.(url)) return;
   } catch { /* fall back to fetch */ }
   fetch(url, { method: "POST", keepalive: true }).catch(() => {});
+}
+
+/** The saved sign-in, unless it is missing or its expiry has passed (a start.ng token is a JWT with an "exp"). */
+function usableToken(): string | null {
+  const token = localStorage.getItem("token");
+  if (!token) return null;
+  try {
+    const exp = JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/"))).exp;
+    return typeof exp === "number" && exp * 1000 < Date.now() + 30_000 ? null : token;
+  } catch {
+    return token; // not something we can read: let the API decide
+  }
 }
 
 /** Someone opened a game by an independent creator: counted for "most clicked". */
@@ -373,7 +420,8 @@ export type ActivityKind = "player" | "developer" | "admin" | "system";
 export type LogEntry = { id: number; actor: string | null; kind: ActivityKind; action: string; target: string | null; detail: Record<string, unknown> | null; at: string };
 export type Overview = { open_reports: number; games_waiting: number; hidden_games: number; blocked_developers: number; admins: number };
 
-async function call<T>(token: string | null, path: string, init: RequestInit = {}): Promise<T> {
+/** A signed-in call to the API. Features use this (and send) from their own folder: src/features/<feature>/api.ts. */
+export async function call<T>(token: string | null, path: string, init: RequestInit = {}): Promise<T> {
   const res = await fetch(`${API_URL}${path}`, {
     ...init,
     headers: { ...(init.body ? { "Content-Type": "application/json" } : {}), ...authHeader(token), ...(init.headers ?? {}) },
@@ -383,7 +431,7 @@ async function call<T>(token: string | null, path: string, init: RequestInit = {
   if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Something went wrong");
   return data;
 }
-const send = (method: string, body?: unknown): RequestInit => ({ method, body: body === undefined ? undefined : JSON.stringify(body) });
+export const send = (method: string, body?: unknown): RequestInit => ({ method, body: body === undefined ? undefined : JSON.stringify(body) });
 
 /** Report a game (signed in). It's hidden from start.ng until an admin looks at it. */
 export const reportGame = (token: string | null, game: string, reason: ReportReason, details: string) =>

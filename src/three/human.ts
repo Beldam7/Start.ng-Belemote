@@ -1,8 +1,10 @@
 // A smooth 3D person built from rounded shapes, in metres (about 1.7-1.75 m tall).
 // Limbs are tapered with rounded ends that overlap at the joints, so the body reads as one piece.
-// Everything the creator lets you pick (body, colours, hair, hat, extra) is real geometry.
+// Everything the creator lets you pick (body, colours, hair, hat, extra) is real geometry, and so are wardrobe items
+// (items.ts).
 import * as THREE from "three";
-import { CharacterStyle } from "../character";
+import { DressedStyle } from "../character";
+import { dress } from "./items";
 
 const PI = Math.PI;
 const SHOE = "#2a211b";
@@ -54,7 +56,7 @@ function curlyGeometry(r: number, amount: number) {
   return g;
 }
 
-export function buildHuman(s: CharacterStyle): Human {
+export function buildHuman(s: DressedStyle): Human {
   const female = s.body === "female";
   const geos: THREE.BufferGeometry[] = [];
   const mats = new Map<string, THREE.MeshStandardMaterial>();
@@ -118,9 +120,11 @@ export function buildHuman(s: CharacterStyle): Human {
 
   // ---- torso: one smooth shape from waist to collar
   const spine = group(hips, 0, 0.03, 0);
-  const torso = lathe(female
+  const torsoPts = female
     ? [[0.148, -0.05], [0.15, 0.0], [0.142, 0.06], [0.124, 0.13], [0.116, 0.19], [0.126, 0.25], [0.138, 0.31], [0.142, 0.36], [0.14, 0.4], [0.124, 0.44], [0.09, 0.47], [0.055, 0.49], [0.045, 0.5]]
-    : [[0.142, -0.05], [0.144, 0.0], [0.142, 0.07], [0.14, 0.15], [0.146, 0.23], [0.162, 0.31], [0.176, 0.38], [0.176, 0.43], [0.16, 0.475], [0.12, 0.51], [0.066, 0.53], [0.052, 0.54]], top, female ? 0.64 : 0.66);
+    : [[0.142, -0.05], [0.144, 0.0], [0.142, 0.07], [0.14, 0.15], [0.146, 0.23], [0.162, 0.31], [0.176, 0.38], [0.176, 0.43], [0.16, 0.475], [0.12, 0.51], [0.066, 0.53], [0.052, 0.54]];
+  const torsoDepth = female ? 0.64 : 0.66;
+  const torso = lathe(torsoPts, top, torsoDepth);
   spine.add(torso);
   if (female) {
     for (const side of [-1, 1]) spine.add(ball(0.058, top, side * 0.056, 0.325, 0.045, 1, 0.88, 0.75));
@@ -312,6 +316,10 @@ export function buildHuman(s: CharacterStyle): Human {
     }
   }
 
+  // ---- wardrobe items (items.ts): hats, extras, outfits, neck, back and aura
+  const dressing = dress({ female, sx, lift, neckTop, shoulderY, torsoPts, torsoDepth, root, spine, torso, head, arms,
+    mat, mesh, ball, group, limb, lathe }, s);
+
   // ---- idle animation: breathing, weight shift, looking around
   const restArm = female ? 0.1 : 0.13;
   const WAVE = 1.8; // seconds
@@ -385,6 +393,7 @@ export function buildHuman(s: CharacterStyle): Human {
       hips.position.y = hipY;
     }
     for (let i = 0; i < sw.length; i++) sw[i].rotation.x = -0.08 + Math.sin(t * 1.3 + i * 0.3) * 0.04 - head.rotation.x;
+    dressing.update(t);
   }
   update(0);
 
@@ -398,6 +407,7 @@ export function buildHuman(s: CharacterStyle): Human {
     dispose() {
       geos.forEach((g) => g.dispose());
       mats.forEach((m) => m.dispose());
+      dressing.dispose();
     },
   };
 }

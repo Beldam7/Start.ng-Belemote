@@ -146,7 +146,7 @@ Every game on start.ng meets three standards. They keep the experience the same 
 2. **start.ng branding.** The name "start.ng" shown in the game, for example on the start screen or the end screen.
 3. **Share your result on X.** When a round ends, a **Share** button that opens an X (Twitter) post with the player's result and a link to your game.
 
-The smallest way to meet the first two:
+The Kit (see "The Kit" below) adds all three to your game. The smallest way to meet the first two by hand:
 
 ```html
 <footer>Play more on <a href="https://start.ng">start.ng</a></footer>
@@ -228,6 +228,32 @@ Every refusal from publish and check has this shape: `detail` for people, and `e
 ### When an update doesn't pass
 
 If a push has errors, the game **stays on its last good version** and players notice nothing. The owner sees why on the game's card in **Your games** on their profile ("Your latest push didn't go live"), with every problem listed. Fix them and push again; the note goes away once a push goes live. If GitHub has a hiccup, start.ng simply tries the same push again on its next check.
+
+## The Kit: one line instead of the code below
+
+Add this to your game's HTML and you get the start.ng parts without copying any code:
+
+```html
+<script src="https://start.ng/kit.js" defer></script>
+```
+
+It adds a "← start.ng" button (top left) and a small "Made on start.ng" badge (bottom right), and gives your game `window.startng`:
+
+| Call | What it does |
+|---|---|
+| `startng.gameOver({ score, stats, title, onPlayAgain })` | Saves the run and shows the end-of-round card: the score, the player's rank, anything they unlocked, **Play again** and **Share on X**. Pass `stats` if your `startng.json` lists them, otherwise just `score`. Resolves to the save reply (see "Leaderboards"), or `null` if nothing was saved. |
+| `startng.getPlayer()` | Who is playing: `{ user, guest }`, or `null` when start.ng didn't answer. |
+| `startng.onPlayerChange(fn)` | Calls `fn` with the player whenever they sign in or out. |
+| `startng.signIn()` | Sends the player to start.ng to sign in, then back to your game. |
+| `startng.saveRun(stats)` | Saves a run without showing the card. |
+| `startng.getLeaderboard(limit)` | The top players, for everyone. |
+| `startng.share({ score })` | Opens an X post with the result and a link to your game. |
+
+The back button, the badge and the card's **Share on X** button are the three game standards, so a game that loads the Kit and calls `startng.gameOver()` (or `startng.share()`) at the end of a round meets all three. If you turn the button or the badge off, add your own link back to https://start.ng or the start.ng name instead.
+
+Options go on the script tag: `data-back="off"` (no back button), `data-badge="off"` (no badge) and `data-position="right"` (back button top right). The Kit also sends start.ng a ping every 30 seconds while the game is on screen, so creators will be able to see how long people play. It sends nothing else.
+
+The code below is the manual way, if you want full control. Games that already use it keep working.
 
 ## Players and their character
 
@@ -532,6 +558,26 @@ For games where players see each other live, like the Hangout. This uses the con
 
 Players are `{ id, name, style, seat, x, z, ry, moving }`, with names and looks from start.ng, so nobody can pretend to be someone else. Positions stay within ±60 metres. If the connection closes with code `4401`, the player needs to sign in; `4403`, the room is full; `4409`, they joined from another tab. Up to 50 players share a room. See [the Hangout](https://github.com/Blackburn0/startng-hangout) for a full example.
 
+## Friends and follows
+
+Players can follow each other on start.ng. Two players who follow each other are **friends**. This part of start.ng is switched on step by step: until it's on, these addresses answer 404.
+
+- **Follow** anyone from their profile or creator page. Following twice changes nothing; unfollowing ends a friendship.
+- **Invite links** (`https://start.ng/f/<code>`): whoever opens your link and accepts becomes your friend. A link works for 7 days and several people can use it. Get yours at [start.ng/follows](/follows).
+- **Private by design:** other players see how many followers you have, never who they are, and never your email. There is no search for players. Up to 100 new follows a day.
+
+These calls use the player's **start.ng sign-in** (the website's), not a game session, so games can't call them.
+
+| Endpoint | Sign-in | What it does |
+| --- | --- | --- |
+| `PUT /follows/{user_id}` | start.ng | Follow a player |
+| `DELETE /follows/{user_id}` | start.ng | Stop following |
+| `GET /follows/{user_id}` | None | `{ user_id, followers, following, you_follow, friends }` (the last two are about you, and false when signed out) |
+| `GET /me/friends`, `/me/following`, `/me/followers` | start.ng | Your own lists: `{ count, people: [{ id, name, character }] }` |
+| `POST /friend-invites` | start.ng | Your invite link: `{ code, path, expires_at }` |
+| `GET /friend-invites/{code}` | None | Who sent it: `{ inviter: { id, name, character }, expires_at }` |
+| `POST /friend-invites/{code}/accept` | start.ng | Become friends with whoever sent it |
+
 ## API reference
 
 Base URL: `https://api.start.ng`. Games on `*.start.ng` can call it straight from the browser.
@@ -614,6 +660,15 @@ A game using the HTTP API: a sign-in link, saving a run, and showing the board. 
   };
 </script>
 ```
+
+## Share links and cards
+
+When players share something from start.ng itself (a tournament result, and soon challenges, unlocks and league moves), the link looks like `https://start.ng/s/<kind>/<id>`. Pasted into X, WhatsApp or any chat, it shows a card with the result: the player's name, their place or score, and a "Play at start.ng" button. Opening the link takes people to the page it's about. This is being switched on in stages, so you may not see these links yet.
+
+For your own game:
+
+- Keep your Share-on-X button (it's one of the game standards) pointing at your game's page, `https://start.ng/games/<your-game>`. That link already shows your `cover.png` as its preview.
+- To read a card yourself: `GET /share/{kind}/{id}` (public, no sign-in) returns `{url, text, image_url, square_image_url, title, path}`. `image_url` is 1200x630 (X and link previews); `square_image_url` is 1080x1080 (WhatsApp and Instagram).
 
 ## Good to know
 
