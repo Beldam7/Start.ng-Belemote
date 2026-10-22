@@ -15,6 +15,9 @@ export const SHARE_IMAGE_ALT = "A screenshot of the Hangout, start.ng's own mult
 /** The tournament's own preview picture (in public/): shown on X and in chats when /tournament is shared. */
 export const TOURNAMENT_IMAGE = "/tournament-share.png";
 export const TOURNAMENT_IMAGE_ALT = "start.ng's daily tournament: 5 games, 24 hours, one winner, with covers of games from the community";
+/** The creators page's preview picture (in public/): an invitation to submit a game, shown when /creators is shared. */
+export const CREATORS_IMAGE = "/creators-share.png";
+export const CREATORS_IMAGE_ALT = "Made a game? Get it played. Submit your game to start.ng/creators, with covers of games by independent creators";
 
 export type Seo = {
   title: string;
@@ -42,6 +45,8 @@ export const PAGES: Record<string, Seo> = {
     title: "Games by independent creators · start.ng",
     description: "Discover games made and hosted by independent creators, from itch.io to their own sites. Search them all, or submit your own.",
     path: "/creators",
+    image: CREATORS_IMAGE,
+    imageAlt: CREATORS_IMAGE_ALT,
   },
   hangout: {
     title: "The Hangout · start.ng",
@@ -110,6 +115,16 @@ export const PAGES: Record<string, Seo> = {
     path: "/me",
     noindex: true, // player pages stay out of search results
   },
+  creator: {
+    title: "A creator on start.ng",
+    description: "A creator's games on start.ng: play them free in your browser, follow them, and share.",
+    path: "/by",
+  },
+  creatorsBoard: {
+    title: "Top creators · start.ng",
+    description: "The creators whose games the most different players opened this month on start.ng.",
+    path: "/by",
+  },
   notFound: {
     title: "Page not found · start.ng",
     description: "There's nothing at this address. Browse the games on start.ng instead.",
@@ -127,6 +142,8 @@ export const STATIC_PAGES: [string, Seo][] = [
   ["tournament.html", PAGES.tournament],
   ["leaderboard.html", PAGES.leaderboard],
   ["game.html", PAGES.game],
+  ["creators-board.html", PAGES.creatorsBoard],
+  ["creator.html", PAGES.creator],
   ["approve.html", PAGES.approve],
   ["friends-tournaments.html", PAGES.friendsTournaments],
   ["private-tournament.html", PAGES.privateTournament],
