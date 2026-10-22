@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { BoardStat, getLeaderboard, LeaderboardEntry } from "./api";
+import { useFeature } from "./features/flags";
 import { Game } from "./games";
 
 /** A stat as players read it: times as m:ss, numbers with separators, "–" when missing. */
@@ -22,6 +23,7 @@ export const shortName = (name: string, max = 14) => {
 export default function BoardTable({ game, playerId }: { game: Game; playerId: number | null }) {
   const [entries, setEntries] = useState<LeaderboardEntry[] | null>(null);
   const [error, setError] = useState("");
+  const profilesOn = useFeature("profiles"); // names link to player pages (src/features/profiles)
   // The game's own columns (startng.json); first one ranks, the rest break ties.
   const stats = game.board ?? [{ key: "score", label: "Score", order: "highest" as const, format: "number" as const }];
   // One set of columns for the whole table (see .board-table), so every number sits under its heading.
@@ -50,7 +52,8 @@ export default function BoardTable({ game, playerId }: { game: Game; playerId: n
               <span className="rk">{e.rank}</span>
               <span className="nm" title={e.name}>
                 <span className="dot" style={{ background: e.color ?? "var(--line)" }} />
-                {shortName(e.name)}{e.player_id === playerId && <em> (you)</em>}
+                {profilesOn ? <a className="player-link" href={`/p/${e.player_id}`}>{shortName(e.name)}</a> : shortName(e.name)}
+                {e.player_id === playerId && <em> (you)</em>}
               </span>
               {stats.map((s) => <span key={s.key} className="num sc">{formatStat(s, e.stats?.[s.key] ?? (s.key === "score" ? e.score : null))}</span>)}
             </div>
