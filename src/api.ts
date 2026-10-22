@@ -3,7 +3,7 @@ import { analytics } from "./analytics";
 
 const API_URL = (import.meta.env.VITE_API_URL ?? "http://localhost:8000").replace(/\/$/, "");
 
-export type User = { id: number; email: string; name: string | null; character: Character | null };
+export type User = { id: number; email: string; name: string | null; username: string | null; character: Character | null };
 export type TokenResponse = { access_token: string; user: User };
 
 async function post(path: string, body: unknown): Promise<TokenResponse> {
@@ -418,6 +418,13 @@ export type AdminTournament = { id: number; starts_at: string; ends_at: string; 
 export type AdminTournaments = { tournaments: AdminTournament[]; eligible: GameCard[]; min_games: number; max_games: number };
 export type ActivityKind = "player" | "developer" | "admin" | "system";
 export type LogEntry = { id: number; actor: string | null; kind: ActivityKind; action: string; target: string | null; detail: Record<string, unknown> | null; at: string };
+export type DayCount = { day: string; n: number };
+export type Analytics = {
+  players: number; new_players_7: number; new_players_30: number; active_1: number; active_7: number; active_30: number;
+  games: number; new_games_7: number; plays_7: number; plays_30: number;
+  plays_per_day: DayCount[]; signups_per_day: DayCount[]; top_games_7: { name: string; title: string; plays: number }[];
+};
+export type UsernameCheck = { username: string; available: boolean; reason: string | null };
 export type Overview = { open_reports: number; games_waiting: number; hidden_games: number; blocked_developers: number; admins: number };
 
 /** A signed-in call to the API. Features use this (and send) from their own folder: src/features/<feature>/api.ts. */
@@ -446,6 +453,7 @@ export async function adminMe(token: string | null): Promise<AdminMe | null> {
 
 export const admin = {
   overview: (t: string | null) => call<Overview>(t, "/admin/overview"),
+  analytics: (t: string | null) => call<Analytics>(t, "/admin/analytics"),
   permissions: (t: string | null) => call<Permission[]>(t, "/admin/permissions"),
   review: (t: string | null) => call<ReviewGame[]>(t, "/admin/games/review"),
   reports: (t: string | null, state = "open") => call<Report[]>(t, `/admin/reports?state=${state}`),
@@ -480,3 +488,8 @@ export const admin = {
     return call<LogEntry[]>(t, `/admin/log${query ? `?${query}` : ""}`);
   },
 };
+
+/** Whether a username is free and allowed (the page asks while someone types). */
+export const checkUsername = (name: string) => call<UsernameCheck>(null, `/auth/usernames/${encodeURIComponent(name)}`);
+/** Choose a new username; the error says why when it's taken or breaks the rules. */
+export const changeUsername = (token: string | null, username: string) => call<User>(token, "/auth/me/username", send("PUT", { username }));

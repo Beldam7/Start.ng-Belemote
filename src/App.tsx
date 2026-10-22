@@ -104,6 +104,13 @@ export default function App({ view = "home", gameName, indieId, featurePage }: {
 
   const profileOpen = !!user && (!user.character || editing);
   const wardrobeOn = useFeature("wardrobe"); // the unlock popup (src/features/wardrobe)
+  const profilesOn = useFeature("profiles"); // the profile page holds Your games (src/features/profiles)
+  // The profile page's Edit button (it has no access to this state).
+  useEffect(() => {
+    const open = () => setEditing(true);
+    window.addEventListener("startng:edit-profile", open);
+    return () => window.removeEventListener("startng:edit-profile", open);
+  }, []);
   const wasOpen = useRef(profileOpen);
   useEffect(() => {
     if (wasOpen.current && !profileOpen) refreshGames();
@@ -295,6 +302,7 @@ export default function App({ view = "home", gameName, indieId, featurePage }: {
   async function onSaveCharacter(c: Character) {
     setUser(await saveCharacter(localStorage.getItem("token"), c));
     setEditing(false);
+    window.dispatchEvent(new Event("startng:profile-saved"));
   }
 
   const firstName = (user?.name ?? user?.email ?? "").split(/[ @]/)[0];
@@ -307,7 +315,6 @@ export default function App({ view = "home", gameName, indieId, featurePage }: {
           <a href="/games" aria-current={allGames || gamePage ? "page" : undefined}>Games</a>
           <a href="/tournament" aria-current={tournamentPage || leaderboardPage ? "page" : undefined}>Tournament</a>
           <a href="/creators" aria-current={creatorsPage || indiePage ? "page" : undefined}>Creators</a>
-          <a href={view === "home" ? "#how" : "/#how"}>How it works</a>
           <a href="/docs">Docs</a>
         </nav>
         <div className="nav-account">
@@ -469,6 +476,7 @@ export default function App({ view = "home", gameName, indieId, featurePage }: {
           email={user.email}
           onSave={onSaveCharacter}
           onCancel={() => setEditing(false)}
+          showGames={!profilesOn}
         />
         </Suspense>
       )}
