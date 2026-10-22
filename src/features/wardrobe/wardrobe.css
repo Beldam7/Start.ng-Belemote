@@ -1,0 +1,76 @@
+/* Wardrobe: item tiles, the coin counter, the shop and the unlock popup. The rarity colours (--r-common and the
+   rest, light and dark) are with the other colours in src/styles.css. */
+.r-common { --r: var(--r-common); } .r-uncommon { --r: var(--r-uncommon); } .r-rare { --r: var(--r-rare); }
+.r-epic { --r: var(--r-epic); } .r-legendary { --r: var(--r-legendary); } .r-limited { --r: var(--r-limited); }
+
+.wd-coins { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; background: var(--card);
+  border: 1px solid var(--line); color: var(--ink); text-decoration: none; font-family: var(--mono); font-size: .9rem; }
+.wd-coins:hover { border-color: var(--ink); }
+
+.wd-page { padding-top: 28px; padding-bottom: 56px; }
+.wd-page .section-head { display: flex; justify-content: space-between; gap: 16px; align-items: flex-end; flex-wrap: wrap; }
+.wd-heading { margin: 28px 0 10px; font-size: 1.1rem; display: flex; gap: 10px; align-items: baseline; }
+
+.wd-wallet { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; margin: 18px 0 8px; }
+.wd-balance, .wd-today, .wd-history { display: grid; gap: 6px; padding: 14px 16px; border-radius: 14px; background: var(--card); border: 1px solid var(--line); }
+.wd-balance b { font-size: 1.8rem; letter-spacing: -.02em; }
+.wd-balance.small { padding: 10px 14px; }
+.wd-balance.small b { font-size: 1.3rem; }
+.wd-meter { height: 10px; border-radius: 999px; background: var(--line); overflow: hidden; }
+.wd-meter span { display: block; height: 100%; background: var(--lime); border-right: 2px solid var(--ink); }
+.wd-history { grid-column: 1 / -1; }
+.wd-history summary { cursor: pointer; font-weight: 600; }
+.wd-history ul { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 4px; max-height: 280px; overflow: auto; }
+.wd-history li { display: flex; justify-content: space-between; gap: 12px; font-size: .9rem; }
+.wd-history b { font-family: var(--mono); color: var(--ok); }
+.wd-history b.spent { color: var(--muted); }
+
+.wd-worn { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; margin: 18px 0 14px; }
+.wd-slot { display: grid; gap: 2px; padding: 10px 12px; border-radius: 12px; border: 1px dashed var(--line); }
+.wd-slot[class*="r-"] { border: 2px solid var(--r); background: var(--card); }
+.wd-slot .link { justify-self: start; font-size: .8rem; }
+.wd-filter { margin-bottom: 4px; }
+
+.wd-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+@media (max-width: 400px) { .wd-grid, .wd-grid.compact, .wd-panel.compact .wd-grid { grid-template-columns: 1fr 1fr; gap: 8px; } .wd-item { padding: 10px; } }
+.wd-grid.compact { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+.wd-item { display: grid; gap: 4px; align-content: start; padding: 14px; border-radius: 14px; background: var(--card);
+  border: 2px solid var(--r); box-shadow: 4px 4px 0 color-mix(in srgb, var(--r) 35%, transparent); }
+.wd-item.on { outline: 3px solid var(--lime); outline-offset: 2px; }
+.wd-item.locked { border-style: dashed; box-shadow: none; opacity: .72; }
+.wd-item .wd-pic { font-size: 2.2rem; line-height: 1; width: 56px; height: 56px; display: grid; place-items: center; border-radius: 14px;
+  background: color-mix(in srgb, var(--r) 16%, transparent); margin-bottom: 4px; }
+.wd-item.r-legendary .wd-pic, .wd-item.r-limited .wd-pic { box-shadow: 0 0 18px color-mix(in srgb, var(--r) 60%, transparent); }
+.wd-item button, .wd-item .tag { justify-self: start; margin-top: 6px; }
+.wd-rarity { justify-self: start; font-family: var(--mono); font-size: .68rem; text-transform: uppercase; letter-spacing: .12em;
+  padding: 2px 7px; border-radius: 6px; background: var(--r); color: var(--on-solid); }
+.wd-how { font-size: .8rem; color: var(--muted); }
+.wd-price { display: flex; gap: 8px; align-items: center; font-family: var(--mono); font-weight: 700; margin-top: 4px; }
+.wd-buy-link { font-size: .8rem; }
+.wd-ok { color: var(--ok); font-weight: 600; }
+
+.card.wd-unlock { max-width: 420px; text-align: center; justify-items: center; box-shadow: 6px 6px 0 var(--r); border: 2px solid var(--r); }
+.wd-unlock .eyebrow { margin: 0; color: var(--r); }
+.wd-unlock h3 { margin: 0; font-size: 1.5rem; letter-spacing: -.02em; }
+.wd-unlock p { margin: 0; }
+.wd-unlock .creator-actions { justify-content: center; flex-wrap: wrap; }
+.wd-unlock-art { position: relative; margin: 6px 0; }
+.wd-unlock-pic { position: absolute; right: -22px; bottom: -8px; font-size: 2.6rem; filter: drop-shadow(0 0 10px var(--r));
+  animation: wd-pop .6s cubic-bezier(.2, 1.6, .4, 1) both; }
+@keyframes wd-pop { from { transform: scale(0) rotate(-30deg); } to { transform: scale(1) rotate(0); } }
+@media (prefers-reduced-motion: reduce) { .wd-unlock-pic { animation: none; } }
+
+.wd-panel.compact .wd-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+.wd-section { display: grid; gap: 10px; }
+
+/* 3D previews: your outfit on /wardrobe, trying on in the shop, the unlock popup */
+.wd-top { display: grid; grid-template-columns: minmax(200px, 260px) 1fr; gap: 10px; align-items: start; margin: 18px 0 8px; }
+.wd-top .wd-wallet { margin: 0; }
+.wd-stage { display: grid; justify-items: center; gap: 4px; padding: 8px 8px 12px; border-radius: 14px; background: var(--card); border: 1px solid var(--line); }
+.wd-viewer { width: 100%; height: 300px; }
+.wd-viewer canvas { display: block; }
+@media (max-width: 640px) { .wd-top { grid-template-columns: 1fr; } .wd-viewer { height: 260px; } }
+.wd-try { justify-self: start; font-size: .82rem; text-decoration: underline; }
+.card.wd-tryon { max-width: 380px; border: 2px solid var(--r); box-shadow: 6px 6px 0 var(--r); }
+.card.wd-tryon h3 { margin: 0; }
+.wd-unlock-art .wd-viewer { width: 240px; height: 240px; }

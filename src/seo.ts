@@ -84,6 +84,71 @@ export const PAGES: Record<string, Seo> = {
     path: "/",
     noindex: true,
   },
+  // Tournaments with friends (src/features/private_tournaments): the page that starts one, and an invite link's page.
+  friendsTournaments: {
+    title: "Start a tournament with your friends · start.ng",
+    description: "Pick any games on start.ng, set how long it runs, and share a link. Your friends join and you all follow one table of scores.",
+    path: "/friends",
+  },
+  privateTournament: {
+    title: "Join a tournament with friends · start.ng",
+    description: "You've been invited to a tournament on start.ng. Join it, play its games and see where you stand.",
+    path: "/friends",
+    noindex: true, // an invite link is private; the page sets its own title once it knows the tournament
+  },
+  // Friends & follows (src/features/follows): your lists and an invite link's page. Both private.
+  follows: {
+    title: "Your friends · start.ng",
+    description: "Your friends on start.ng, who you follow and who follows you, and a link to invite new friends.",
+    path: "/follows",
+    noindex: true,
+  },
+  friendInvite: {
+    title: "You're invited to be friends · start.ng",
+    description: "Someone wants to be friends with you on start.ng. Accept and you'll follow each other.",
+    path: "/follows",
+    noindex: true, // an invite link is private
+  },
+  // Leagues (src/features/leagues): your group, tier and countdown in each track. Signed in only, so private.
+  league: {
+    title: "Your league · start.ng",
+    description: "Your league on start.ng: play any game to score, finish in the top 5 of your group to move up a tier.",
+    path: "/league",
+    noindex: true,
+  },
+  // Wardrobe (src/features/wardrobe): your coins and items, and the daily shop.
+  wardrobe: {
+    title: "Your wardrobe · start.ng",
+    description: "Your coins and items on start.ng: earn them by playing any game, and wear them in every game.",
+    path: "/wardrobe",
+    noindex: true,
+  },
+  shop: {
+    title: "Shop · start.ng",
+    description: "Spend the coins you earn playing start.ng games on items for your character. New stock every day.",
+    path: "/shop",
+  },
+  profile: {
+    title: "A player on start.ng",
+    description: "A player's page on start.ng: their character, level, badges and best scores.",
+    path: "/me",
+    noindex: true, // player pages stay out of search results
+  },
+  spotlight: {
+    title: "Spotlight · start.ng",
+    description: "The Game of the Week and today's daily challenge on start.ng: one goal a day, set from how people really play.",
+    path: "/spotlight",
+  },
+  creator: {
+    title: "A creator on start.ng",
+    description: "A creator's games on start.ng: play them free in your browser, follow them, and share.",
+    path: "/by",
+  },
+  creatorsBoard: {
+    title: "Top creators · start.ng",
+    description: "The creators whose games the most different players opened this month on start.ng.",
+    path: "/by",
+  },
   notFound: {
     title: "Page not found · start.ng",
     description: "There's nothing at this address. Browse the games on start.ng instead.",
@@ -101,7 +166,18 @@ export const STATIC_PAGES: [string, Seo][] = [
   ["tournament.html", PAGES.tournament],
   ["leaderboard.html", PAGES.leaderboard],
   ["game.html", PAGES.game],
+  ["spotlight.html", PAGES.spotlight],
+  ["creators-board.html", PAGES.creatorsBoard],
+  ["creator.html", PAGES.creator],
   ["approve.html", PAGES.approve],
+  ["friends-tournaments.html", PAGES.friendsTournaments],
+  ["private-tournament.html", PAGES.privateTournament],
+  ["follows.html", PAGES.follows],
+  ["friend-invite.html", PAGES.friendInvite],
+  ["league.html", PAGES.league],
+  ["wardrobe.html", PAGES.wardrobe],
+  ["shop.html", PAGES.shop],
+  ["profile.html", PAGES.profile],
   ["404.html", PAGES.notFound],
 ];
 

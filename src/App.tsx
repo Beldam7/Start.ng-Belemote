@@ -5,10 +5,13 @@ import AccountMenu from "./AccountMenu";
 import { analytics } from "./analytics";
 import Favorites, { FavoriteButton, gameKey, useFavorites } from "./Favorites";
 import Pagination from "./Pagination";
+import GameCard from "./GameCard";
+import type { FeaturePage } from "./features/registry";
 import GamePage from "./GamePage";
 import IndiePage from "./IndiePage";
 import ThemeToggle from "./ThemeToggle";
 import SearchBox, { matches, queryFromUrl, urlFor } from "./SearchBox";
+import { FilterBar, useGameFilters } from "./features/catalog/filters";
 import { setSeo, PAGES } from "./seo";
 import { SkeletonCards } from "./Skeleton";
 import ScrollJump from "./ScrollJump";
@@ -16,8 +19,11 @@ import { Character, styleFor } from "./character";
 // The creator (and three.js) loads only when someone opens it.
 const CharacterCreator = lazy(() => import("./CharacterCreator"));
 const GameBoard = lazy(() => import("./GameBoard"));
+const UnlockPopup = lazy(() => import("./features/wardrobe/UnlockPopup"));
 import { Game, gameReturnUrl, HANGOUT, isInAppGame, playableUrl, toCard } from "./games";
 import { CreatorsPage, CreatorsSection } from "./Creators";
+import PageParts from "./features/PageParts";
+import { useFeature } from "./features/flags";
 import { LeaderboardPage, TournamentBanner, TournamentPage, useTournament } from "./Tournament";
 
 // Set when a game sent the user here to sign in: we send them back afterwards.
@@ -46,7 +52,12 @@ type Approval =
 
 /** The homepage, and /games (every game, PER_PAGE at a time). They share sign-in, the profile
  *  and the "sign in or play as a guest?" question. */
-export default function App({ view = "home", gameName, indieId }: { view?: "home" | "games" | "creators" | "game" | "indie" | "tournament" | "leaderboard"; gameName?: string; indieId?: number }) {
+export default function App({ view = "home", gameName, indieId, featurePage }: {
+  view?: "home" | "games" | "creators" | "game" | "indie" | "tournament" | "leaderboard" | "feature";
+  gameName?: string;
+  indieId?: number;
+  featurePage?: { page: FeaturePage; params: Record<string, string> }; // a feature's page inside the start.ng shell
+}) {
   const gamePage = view === "game";
   const indiePage = view === "indie";
   const allGames = view === "games";
@@ -92,6 +103,7 @@ export default function App({ view = "home", gameName, indieId }: { view?: "home
   }, [refreshGames]);
 
   const profileOpen = !!user && (!user.character || editing);
+  const wardrobeOn = useFeature("wardrobe"); // the unlock popup (src/features/wardrobe)
   const wasOpen = useRef(profileOpen);
   useEffect(() => {
     if (wasOpen.current && !profileOpen) refreshGames();
@@ -112,9 +124,9 @@ export default function App({ view = "home", gameName, indieId }: { view?: "home
 
   // Titles and link previews for the page that's open (the served HTML has them too, see seo.ts).
   useEffect(() => {
-    if (tournamentPage || leaderboardPage) return; // they set their own
+    if (tournamentPage || leaderboardPage || featurePage) return; // they set their own
     setSeo(approveCode ? PAGES.approve : allGames ? PAGES.games : creatorsPage ? PAGES.creators : PAGES.home);
-  }, [allGames, creatorsPage, tournamentPage, leaderboardPage]);
+  }, [allGames, creatorsPage, tournamentPage, leaderboardPage, featurePage]);
 
   // /games: the back and forward buttons move between pages and searches.
   useEffect(() => {
@@ -137,6 +149,7 @@ export default function App({ view = "home", gameName, indieId }: { view?: "home
     history.replaceState(null, "", urlFor("/games", next));
   }
 
+  const filters = useGameFilters(useCallback(() => setPage(1), [])); // the /games filters (T1)
   const favs = useFavorites(user);
   // Today's tournament: the homepage banner, the badge on game pages, and /tournament.
   const tournament = useTournament(user, view === "home" || gamePage || tournamentPage);
@@ -149,7 +162,7 @@ export default function App({ view = "home", gameName, indieId }: { view?: "home
   // What the search box suggests: game names and their creators.
   const suggestions = useMemo(() => [HANGOUT, ...(games ?? [])].flatMap((g) => [g.title, g.by]), [games]);
   const everyCard = [HANGOUT, ...(allGames ? community : popular)];
-  const cards = searching ? everyCard.filter((g) => matches(q, g.title, g.host, g.by)) : everyCard;
+  const cards = filters.apply(searching ? everyCard.filter((g) => matches(q, g.title, g.host, g.by)) : everyCard);
   // What this page shows: the first HOME_GAMES on the homepage, one page of them on /games.
   const pages = Math.max(1, Math.ceil(cards.length / PER_PAGE));
   const current = Math.min(page, pages); // a page past the end shows the last one
@@ -308,6 +321,12 @@ export default function App({ view = "home", gameName, indieId }: { view?: "home
 
         {leaderboardPage && <LeaderboardPage user={user} />}
 
+        {featurePage && (
+          <Suspense fallback={null}>
+            <featurePage.page.Component user={user} onSignIn={() => setSignInOpen(true)} params={featurePage.params} />
+          </Suspense>
+        )}
+
         {indiePage && indieId && <IndiePage id={indieId} user={user} onSignIn={() => setSignInOpen(true)} />}
 
         {gamePage && (
@@ -347,6 +366,7 @@ export default function App({ view = "home", gameName, indieId }: { view?: "home
         )}
 
         {view === "home" && <TournamentBanner tournament={tournament.tournament} />}
+        {view === "home" && <PageParts page="home" user={user} onSignIn={() => setSignInOpen(true)} games={community} />}
 
         {(view === "home" || allGames) && (
         <section id="games" className={allGames ? "container all-games" : "container"}>
@@ -363,7 +383,7 @@ export default function App({ view = "home", gameName, indieId }: { view?: "home
               <SearchBox value={q} onChange={search} label="Search games" placeholder="Search games or creators" suggestions={suggestions} />
               {games && (
                 <span className="count">
-                  {searching
+                  {searching || filters.active
                     ? `${cards.length} ${cards.length === 1 ? "result" : "results"}`
                     : pages > 1
                     ? `${(current - 1) * PER_PAGE + 1}–${(current - 1) * PER_PAGE + shown.length} of ${cards.length}`
@@ -371,6 +391,12 @@ export default function App({ view = "home", gameName, indieId }: { view?: "home
                 </span>
               )}
             </div>
+          )}
+          {allGames && <FilterBar filters={filters} />}
+          {games && filters.active && !searching && cards.length === 0 && (
+            <p className="empty">
+              No games match these filters. <button type="button" className="link" onClick={filters.reset}>Clear filters</button>
+            </p>
           )}
           {games && !searching && community.length === 0 && (
             <p className="empty">
@@ -384,23 +410,10 @@ export default function App({ view = "home", gameName, indieId }: { view?: "home
           )}
           <div className="grid" aria-busy={games === null}>
             {shown.map((g) => (
-              <article key={g.slug} className={g.slug === HANGOUT.slug ? "game legendary" : "game"}>
-                <a className="game-link" {...cardLink(g)}>
-                  <div className="art" style={{ background: `linear-gradient(135deg, ${g.colors[0]}, ${g.colors[1]})` }}>
-                    {g.cover ? <img src={g.cover} alt="" loading="lazy" decoding="async" /> : <span>{g.title.charAt(0)}</span>}
-                  </div>
-                  <div className="info">
-                    <h3>{g.title}</h3>
-                    <p>{g.host}</p>
-                    <span className="by">by {g.by}</span>
-                  </div>
-                </a>
-                <div className="meta">
-                  <FavoriteButton user={user} on={favs.has(gameKey(g))} name={g.title} onToggle={() => favs.toggle(gameKey(g))} onSignIn={() => setSignInOpen(true)} />
-                  {g.board && <button type="button" className="link board-btn" onClick={() => setBoard(g)}>Leaderboard</button>}
-                  <a className="play" {...cardLink(g)}>{isInAppGame(g) ? "Play" : "View"}</a>
-                </div>
-              </article>
+              <GameCard key={g.slug} game={g} legendary={g.slug === HANGOUT.slug} link={cardLink(g)} user={user} onSignIn={() => setSignInOpen(true)}
+                favorite={<FavoriteButton user={user} on={favs.has(gameKey(g))} name={g.title} onToggle={() => favs.toggle(gameKey(g))} onSignIn={() => setSignInOpen(true)} />}
+                board={g.board && <button type="button" className="link board-btn" onClick={() => setBoard(g)}>Leaderboard</button>}
+                play={<a className="play" {...cardLink(g)}>{isInAppGame(g) ? "Play" : "View"}</a>} />
             ))}
             {games === null && <SkeletonCards count={Math.max(0, (allGames ? 8 : HOME_GAMES) - shown.length)} />}
           </div>
@@ -440,6 +453,7 @@ export default function App({ view = "home", gameName, indieId }: { view?: "home
         <span>Built by the HNG community</span>
       </footer>
       <ScrollJump />
+      {user && wardrobeOn && !profileOpen && <Suspense fallback={null}><UnlockPopup user={user} /></Suspense>}
 
       {profileOpen && (
         <Suspense fallback={null}>

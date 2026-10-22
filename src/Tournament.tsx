@@ -4,9 +4,12 @@ import {
   enterTournament, getTournament, OverallEntry, overallLeaderboard, recentTournaments, Standing, Tournament, TournamentGame,
   TournamentSummary, User,
 } from "./api";
-import { formatStat } from "./BoardTable";
+import { formatStat, shortName } from "./BoardTable";
+import { useFeature } from "./features/flags";
+import PageParts from "./features/PageParts";
 import { Game, toCard } from "./games";
 import { PAGES, setSeo, TOURNAMENT_IMAGE } from "./seo";
+import ShareButton from "./features/share_cards/ShareButton";
 
 // Daily tournaments (startng-be app/tournaments.py): every day 5 random games for 24 hours, ending at 18:00
 // Nigeria time. Sharing on X enters you; your runs on those games count, and places give points
@@ -125,17 +128,17 @@ export function TournamentBanner({ tournament }: { tournament: Tournament | null
 function StandingsTable({ rows, playerId, label }: { rows: Standing[]; playerId: number | null; label: string }) {
   const cols = "36px minmax(0, 1fr) auto auto";
   return (
-    <div className="board-table" role="table" aria-label={label}>
-      <div className="board-row board-head" role="row" style={{ gridTemplateColumns: cols }}>
+    <div className="board-table" role="table" aria-label={label} style={{ gridTemplateColumns: cols }}>
+      <div className="board-row board-head" role="row">
         <span role="columnheader">#</span>
         <span role="columnheader">Player</span>
         <span role="columnheader" className="num">Firsts</span>
         <span role="columnheader" className="num">Points</span>
       </div>
       {rows.map((s) => (
-        <div key={s.player_id} role="row" className={`board-row ${s.player_id === playerId ? "me" : ""}`} style={{ gridTemplateColumns: cols }}>
+        <div key={s.player_id} role="row" className={`board-row ${s.player_id === playerId ? "me" : ""}`}>
           <span className="rk">{s.place}</span>
-          <span className="nm"><Dot color={s.color} />{s.name}{s.player_id === playerId && <em> (you)</em>}</span>
+          <span className="nm" title={s.name}><Dot color={s.color} />{shortName(s.name)}{s.player_id === playerId && <em> (you)</em>}</span>
           <span className="num">{s.firsts}</span>
           <span className="num sc">{s.points}</span>
         </div>
@@ -157,6 +160,7 @@ export function TournamentPage({ user, state, onSignIn, onPlay }: {
   const [enterError, setEnterError] = useState("");
   const left = useTimeLeft(t?.ends_at);
   const playerId = user?.id ?? null;
+  const withFriends = useFeature("private_tournaments"); // tournaments with friends (src/features/private_tournaments)
 
   useEffect(() => setSeo(PAGES.tournament), []);
   // Ready before the click, so sharing the picture still counts as part of the tap (browsers require that).
@@ -222,6 +226,7 @@ export function TournamentPage({ user, state, onSignIn, onPlay }: {
       {t === null && (
         <p className="empty">No tournament today: there aren't enough games with leaderboards yet. Check back tomorrow.</p>
       )}
+      {t === null && <PageParts page="tournament" user={user} onSignIn={onSignIn} />}
 
       {t && (
         <>
@@ -270,7 +275,7 @@ export function TournamentPage({ user, state, onSignIn, onPlay }: {
                     {g.top.length === 0 && <li className="none">No runs yet. Be the first.</li>}
                     {g.top.map((r) => (
                       <li key={r.player_id} className={r.player_id === playerId ? "me" : ""}>
-                        <span className="nm"><Dot color={r.color} />{r.name}</span>
+                        <span className="nm" title={r.name}><Dot color={r.color} />{shortName(r.name)}</span>
                         <span className="sc">{formatStat(g.leaderboard[0], r.stats[g.leaderboard[0].key])}</span>
                       </li>
                     ))}
@@ -283,6 +288,8 @@ export function TournamentPage({ user, state, onSignIn, onPlay }: {
             })}
           </div>
 
+          <PageParts page="tournament" user={user} onSignIn={onSignIn} />
+
           <div className="tournament-columns">
             <section aria-labelledby="standings-heading">
               <h2 id="standings-heading">Standings</h2>
@@ -294,6 +301,11 @@ export function TournamentPage({ user, state, onSignIn, onPlay }: {
             </section>
             <section aria-labelledby="winners-heading">
               <h2 id="winners-heading">Past winners</h2>
+              {/* Your card from the last tournament (share cards, src/features/share_cards); hidden if you didn't play it */}
+              {user && past?.[0] && (
+                <ShareButton kind="tournament_result" id={`${past[0].id}-${user.id}`} label="Share my result"
+                  intro={<>Your result on {dayText(past[0].ends_at)}</>} />
+              )}
               {past === null && <p className="board-sub">Loading…</p>}
               {past?.length === 0 && <p className="board-empty">The first winner is named when today's tournament ends.</p>}
               {past && past.length > 0 && (
@@ -302,7 +314,7 @@ export function TournamentPage({ user, state, onSignIn, onPlay }: {
                     <li key={p.id}>
                       <span className="when">{dayText(p.ends_at)}</span>
                       {p.winner ? (
-                        <span className="nm"><Dot color={p.winner.color} /><b>{p.winner.name}</b> · {p.winner.points} pts</span>
+                        <span className="nm"><Dot color={p.winner.color} /><b title={p.winner.name}>{shortName(p.winner.name)}</b> · {p.winner.points} pts</span>
                       ) : (
                         <span className="nm none">No one played</span>
                       )}
@@ -314,6 +326,16 @@ export function TournamentPage({ user, state, onSignIn, onPlay }: {
           </div>
         </>
       )}
+
+        {withFriends && (
+          <aside className="friends-card">
+            <div>
+              <h2>Play with your friends</h2>
+              <p>Make your own tournament: pick any games, set how long it runs, and send the link. Only the friends you invite are in it.</p>
+            </div>
+            <a className="btn" href="/friends">Start a tournament</a>
+          </aside>
+        )}
     </section>
   );
 }
@@ -356,8 +378,8 @@ export function LeaderboardPage({ user }: { user: User | null }) {
         <p className="board-empty">No points {period === "week" ? "this week" : "yet"}. They come from the daily tournament: <a href="/tournament">enter today's</a>.</p>
       )}
       {rows && rows.length > 0 && (
-        <div className="board-table overall-board" role="table" aria-label="Overall leaderboard">
-          <div className="board-row board-head" role="row" style={{ gridTemplateColumns: cols }}>
+        <div className="board-table overall-board" role="table" aria-label="Overall leaderboard" style={{ gridTemplateColumns: cols }}>
+          <div className="board-row board-head" role="row">
             <span role="columnheader">#</span>
             <span role="columnheader">Player</span>
             <span role="columnheader" className="num">Days won</span>
@@ -365,9 +387,9 @@ export function LeaderboardPage({ user }: { user: User | null }) {
             <span role="columnheader" className="num">Points</span>
           </div>
           {rows.map((r) => (
-            <div key={r.player_id} role="row" className={`board-row ${r.player_id === playerId ? "me" : ""}`} style={{ gridTemplateColumns: cols }}>
+            <div key={r.player_id} role="row" className={`board-row ${r.player_id === playerId ? "me" : ""}`}>
               <span className="rk">{r.rank}</span>
-              <span className="nm"><Dot color={r.color} />{r.name}{r.player_id === playerId && <em> (you)</em>}</span>
+              <span className="nm" title={r.name}><Dot color={r.color} />{shortName(r.name)}{r.player_id === playerId && <em> (you)</em>}</span>
               <span className="num">{r.wins}</span>
               <span className="num">{r.firsts}</span>
               <span className="num sc">{r.points}</span>

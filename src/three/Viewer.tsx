@@ -1,10 +1,10 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
-import { CharacterStyle } from "../character";
+import { DressedStyle } from "../character";
 import { addLights, buildHuman, Human } from "./human";
 
-type Props = { style: CharacterStyle; className?: string; interactive?: boolean };
+type Props = { style: DressedStyle; className?: string; interactive?: boolean };
 
 const DRAG_SPEED = 0.006; // radians per pixel: one full turn is about 1000px of drag
 const CLICK_SLOP = 5; // pixels a press can move and still count as a click
@@ -12,7 +12,7 @@ const CLICK_SLOP = 5; // pixels a press can move and still count as a click
 /** The character in 3D, always moving. Click to wave; hold and drag to turn it. */
 export default function Viewer({ style, className, interactive = true }: Props) {
   const host = useRef<HTMLDivElement>(null);
-  const api = useRef<{ setStyle: (s: CharacterStyle) => void } | null>(null);
+  const api = useRef<{ setStyle: (s: DressedStyle) => void } | null>(null);
 
   useEffect(() => {
     const el = host.current!;
@@ -60,7 +60,7 @@ export default function Viewer({ style, className, interactive = true }: Props) 
     const turntable = new THREE.Group();
     scene.add(turntable);
     let human: Human | null = null;
-    const setStyle = (s: CharacterStyle) => {
+    const setStyle = (s: DressedStyle) => {
       if (human) {
         turntable.remove(human.root);
         human.dispose();

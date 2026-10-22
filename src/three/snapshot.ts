@@ -1,13 +1,13 @@
 // Renders the character's head to a small picture for the profile circle.
 import * as THREE from "three";
-import { CharacterStyle } from "../character";
+import { DressedStyle } from "../character";
 import { addLights, buildHuman } from "./human";
 
 const SIZE = 192;
 const cache = new Map<string, string>();
 let renderer: THREE.WebGLRenderer | null = null;
 
-export function faceImage(style: CharacterStyle): string {
+export function faceImage(style: DressedStyle): string {
   const key = JSON.stringify(style);
   const hit = cache.get(key);
   if (hit) return hit;
