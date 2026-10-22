@@ -45,10 +45,13 @@ export default function LeaguePage({ user, onSignIn }: PageProps) {
     if (!user) return;
     const uid = user.id;
     let live = true;
-    const load = () =>
+    let latest = 0; // only the newest refresh may change the page, even if an older one answers later
+    const load = () => {
+      const n = ++latest;
       Promise.all([getTable(track), getHistory(track)])
-        .then(([t, h]) => { if (live) { setTable(t); setRounds(h); setOwner(uid); setError(""); } })
-        .catch(() => live && setError("Couldn't load your league. Try again in a moment."));
+        .then(([t, h]) => { if (live && n === latest) { setTable(t); setRounds(h); setOwner(uid); setError(""); } })
+        .catch(() => live && n === latest && setError("Couldn't load your league. Try again in a moment."));
+    };
     load();
     const timer = window.setInterval(() => { if (document.visibilityState === "visible") load(); }, 30000);
     return () => { live = false; window.clearInterval(timer); };

@@ -24,8 +24,9 @@ const headers = (): HeadersInit => (token() ? { Authorization: `Bearer ${token()
 
 async function call<T>(path: string): Promise<T> {
   const res = await fetch(`${API_URL}/leagues${path}`, { headers: headers() });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Something went wrong. Try again.");
+  const data = await res.json().catch(() => null);
+  if (!res.ok) throw new Error(typeof data?.detail === "string" ? data.detail : "Something went wrong. Try again.");
+  if (data === null) throw new Error("Something went wrong. Try again."); // an OK answer that isn't JSON
   return data;
 }
 
