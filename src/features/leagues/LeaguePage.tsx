@@ -30,6 +30,7 @@ export default function LeaguePage({ user, onSignIn }: PageProps) {
   const [track, setTrack] = useState<Track>(fromUrl);
   const [table, setTable] = useState<Table | null>(null);
   const [rounds, setRounds] = useState<HistoryRound[] | null>(null);
+  const [owner, setOwner] = useState<number | null>(null); // whose table and rounds are loaded
   const [error, setError] = useState("");
   const [now, setNow] = useState(Date.now());
 
@@ -42,10 +43,11 @@ export default function LeaguePage({ user, onSignIn }: PageProps) {
   const ended = table ? new Date(table.ends_at).getTime() <= now : false;
   useEffect(() => {
     if (!user) return;
+    const uid = user.id;
     let live = true;
     const load = () =>
       Promise.all([getTable(track), getHistory(track)])
-        .then(([t, h]) => { if (live) { setTable(t); setRounds(h); setError(""); } })
+        .then(([t, h]) => { if (live) { setTable(t); setRounds(h); setOwner(uid); setError(""); } })
         .catch(() => live && setError("Couldn't load your league. Try again in a moment."));
     load();
     const timer = window.setInterval(() => { if (document.visibilityState === "visible") load(); }, 30000);
@@ -65,7 +67,7 @@ export default function LeaguePage({ user, onSignIn }: PageProps) {
       <div className="section-head">
         <div>
           <h1>League</h1>
-          <p className="tournament-sub">Play any game to score. The top 5 in your group move up a tier, the bottom 5 move down. <a href="/games">Find a game →</a></p>
+          <p className="tournament-sub">Play any game to score. The top 5 in your group move up a tier and the bottom 5 move down (nobody drops below Bronze or rises past Diamond). <a href="/games">Find a game →</a></p>
         </div>
       </div>
 
@@ -82,7 +84,7 @@ export default function LeaguePage({ user, onSignIn }: PageProps) {
         </div>
       ) : error ? (
         <p className="error">{error}</p>
-      ) : !table ? (
+      ) : !table || owner !== user.id ? ( // another account's league never shows, even for a moment
         <p className="board-sub">Loading…</p>
       ) : (
         <>
@@ -116,10 +118,10 @@ export default function LeaguePage({ user, onSignIn }: PageProps) {
                   </div>
                   {table.rows.map((r) => (
                     <div key={r.player.id} role="row" className={`board-row ${r.me ? "me" : ""} ${table.waiting ? "" : `zone-${r.zone}`}`}>
-                      <span className="rk">{r.place ?? "–"}</span>
-                      <span className="nm" title={r.player.name ?? "Player"}><Dot color={r.player.character?.style.primaryColor} />{shortName(r.player.name ?? "Player")}{r.me && <em> (you)</em>}</span>
-                      <span className="num">{r.games}</span>
-                      <span className="num sc">{r.points}</span>
+                      <span role="cell" className="rk">{r.place ?? "–"}</span>
+                      <span role="cell" className="nm" title={r.player.name ?? "Player"}><Dot color={r.player.character?.style.primaryColor} />{shortName(r.player.name ?? "Player")}{r.me && <em> (you)</em>}</span>
+                      <span role="cell" className="num">{r.games}</span>
+                      <span role="cell" className="num sc">{r.points}</span>
                     </div>
                   ))}
                 </div>
