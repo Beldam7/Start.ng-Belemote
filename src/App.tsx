@@ -20,6 +20,7 @@ const CharacterCreator = lazy(() => import("./CharacterCreator"));
 const GameBoard = lazy(() => import("./GameBoard"));
 import { Game, gameReturnUrl, HANGOUT, isInAppGame, playableUrl, toCard } from "./games";
 import { CreatorsPage, CreatorsSection } from "./Creators";
+import PageParts from "./features/PageParts";
 import { LeaderboardPage, TournamentBanner, TournamentPage, useTournament } from "./Tournament";
 
 // Set when a game sent the user here to sign in: we send them back afterwards.
@@ -360,6 +361,7 @@ export default function App({ view = "home", gameName, indieId, featurePage }: {
         )}
 
         {view === "home" && <TournamentBanner tournament={tournament.tournament} />}
+        {view === "home" && <PageParts page="home" user={user} onSignIn={() => setSignInOpen(true)} games={community} />}
 
         {(view === "home" || allGames) && (
         <section id="games" className={allGames ? "container all-games" : "container"}>
