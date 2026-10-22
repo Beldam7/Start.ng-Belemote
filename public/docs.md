@@ -146,7 +146,7 @@ Every game on start.ng meets three standards. They keep the experience the same 
 2. **start.ng branding.** The name "start.ng" shown in the game, for example on the start screen or the end screen.
 3. **Share your result on X.** When a round ends, a **Share** button that opens an X (Twitter) post with the player's result and a link to your game.
 
-The smallest way to meet the first two:
+The Kit (see "The Kit" below) adds all three to your game. The smallest way to meet the first two by hand:
 
 ```html
 <footer>Play more on <a href="https://start.ng">start.ng</a></footer>
@@ -228,6 +228,32 @@ Every refusal from publish and check has this shape: `detail` for people, and `e
 ### When an update doesn't pass
 
 If a push has errors, the game **stays on its last good version** and players notice nothing. The owner sees why on the game's card in **Your games** on their profile ("Your latest push didn't go live"), with every problem listed. Fix them and push again; the note goes away once a push goes live. If GitHub has a hiccup, start.ng simply tries the same push again on its next check.
+
+## The Kit: one line instead of the code below
+
+Add this to your game's HTML and you get the start.ng parts without copying any code:
+
+```html
+<script src="https://start.ng/kit.js" defer></script>
+```
+
+It adds a "← start.ng" button (top left) and a small "Made on start.ng" badge (bottom right), and gives your game `window.startng`:
+
+| Call | What it does |
+|---|---|
+| `startng.gameOver({ score, stats, title, onPlayAgain })` | Saves the run and shows the end-of-round card: the score, the player's rank, anything they unlocked, **Play again** and **Share on X**. Pass `stats` if your `startng.json` lists them, otherwise just `score`. Resolves to the save reply (see "Leaderboards"), or `null` if nothing was saved. |
+| `startng.getPlayer()` | Who is playing: `{ user, guest }`, or `null` when start.ng didn't answer. |
+| `startng.onPlayerChange(fn)` | Calls `fn` with the player whenever they sign in or out. |
+| `startng.signIn()` | Sends the player to start.ng to sign in, then back to your game. |
+| `startng.saveRun(stats)` | Saves a run without showing the card. |
+| `startng.getLeaderboard(limit)` | The top players, for everyone. |
+| `startng.share({ score })` | Opens an X post with the result and a link to your game. |
+
+The back button, the badge and the card's **Share on X** button are the three game standards. Until the publish check learns to recognise the Kit, keep the start.ng link, name and X share in your own code as well.
+
+Options go on the script tag: `data-back="off"` (no back button), `data-badge="off"` (no badge) and `data-position="right"` (back button top right). The Kit also sends start.ng a ping every 30 seconds while the game is on screen, so creators will be able to see how long people play. It sends nothing else.
+
+The code below is the manual way, if you want full control. Games that already use it keep working.
 
 ## Players and their character
 
