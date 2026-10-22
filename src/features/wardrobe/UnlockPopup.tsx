@@ -3,6 +3,7 @@ import type { User } from "../../api";
 import { styleFor } from "../../character";
 import { changed, getItems, getWardrobe, wear, type Item } from "./api";
 import { dressed, useWorn, withItem } from "./dress";
+import { useDialog } from "./useDialog";
 import "./wardrobe.css";
 import { picture, share } from "./words";
 
@@ -29,8 +30,9 @@ export default function UnlockPopup({ user }: { user: User }) {
   const [queue, setQueue] = useState<Item[]>([]);
   const [busy, setBusy] = useState(false);
   const [worn, setWorn] = useState(false);
+  const [error, setError] = useState("");
   const catalog = useRef<Map<string, Item> | null>(null);
-  const wearing = useWorn(true);
+  const wearing = useWorn(user.id);
 
   useEffect(() => {
     let live = true;
@@ -69,19 +71,24 @@ export default function UnlockPopup({ user }: { user: User }) {
   }, [user.id]);
 
   const item = queue[0];
-  useEffect(() => setWorn(false), [item?.key]);
+  useEffect(() => { setWorn(false); setError(""); }, [item?.key]);
   // The character wearing the new item, on top of what they already wear.
   const look = useMemo(() => item ? dressed(user.character?.style ?? styleFor(user.id), withItem(wearing ?? [], item.key, item.slot)) : null,
     [item, wearing, user]);
-  if (!item || !look) return null;
   const next = () => setQueue((q) => q.slice(1));
+  const dialogRef = useDialog(!!item && !!look, next);
+  if (!item || !look) return null;
 
   async function wearIt() {
     setBusy(true);
+    setError("");
     try {
       await wear(item.key);
       setWorn(true);
       changed();
+    } catch (err) {
+      // A dropped connection says "Failed to fetch" (a TypeError); the API's own refusals say what went wrong.
+      setError(err instanceof Error && !(err instanceof TypeError) ? err.message : "Couldn't put it on. Try again from your wardrobe.");
     } finally {
       setBusy(false);
     }
@@ -92,7 +99,7 @@ export default function UnlockPopup({ user }: { user: User }) {
 
   return (
     <div className="overlay" onClick={(e) => { if (e.target === e.currentTarget) next(); }}>
-      <div className={`card wd-unlock r-${item.rarity}`} role="dialog" aria-modal="true" aria-labelledby="wd-unlock-title">
+      <div ref={dialogRef} tabIndex={-1} className={`card wd-unlock r-${item.rarity}`} role="dialog" aria-modal="true" aria-labelledby="wd-unlock-title">
         <p className="eyebrow">Unlocked</p>
         <div className="wd-unlock-art">
           <Suspense fallback={<span className="wd-unlock-pic" aria-hidden="true">{picture(item.key, item.slot)}</span>}>
@@ -101,6 +108,7 @@ export default function UnlockPopup({ user }: { user: User }) {
         </div>
         <h3 id="wd-unlock-title">You unlocked the {item.name}!</h3>
         <p><span className={`wd-rarity r-${item.rarity}`}>{item.rarity}</span> <span className="note">{item.how} · {share(item.owned_share)}</span></p>
+        {error && <p className="error" role="alert">{error}</p>}
         <div className="creator-actions">
           {worn ? (
             <a className="btn" href="/wardrobe">See your wardrobe</a>

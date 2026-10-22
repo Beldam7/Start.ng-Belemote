@@ -19,11 +19,14 @@ export function dressed(base: CharacterStyle, worn: Worn): DressedStyle {
 /** The same items with one more on (trying something on replaces what's in its slot). */
 export const withItem = (worn: Worn, key: string, slot: Slot): Worn => [...worn.filter((w) => w.slot !== slot), { key, slot }];
 
-/** What the signed-in player wears, kept up to date after wearing or buying. null until loaded (or when off). */
-export function useWorn(on: boolean): Worn | null {
+/** What the signed-in player wears, kept up to date after wearing or buying. null until loaded (or when off).
+ *  Pass who is signed in (their id or email; null when signed out or off): a change forgets the last player's items
+ *  straight away. */
+export function useWorn(account: number | string | null): Worn | null {
   const [worn, setWorn] = useState<Worn | null>(null);
   useEffect(() => {
-    if (!on) return;
+    setWorn(null);
+    if (account === null) return;
     let live = true;
     const load = () => getWardrobe()
       .then((w) => live && setWorn(Object.entries(w.worn).map(([slot, key]) => ({ key: key!, slot: slot as Slot }))))
@@ -31,6 +34,6 @@ export function useWorn(on: boolean): Worn | null {
     load();
     window.addEventListener("wardrobe:changed", load);
     return () => { live = false; window.removeEventListener("wardrobe:changed", load); };
-  }, [on]);
+  }, [account]);
   return worn;
 }

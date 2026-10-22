@@ -12,7 +12,7 @@ const Viewer = lazy(() => import("../../three/Viewer"));
 /** start.ng/wardrobe: your coins and where they came from, and every item: yours to wear, and the ones still to get. */
 export default function WardrobePage({ user, onSignIn }: PageProps) {
   const [wallet, setWallet] = useState<Wallet | null>(null);
-  const worn = useWorn(!!user);
+  const worn = useWorn(user?.id ?? null);
   const base = useMemo(() => user?.character?.style ?? styleFor(user?.id ?? 0), [user]);
   const look = useMemo(() => dressed(base, worn ?? []), [base, worn]);
   useEffect(() => setSeo(PAGES.wardrobe), []);

@@ -5,8 +5,8 @@
   --scrim: rgba(41, 42, 35, .45); --shimmer: #efede2; --code-bg: #292a23; --legendary-bg: #fafff0; --banner-tint: #f1fbd2;
   --dot: rgba(41, 42, 35, .16); --danger: #c0392b; --ok: #2e7d32; --warn-ink: #8a6d00;
   --warn-bg: #fff7d6; --warn-line: #f0d77a; --bad-bg: #fdecea; --bad-line: #f3b8b0;
-  /* wardrobe item rarities (src/features/wardrobe) */
-  --r-common: #8a8b80; --r-uncommon: #2e9d52; --r-rare: #3b74e0; --r-epic: #8e4fd6; --r-legendary: #e8870e; --r-limited: #e0457b;
+  /* wardrobe item rarities (src/features/wardrobe): at least 4.5:1 with the --on-solid label text, in both themes */
+  --r-common: #75766c; --r-uncommon: #278546; --r-rare: #346fdf; --r-epic: #8e4fd6; --r-legendary: #a9630a; --r-limited: #db2967;
   color-scheme: light;
 }
 :root[data-theme="dark"] {

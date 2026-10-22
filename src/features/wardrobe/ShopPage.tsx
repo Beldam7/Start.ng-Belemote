@@ -5,6 +5,7 @@ import { styleFor } from "../../character";
 import { buy, changed, getShop, getWallet, getWardrobe, type Item, type Shop } from "./api";
 import { dressed, useWorn, withItem } from "./dress";
 import ItemTile from "./ItemTile";
+import { useDialog } from "./useDialog";
 import "./wardrobe.css";
 import { coins } from "./words";
 
@@ -26,10 +27,12 @@ export default function ShopPage({ user, onSignIn }: PageProps) {
   const [owned, setOwned] = useState<Set<string>>(new Set());
   const [confirm, setConfirm] = useState<Item | null>(null);
   const [trying, setTrying] = useState<Item | null>(null);
-  const worn = useWorn(!!user);
+  const worn = useWorn(user?.id ?? null);
   const base = useMemo(() => user?.character?.style ?? styleFor(user?.id ?? 0), [user]);
   const tryLook = useMemo(() => (trying ? dressed(base, withItem(worn ?? [], trying.key, trying.slot)) : null), [base, worn, trying]);
   const [busy, setBusy] = useState(false);
+  const tryRef = useDialog(!!trying, () => setTrying(null));
+  const buyRef = useDialog(!!confirm, () => { if (!busy) setConfirm(null); }); // not while it's buying
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
   const [now, setNow] = useState(Date.now());
 
@@ -40,9 +43,14 @@ export default function ShopPage({ user, onSignIn }: PageProps) {
     return () => window.clearInterval(timer);
   }, []);
   useEffect(() => {
+    // A new account (or signing out) starts from nothing, and a late answer for the last one is ignored.
+    setBalance(null);
+    setOwned(new Set());
     if (!user) return;
-    getWallet().then((w) => setBalance(w.balance)).catch(() => {});
-    getWardrobe().then((w) => setOwned(new Set(w.owned.map((o) => o.key)))).catch(() => {});
+    let current = true;
+    getWallet().then((w) => { if (current) setBalance(w.balance); }).catch(() => {});
+    getWardrobe().then((w) => { if (current) setOwned(new Set(w.owned.map((o) => o.key))); }).catch(() => {});
+    return () => { current = false; };
   }, [user?.id]);
 
   async function purchase(item: Item) {
@@ -108,7 +116,7 @@ export default function ShopPage({ user, onSignIn }: PageProps) {
 
       {trying && tryLook && (
         <div className="overlay" onClick={(e) => { if (e.target === e.currentTarget) setTrying(null); }}>
-          <div className={`card wd-tryon r-${trying.rarity}`} role="dialog" aria-modal="true" aria-labelledby="wd-try-title">
+          <div ref={tryRef} tabIndex={-1} className={`card wd-tryon r-${trying.rarity}`} role="dialog" aria-modal="true" aria-labelledby="wd-try-title">
             <Suspense fallback={<p className="board-sub">Loading…</p>}><Viewer style={tryLook} className="wd-viewer" /></Suspense>
             <h3 id="wd-try-title">{trying.name}</h3>
             <p className="note"><span className={`wd-rarity r-${trying.rarity}`}>{trying.rarity}</span> 🪙 {trying.price?.toLocaleString()} · Drag to turn</p>
@@ -125,7 +133,7 @@ export default function ShopPage({ user, onSignIn }: PageProps) {
 
       {confirm && (
         <div className="overlay" onClick={(e) => { if (e.target === e.currentTarget && !busy) setConfirm(null); }}>
-          <div className="card" role="dialog" aria-modal="true" aria-labelledby="wd-buy-title">
+          <div ref={buyRef} tabIndex={-1} className="card" role="dialog" aria-modal="true" aria-labelledby="wd-buy-title">
             <h3 id="wd-buy-title">Buy {confirm.name}?</h3>
             <p className="note">It costs {coins(confirm.price ?? 0)}. You'll have {coins((balance ?? 0) - (confirm.price ?? 0))} left. Coins can't be refunded.</p>
             <div className="creator-actions">

@@ -27,7 +27,7 @@ export default function CharacterCreator({ initial, editing, email, onSave, onCa
   // Your profile has a Wardrobe tab while the wardrobe is on (src/features/wardrobe).
   const wardrobeOn = useFeature("wardrobe") && editing;
   const [tab, setTab] = useState<"look" | "wardrobe">("look");
-  const worn = useWorn(wardrobeOn);
+  const worn = useWorn(wardrobeOn ? email : null);
   const preview = useMemo(() => (worn ? dressed(style, worn) : style), [style, worn]); // with your worn items on
   const set = <K extends keyof CharacterStyle>(k: K, v: CharacterStyle[K]) => setStyle((s) => ({ ...s, [k]: v }));
   // First pick starts with that section's main hairstyle; switching later keeps what still fits.
@@ -101,9 +101,9 @@ export default function CharacterCreator({ initial, editing, email, onSave, onCa
           <p className="lead-sm">{editing ? <>Signed in as {email}. Your character is you in every game.</> : "This is you in every game on start.ng."}</p>
 
           {wardrobeOn && (
-            <div className="segmented" role="tablist" aria-label="Profile">
+            <div className="segmented" role="group" aria-label="Profile section">
               {(["look", "wardrobe"] as const).map((t) => (
-                <button type="button" role="tab" key={t} className={tab === t ? "on" : ""} aria-selected={tab === t} onClick={() => setTab(t)}>
+                <button type="button" key={t} className={tab === t ? "on" : ""} aria-pressed={tab === t} onClick={() => setTab(t)}>
                   {t === "look" ? "Look" : "Wardrobe"}
                 </button>
               ))}
