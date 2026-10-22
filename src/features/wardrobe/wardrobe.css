@@ -1,12 +1,5 @@
-/* Wardrobe: rarity colours, item tiles, the coin counter, the shop and the unlock popup. */
-:root {
-  --r-common: #8a8b80; --r-uncommon: #2e9d52; --r-rare: #3b74e0;
-  --r-epic: #8e4fd6; --r-legendary: #e8870e; --r-limited: #e0457b;
-}
-:root[data-theme="dark"] {
-  --r-common: #a6a79b; --r-uncommon: #5fcf82; --r-rare: #6f9bf0;
-  --r-epic: #b383ef; --r-legendary: #f5a640; --r-limited: #f27aa3;
-}
+/* Wardrobe: item tiles, the coin counter, the shop and the unlock popup. The rarity colours (--r-common and the
+   rest, light and dark) are with the other colours in src/styles.css. */
 .r-common { --r: var(--r-common); } .r-uncommon { --r: var(--r-uncommon); } .r-rare { --r: var(--r-rare); }
 .r-epic { --r: var(--r-epic); } .r-legendary { --r: var(--r-legendary); } .r-limited { --r: var(--r-limited); }
 
@@ -50,8 +43,7 @@
 .wd-item.r-legendary .wd-pic, .wd-item.r-limited .wd-pic { box-shadow: 0 0 18px color-mix(in srgb, var(--r) 60%, transparent); }
 .wd-item button, .wd-item .tag { justify-self: start; margin-top: 6px; }
 .wd-rarity { justify-self: start; font-family: var(--mono); font-size: .68rem; text-transform: uppercase; letter-spacing: .12em;
-  padding: 2px 7px; border-radius: 6px; background: var(--r); color: #fff; }
-:root[data-theme="dark"] .wd-rarity { color: #1f201b; }
+  padding: 2px 7px; border-radius: 6px; background: var(--r); color: var(--on-solid); }
 .wd-how { font-size: .8rem; color: var(--muted); }
 .wd-price { display: flex; gap: 8px; align-items: center; font-family: var(--mono); font-weight: 700; margin-top: 4px; }
 .wd-buy-link { font-size: .8rem; }
