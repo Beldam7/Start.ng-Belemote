@@ -558,6 +558,26 @@ For games where players see each other live, like the Hangout. This uses the con
 
 Players are `{ id, name, style, seat, x, z, ry, moving }`, with names and looks from start.ng, so nobody can pretend to be someone else. Positions stay within ±60 metres. If the connection closes with code `4401`, the player needs to sign in; `4403`, the room is full; `4409`, they joined from another tab. Up to 50 players share a room. See [the Hangout](https://github.com/Blackburn0/startng-hangout) for a full example.
 
+## Friends and follows
+
+Players can follow each other on start.ng. Two players who follow each other are **friends**. This part of start.ng is switched on step by step: until it's on, these addresses answer 404.
+
+- **Follow** anyone from their profile or creator page. Following twice changes nothing; unfollowing ends a friendship.
+- **Invite links** (`https://start.ng/f/<code>`): whoever opens your link and accepts becomes your friend. A link works for 7 days and several people can use it. Get yours at [start.ng/follows](/follows).
+- **Private by design:** other players see how many followers you have, never who they are, and never your email. There is no search for players. Up to 100 new follows a day.
+
+These calls use the player's **start.ng sign-in** (the website's), not a game session, so games can't call them.
+
+| Endpoint | Sign-in | What it does |
+| --- | --- | --- |
+| `PUT /follows/{user_id}` | start.ng | Follow a player |
+| `DELETE /follows/{user_id}` | start.ng | Stop following |
+| `GET /follows/{user_id}` | None | `{ user_id, followers, following, you_follow, friends }` (the last two are about you, and false when signed out) |
+| `GET /me/friends`, `/me/following`, `/me/followers` | start.ng | Your own lists: `{ count, people: [{ id, name, character }] }` |
+| `POST /friend-invites` | start.ng | Your invite link: `{ code, path, expires_at }` |
+| `GET /friend-invites/{code}` | None | Who sent it: `{ inviter: { id, name, character }, expires_at }` |
+| `POST /friend-invites/{code}/accept` | start.ng | Become friends with whoever sent it |
+
 ## API reference
 
 Base URL: `https://api.start.ng`. Games on `*.start.ng` can call it straight from the browser.

@@ -155,6 +155,8 @@ input:focus { outline: 2px solid var(--ink); outline-offset: -1px; }
 .menu-head span { color: var(--muted); font-size: .82rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .menu button { background: none; color: var(--ink); text-align: left; padding: 10px; border-radius: 10px; font-weight: 600; font-size: .95rem; }
 .menu button:hover { background: var(--bg); }
+.menu a[role="menuitem"] { color: var(--ink); text-decoration: none; padding: 10px; border-radius: 10px; font-weight: 600; font-size: .95rem; }
+.menu a[role="menuitem"]:hover { background: var(--bg); }
 
 /* character creator */
 .creator-overlay { align-items: start; overflow-y: auto; }
