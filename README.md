@@ -26,8 +26,44 @@ Every new feature lives in `src/features/<feature>/` with one owner (the PRD, se
      `game` and `reload`).
    - **Profile sections:** `registerProfileSection({ feature, key, title, Component })`. The profile page shows them
      with `<ProfileSections userId isMe />`.
+   - **Boxes on start.ng's own pages:** `registerPagePart({ feature, key, page: "tournament", Component })`, shown
+     where the page puts `<PageParts page="..." />` (with `user` and `onSignIn`).
 3. Your API calls live in your folder too (`src/features/<feature>/api.ts`), using `call` and `send` from `src/api.ts`.
    Admin tabs and profile sections are wrapped in an error boundary, so a crash in yours doesn't take down the page.
+
+## Name filter (PRD H2)
+`src/features/moderation`; flag `moderation`. Admin tab **Name filter** (permission `moderation.words`): try a name,
+add blocked or allowed words, see names already on start.ng that fail, and the built-in lists. The filter itself runs
+on the API; when it refuses a name, the form shows the API's message.
+
+## Needs fixing (PRD H2)
+`src/features/needs_fixing`; flag `needs_fixing`.
+- Admin tab **Needs fixing**: mark a game with a note for its owner; games their owners say are fixed come first,
+  then games waiting for the owner. Put back, send back, or change the note.
+- Your games: the owner sees what's wrong and "tell us it's fixed".
+
+## Duplicate finder (PRD H2)
+`src/features/duplicates`; flag `duplicates`.
+- Admin tab **Duplicates**: look-alike pairs side by side (older first) with why they match; hide as copy, delete
+  (type DELETE to confirm), keep both; scan all games; put hidden copies back.
+- Your games: "Hidden: looks like a copy", naming the original. Hidden games show a **Hidden** tag instead of Live.
+
+## Email (PRD H1)
+`src/features/email`; flag `email`.
+- **start.ng/emails**: signed-in players switch topics on and off; visitors sign up and confirm by link. The confirm
+  and unsubscribe links in emails land here (`?confirm=`, `?unsubscribe=&topic=`).
+- Admin tab **Email** (permission `email.view`): subscribers by topic, the outbox by status, and "Send me a test email".
+- An **Emails** section on your own profile, shown once the profile page shows sections.
+
+## Game health (PRD H2)
+`src/features/game_health`; flag `game_health`.
+- Admin tab **Game health** (permission `games.health`): counts by status, failing and unhealthy games with what's
+  wrong, "Check now" and "Check all again".
+- Your games: a **Not loading** notice on an unhealthy game, with "check again".
+
+## Tournament emails (PRD H1)
+Part of `src/features/email`: the **Get the tournament by email** box on start.ng/tournament (a `registerPagePart`).
+Visitors leave an address and confirm by link; signed-in players turn on tournament and results emails in one click.
 
 ## Deploy (Coolify)
 Dockerfile build pack (nginx, port 80). VITE_API_URL and VITE_GOOGLE_CLIENT_ID are build-time, so mark them as

@@ -6,6 +6,7 @@ import {
 } from "./api";
 import { formatStat, shortName } from "./BoardTable";
 import { useFeature } from "./features/flags";
+import PageParts from "./features/PageParts";
 import { Game, toCard } from "./games";
 import { PAGES, setSeo, TOURNAMENT_IMAGE } from "./seo";
 
@@ -224,6 +225,7 @@ export function TournamentPage({ user, state, onSignIn, onPlay }: {
       {t === null && (
         <p className="empty">No tournament today: there aren't enough games with leaderboards yet. Check back tomorrow.</p>
       )}
+      {t === null && <PageParts page="tournament" user={user} onSignIn={onSignIn} />}
 
       {t && (
         <>
@@ -284,6 +286,8 @@ export function TournamentPage({ user, state, onSignIn, onPlay }: {
               );
             })}
           </div>
+
+          <PageParts page="tournament" user={user} onSignIn={onSignIn} />
 
           <div className="tournament-columns">
             <section aria-labelledby="standings-heading">
