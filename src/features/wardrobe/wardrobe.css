@@ -31,15 +31,22 @@
 .wd-slot .link { justify-self: start; font-size: .8rem; }
 .wd-filter { margin-bottom: 4px; }
 
-.wd-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.wd-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); gap: 12px; }
 @media (max-width: 400px) { .wd-grid, .wd-grid.compact, .wd-panel.compact .wd-grid { grid-template-columns: 1fr 1fr; gap: 8px; } .wd-item { padding: 10px; } }
 .wd-grid.compact { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
 .wd-item { display: grid; gap: 4px; align-content: start; padding: 14px; border-radius: 14px; background: var(--card);
   border: 2px solid var(--r); box-shadow: 4px 4px 0 color-mix(in srgb, var(--r) 35%, transparent); }
 .wd-item.on { outline: 3px solid var(--lime); outline-offset: 2px; }
-.wd-item.locked { border-style: dashed; box-shadow: none; opacity: .72; }
-.wd-item .wd-pic { font-size: 2.2rem; line-height: 1; width: 56px; height: 56px; display: grid; place-items: center; border-radius: 14px;
-  background: color-mix(in srgb, var(--r) 16%, transparent); margin-bottom: 4px; }
+.wd-item.locked { border-style: dashed; box-shadow: none; }
+.wd-item .wd-pic { position: relative; display: grid; place-items: center; width: 100%; aspect-ratio: 1; border-radius: 12px; overflow: hidden; margin-bottom: 6px;
+  background: radial-gradient(circle at 50% 38%, color-mix(in srgb, var(--r) 30%, var(--card)), color-mix(in srgb, var(--r) 10%, var(--card))); }
+.wd-item .wd-pic img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.wd-item .wd-emoji { font-size: 2.6rem; line-height: 1; }
+.wd-item.locked .wd-pic img { filter: saturate(.55) brightness(.8); }
+.wd-lock { position: absolute; right: 6px; bottom: 6px; width: 24px; height: 24px; display: grid; place-items: center; border-radius: 50%; font-size: .72rem;
+  background: rgba(20, 21, 17, .72); box-shadow: 0 0 0 1px rgba(255, 255, 255, .18); }
+.wd-tabs { margin: 8px 0 18px; }
+.wd-tabs button { padding: 8px 18px; }
 .wd-item.r-legendary .wd-pic, .wd-item.r-limited .wd-pic { box-shadow: 0 0 18px color-mix(in srgb, var(--r) 60%, transparent); }
 .wd-item button, .wd-item .tag { justify-self: start; margin-top: 6px; }
 .wd-rarity { justify-self: start; font-family: var(--mono); font-size: .68rem; text-transform: uppercase; letter-spacing: .12em;

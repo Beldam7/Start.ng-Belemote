@@ -36,12 +36,12 @@ export default function YourStats({ game }: YourGameProps) {
   const s = dash?.games.find((g) => g.game === game.name);
   if (!dash || !s) return null;
   return (
-    <div className="your-stats">
-      <div className="your-stats-head">
+    <details className="your-stats">
+      <summary className="your-stats-head">
         <b>How it's doing</b>
         {dash.best_game === s.game && <span className="tag">Best this month</span>}
-        {s.change_7 !== 0 && <span className="note">{s.change_7 > 0 ? "+" : ""}{s.change_7} plays vs the week before</span>}
-      </div>
+        <span className="note">{s.plays_7.toLocaleString()} {s.plays_7 === 1 ? "play" : "plays"} this week{s.change_7 !== 0 && ` (${s.change_7 > 0 ? "+" : ""}${s.change_7})`}</span>
+      </summary>
       <dl>
         <div><dt>Plays, 7 days</dt><dd>{s.plays_7.toLocaleString()}</dd></div>
         <div><dt>Plays, 30 days</dt><dd>{s.plays_30.toLocaleString()}</dd></div>
@@ -54,6 +54,6 @@ export default function YourStats({ game }: YourGameProps) {
       </dl>
       <Trend stats={s} />
       {s.avg_session_seconds === null && <p className="note">Session length shows for games that use the start.ng Kit.</p>}
-    </div>
+    </details>
   );
 }

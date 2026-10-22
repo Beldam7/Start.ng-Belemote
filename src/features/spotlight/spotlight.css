@@ -26,8 +26,8 @@
 @media (max-width: 760px) {
   .gotw { grid-template-columns: 1fr; }
   .gotw-cover { min-height: 190px; }
-  .gotw-cover::after { background: linear-gradient(180deg, transparent 55%, var(--code-bg)); }
-  .gotw-text { padding: 8px 22px 26px; }
+  .gotw-cover::after { background: linear-gradient(180deg, transparent 35%, color-mix(in srgb, var(--code-bg) 70%, transparent) 70%, var(--code-bg) 100%); inset: -1px 0; }
+  .gotw-text { padding: 0 22px 26px; margin-top: -34px; position: relative; }
 }
 /* decoration on the right: a soft lime glow, a dot grid and a pen sketch of the logo as a 3D block, so the dark side isn't empty */
 .gotw { position: relative; isolation: isolate; }

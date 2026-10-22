@@ -104,6 +104,13 @@ export default function App({ view = "home", gameName, indieId, featurePage }: {
 
   const profileOpen = !!user && (!user.character || editing);
   const wardrobeOn = useFeature("wardrobe"); // the unlock popup (src/features/wardrobe)
+  const profilesOn = useFeature("profiles"); // the profile page holds Your games (src/features/profiles)
+  // The profile page's Edit button (it has no access to this state).
+  useEffect(() => {
+    const open = () => setEditing(true);
+    window.addEventListener("startng:edit-profile", open);
+    return () => window.removeEventListener("startng:edit-profile", open);
+  }, []);
   const wasOpen = useRef(profileOpen);
   useEffect(() => {
     if (wasOpen.current && !profileOpen) refreshGames();
@@ -295,6 +302,7 @@ export default function App({ view = "home", gameName, indieId, featurePage }: {
   async function onSaveCharacter(c: Character) {
     setUser(await saveCharacter(localStorage.getItem("token"), c));
     setEditing(false);
+    window.dispatchEvent(new Event("startng:profile-saved"));
   }
 
   const firstName = (user?.name ?? user?.email ?? "").split(/[ @]/)[0];
@@ -468,6 +476,7 @@ export default function App({ view = "home", gameName, indieId, featurePage }: {
           email={user.email}
           onSave={onSaveCharacter}
           onCancel={() => setEditing(false)}
+          showGames={!profilesOn}
         />
         </Suspense>
       )}

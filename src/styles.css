@@ -26,7 +26,13 @@ code { font-family: var(--mono); font-size: .88em; background: var(--lime); padd
 .container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
 
 /* nav */
-.nav { display: flex; align-items: center; padding: 22px 24px; }
+.nav { display: flex; align-items: center; padding: 14px 24px; position: sticky; top: 0; z-index: 30; }
+/* the bar's background runs the full width of the window, with the page blurred behind it as it scrolls under */
+.nav::before { content: ""; position: absolute; z-index: -1; inset: 0 calc(50% - 50vw); background: color-mix(in srgb, var(--bg) 86%, transparent);
+  -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); box-shadow: 0 1px 0 color-mix(in srgb, var(--line) 70%, transparent); }
+html { scroll-padding-top: 84px; }
+@media (max-width: 760px) { .nav { position: static; } html { scroll-padding-top: 12px; } }
+body { overflow-x: clip; }
 .nav .logo { margin-right: auto; }
 .nav-account { display: flex; align-items: center; margin-left: 24px; }
 .logo { font-weight: 800; font-size: 1.3rem; letter-spacing: -.03em; display: flex; align-items: center; gap: 8px; }
@@ -836,8 +842,8 @@ button.small { padding: 7px 12px; font-size: .85rem; border-radius: 8px; }
 .newsletter-form input { padding: 13px 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: inherit; font: inherit; font-weight: 400; }
 .newsletter-form textarea { font-weight: 400; }
 .newsletter-actions select, .newsletter-actions .btn { min-height: 46px; }
-.newsletter-form select { width: 100%; min-height: 46px; padding-left: 14px; }
-.newsletter-actions select { flex: 1 1 260px; max-width: 420px; padding-left: 14px; }
+.newsletter-form select { width: 100%; min-height: 46px; padding-left: 14px; border-radius: 10px; font-size: .95rem; font-weight: 400; }
+.newsletter-actions select { flex: 1 1 260px; max-width: 420px; padding-left: 14px; border-radius: 10px; font-size: .95rem; font-weight: 400; }
 .newsletter-form select:focus-visible, .newsletter-form input:focus-visible, .newsletter-actions select:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
 .newsletter-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .newsletter-preview { max-width: 680px; margin: 0 0 20px; padding: 14px 18px; border-radius: 14px; background: var(--card); border: 1px solid var(--line); }
@@ -879,8 +885,8 @@ button.small { padding: 7px 12px; font-size: .85rem; border-radius: 8px; }
 
 /* dropdowns: one look everywhere. Chrome's customisable select (appearance: base-select) also gets a styled list;
    other browsers keep their own list but get the same closed look. */
-select { appearance: none; min-height: 38px; padding: 8px 36px 8px 12px; border-radius: 10px; border: 1px solid var(--line); color: inherit; font: inherit; font-size: .92rem; cursor: pointer;
-  background-color: var(--bg); background-repeat: no-repeat; background-position: right 12px center; background-size: 12px 8px;
+select { appearance: none; min-height: 32px; padding: 4px 30px 4px 12px; border-radius: 999px; border: 1px solid var(--line); color: inherit; font: inherit; font-size: .85rem; font-weight: 600; cursor: pointer;
+  background-color: var(--bg); background-repeat: no-repeat; background-position: right 11px center; background-size: 10px 7px;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23909086' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   transition: border-color .15s, box-shadow .15s; }
 select:hover { border-color: var(--muted); }
@@ -889,13 +895,13 @@ select:disabled { opacity: .55; cursor: default; }
 option { background: var(--card); color: var(--ink); }
 @supports (appearance: base-select) {
   select, ::picker(select) { appearance: base-select; }
-  select { background-image: none; display: inline-flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 12px; }
-  select::picker-icon { content: ""; width: 12px; height: 8px; flex: none; transition: rotate .2s;
+  select { background-image: none; display: inline-flex; align-items: center; justify-content: space-between; gap: 8px; padding: 4px 10px 4px 12px; }
+  select::picker-icon { content: ""; width: 10px; height: 7px; flex: none; transition: rotate .2s;
     background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23909086' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat; }
   select:open::picker-icon { rotate: 180deg; }
-  ::picker(select) { margin-top: 6px; padding: 6px; border: 1px solid var(--line); border-radius: 14px; background: var(--card); color: var(--ink);
+  ::picker(select) { margin-top: 6px; padding: 5px; border: 1px solid var(--line); border-radius: 14px; background: var(--card); color: var(--ink);
     box-shadow: 0 14px 34px var(--scrim); min-width: anchor-size(width); }
-  option { display: flex; align-items: center; padding: 9px 12px; border-radius: 9px; font-size: .92rem; cursor: pointer; }
+  option { display: flex; align-items: center; padding: 7px 12px; border-radius: 999px; font-size: .86rem; cursor: pointer; }
   option:hover, option:focus-visible { background: var(--line); outline: none; }
   option:checked { background: var(--lime); color: var(--on-lime); font-weight: 700; }
   option::checkmark { display: none; }

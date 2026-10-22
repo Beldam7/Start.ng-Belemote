@@ -1,10 +1,14 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import type { PageProps } from "../registry";
 import { PAGES, setSeo } from "../../seo";
-import { AvatarFace } from "../../Avatar";
+import { styleFor } from "../../character";
+import { dressed, useWorn } from "../wardrobe/dress";
 import ProfileSections from "../ProfileSections";
 import { badgeCatalog, getProfile, myProfile, saveSettings, type Badge, type Profile, type Settings } from "./api";
 import "./profiles.css";
+
+const Viewer = lazy(() => import("../../three/Viewer"));
+const MyGames = lazy(() => import("../../MyGames"));
 
 /** start.ng/p/<id>-<name> (and /me): a player's page. Only the name and character are public, never the email. */
 export default function ProfilePage({ user, onSignIn, params }: PageProps) {
@@ -14,6 +18,8 @@ export default function ProfilePage({ user, onSignIn, params }: PageProps) {
   const [catalog, setCatalog] = useState<Badge[]>([]);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const worn = useWorn(user && id === user.id ? user.id : null);
 
   useEffect(() => { setSeo(PAGES.profile); badgeCatalog().then(setCatalog).catch(() => {}); }, []);
 
@@ -33,6 +39,18 @@ export default function ProfilePage({ user, onSignIn, params }: PageProps) {
     return () => { live = false; };
   }, [id, isMeRoute, user?.id]);
 
+  useEffect(() => {
+    // The editor (in the top bar's shell) saved a new look or name.
+    const again = () => myProfile().then((got) => setP((cur) => (cur?.me ? got : cur))).catch(() => {});
+    window.addEventListener("startng:profile-saved", again);
+    return () => window.removeEventListener("startng:profile-saved", again);
+  }, []);
+
+  const look = useMemo(() => {
+    const base = p?.character?.style ?? styleFor(p?.id ?? 0);
+    return dressed(base, p?.me ? worn ?? [] : []);
+  }, [p, worn]);
+
   async function change(changes: Partial<Settings>) {
     setSaving(true);
     setError("");
@@ -46,8 +64,8 @@ export default function ProfilePage({ user, onSignIn, params }: PageProps) {
   if (isMeRoute && !user) {
     return (
       <section className="container profile-page">
-        <h1>Your page</h1>
-        <p className="lead-sm">Sign in to see your page: your level, streak, badges and best scores.</p>
+        <h1>Profile</h1>
+        <p className="lead-sm">Sign in to see your profile: your level, streak, badges and best scores.</p>
         <button type="button" onClick={onSignIn}>Sign in</button>
       </section>
     );
@@ -74,11 +92,23 @@ export default function ProfilePage({ user, onSignIn, params }: PageProps) {
           <button type="button" className="ghost" disabled={saving} onClick={() => change({ notice_seen: true })}>Got it</button>
         </div>
       )}
-      <header className="profile-head">
-        {p.character?.style && <AvatarFace style={p.character.style} size={84} />}
-        <div>
+      <header className="profile-hero">
+        <div className="profile-stage">
+          <Suspense fallback={null}><Viewer style={look} className="profile-viewer" /></Suspense>
+        </div>
+        <div className="profile-who">
+          <span className="profile-level">Level {p.level}</span>
           <h1>{p.name}</h1>
-          <p className="lead-sm">Level {p.level} · {p.xp.toLocaleString()} XP</p>
+          <p className="lead-sm">{p.xp.toLocaleString()} XP{p.current_streak > 0 && <> · {p.current_streak}-day streak</>}</p>
+          <div className="profile-actions">
+            {p.me && <button type="button" onClick={() => window.dispatchEvent(new Event("startng:edit-profile"))}>Edit profile</button>}
+            {p.me && <a className="btn ghost" href="/shop#wardrobe">My wardrobe</a>}
+            {(!p.me || s?.public) && (
+              <button type="button" className="ghost" onClick={() => { navigator.clipboard?.writeText(`${location.origin}/p/${p.slug}`).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1800); }).catch(() => {}); }}>
+                {copied ? "Link copied" : "Copy link"}
+              </button>
+            )}
+          </div>
         </div>
       </header>
 
@@ -90,7 +120,7 @@ export default function ProfilePage({ user, onSignIn, params }: PageProps) {
         <div><b>{p.tournament_points}</b><span>tournament points</span></div>
       </div>
 
-      <h2>Badges</h2>
+      <h2>Badges <span className="note">{p.badges.length}{catalog.length ? ` of ${catalog.length}` : ""}</span></h2>
       <ul className="badge-list">
         {catalog.map((b) => (
           <li key={b.key} className={earned.has(b.key) ? "badge on" : "badge"} title={b.description}>
@@ -130,9 +160,11 @@ export default function ProfilePage({ user, onSignIn, params }: PageProps) {
 
       <ProfileSections userId={p.id} isMe={p.me} />
 
+      {p.me && <Suspense fallback={null}><MyGames /></Suspense>}
+
       {p.me && s && (
         <fieldset className="profile-settings" disabled={saving}>
-          <legend>Your page</legend>
+          <legend>Privacy</legend>
           <label><input type="checkbox" checked={s.public} onChange={(e) => change({ public: e.target.checked })} /> Anyone with the link can see my page</label>
           <label><input type="checkbox" checked={s.show_ranks} onChange={(e) => change({ show_ranks: e.target.checked })} /> Show my best scores and ranks</label>
           <label><input type="checkbox" checked={s.show_favorites} onChange={(e) => change({ show_favorites: e.target.checked })} /> Show my favorites</label>

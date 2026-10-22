@@ -5,6 +5,7 @@ import { styleFor } from "../../character";
 import { buy, changed, getShop, getWallet, getWardrobe, type Item, type Shop } from "./api";
 import { dressed, useWorn, withItem } from "./dress";
 import ItemTile from "./ItemTile";
+import WardrobeTab from "./WardrobeTab";
 import { useDialog } from "./useDialog";
 import "./wardrobe.css";
 import { coins } from "./words";
@@ -35,6 +36,8 @@ export default function ShopPage({ user, onSignIn }: PageProps) {
   const buyRef = useDialog(!!confirm, () => { if (!busy) setConfirm(null); }); // not while it's buying
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
   const [now, setNow] = useState(Date.now());
+  const [tab, setTabState] = useState<"shop" | "wardrobe">(() => (location.hash === "#wardrobe" ? "wardrobe" : "shop"));
+  const setTab = (t: "shop" | "wardrobe") => { setTabState(t); history.replaceState(null, "", t === "shop" ? "/shop" : "/shop#wardrobe"); };
 
   useEffect(() => setSeo(PAGES.shop), []);
   useEffect(() => {
@@ -63,7 +66,7 @@ export default function ShopPage({ user, onSignIn }: PageProps) {
       // Bought, not unlocked: don't show the unlock popup for it.
       window.dispatchEvent(new CustomEvent("wardrobe:seen", { detail: item.key }));
       changed();
-      setMessage({ ok: true, text: `${item.name} is yours. Wear it in your wardrobe.` });
+      setMessage({ ok: true, text: `${item.name} is yours. Wear it from My wardrobe.` });
     } catch (err) {
       setMessage({ ok: false, text: err instanceof Error ? err.message : "Couldn't buy it" });
     } finally {
@@ -96,14 +99,21 @@ export default function ShopPage({ user, onSignIn }: PageProps) {
       <div className="section-head">
         <div>
           <p className="eyebrow">Shop</p>
-          <h1>Today's shop</h1>
-          <p className="tournament-sub">Spend the coins you earn playing. New stock in {untilRestock(now)}. Epic and Legendary items can't be bought: <a href="/wardrobe">earn them</a>.</p>
+          <h1>Shop</h1>
+          <p className="tournament-sub">Spend the coins you earn playing, then wear what you own in every game. New stock in {untilRestock(now)}. Epic and Legendary items can't be bought: <button type="button" className="link" onClick={() => setTab("wardrobe")}>earn them</button>.</p>
         </div>
         {user && balance !== null && <div className="wd-balance small"><span className="note">Your coins</span><b>🪙 {balance.toLocaleString()}</b></div>}
       </div>
 
+      <div className="segmented wd-tabs" role="group" aria-label="Shop or wardrobe">
+        <button type="button" className={tab === "shop" ? "on" : ""} aria-pressed={tab === "shop"} onClick={() => setTab("shop")}>Today's shop</button>
+        <button type="button" className={tab === "wardrobe" ? "on" : ""} aria-pressed={tab === "wardrobe"} onClick={() => setTab("wardrobe")}>My wardrobe</button>
+      </div>
+
       {message && <p className={message.ok ? "wd-ok" : "error"} role="status">{message.text}</p>}
-      {!shop ? (
+      {tab === "wardrobe" ? (
+        <WardrobeTab user={user} onSignIn={onSignIn} />
+      ) : !shop ? (
         !message && <p className="board-sub">Loading…</p>
       ) : (
         <>
