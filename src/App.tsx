@@ -11,6 +11,7 @@ import GamePage from "./GamePage";
 import IndiePage from "./IndiePage";
 import ThemeToggle from "./ThemeToggle";
 import SearchBox, { matches, queryFromUrl, urlFor } from "./SearchBox";
+import { FilterBar, useGameFilters } from "./features/catalog/filters";
 import { setSeo, PAGES } from "./seo";
 import { SkeletonCards } from "./Skeleton";
 import ScrollJump from "./ScrollJump";
@@ -20,6 +21,7 @@ const CharacterCreator = lazy(() => import("./CharacterCreator"));
 const GameBoard = lazy(() => import("./GameBoard"));
 import { Game, gameReturnUrl, HANGOUT, isInAppGame, playableUrl, toCard } from "./games";
 import { CreatorsPage, CreatorsSection } from "./Creators";
+import PageParts from "./features/PageParts";
 import { LeaderboardPage, TournamentBanner, TournamentPage, useTournament } from "./Tournament";
 
 // Set when a game sent the user here to sign in: we send them back afterwards.
@@ -144,6 +146,7 @@ export default function App({ view = "home", gameName, indieId, featurePage }: {
     history.replaceState(null, "", urlFor("/games", next));
   }
 
+  const filters = useGameFilters(useCallback(() => setPage(1), [])); // the /games filters (T1)
   const favs = useFavorites(user);
   // Today's tournament: the homepage banner, the badge on game pages, and /tournament.
   const tournament = useTournament(user, view === "home" || gamePage || tournamentPage);
@@ -156,7 +159,7 @@ export default function App({ view = "home", gameName, indieId, featurePage }: {
   // What the search box suggests: game names and their creators.
   const suggestions = useMemo(() => [HANGOUT, ...(games ?? [])].flatMap((g) => [g.title, g.by]), [games]);
   const everyCard = [HANGOUT, ...(allGames ? community : popular)];
-  const cards = searching ? everyCard.filter((g) => matches(q, g.title, g.host, g.by)) : everyCard;
+  const cards = filters.apply(searching ? everyCard.filter((g) => matches(q, g.title, g.host, g.by)) : everyCard);
   // What this page shows: the first HOME_GAMES on the homepage, one page of them on /games.
   const pages = Math.max(1, Math.ceil(cards.length / PER_PAGE));
   const current = Math.min(page, pages); // a page past the end shows the last one
@@ -360,6 +363,7 @@ export default function App({ view = "home", gameName, indieId, featurePage }: {
         )}
 
         {view === "home" && <TournamentBanner tournament={tournament.tournament} />}
+        {view === "home" && <PageParts page="home" user={user} onSignIn={() => setSignInOpen(true)} games={community} />}
 
         {(view === "home" || allGames) && (
         <section id="games" className={allGames ? "container all-games" : "container"}>
@@ -376,7 +380,7 @@ export default function App({ view = "home", gameName, indieId, featurePage }: {
               <SearchBox value={q} onChange={search} label="Search games" placeholder="Search games or creators" suggestions={suggestions} />
               {games && (
                 <span className="count">
-                  {searching
+                  {searching || filters.active
                     ? `${cards.length} ${cards.length === 1 ? "result" : "results"}`
                     : pages > 1
                     ? `${(current - 1) * PER_PAGE + 1}–${(current - 1) * PER_PAGE + shown.length} of ${cards.length}`
@@ -384,6 +388,12 @@ export default function App({ view = "home", gameName, indieId, featurePage }: {
                 </span>
               )}
             </div>
+          )}
+          {allGames && <FilterBar filters={filters} />}
+          {games && filters.active && !searching && cards.length === 0 && (
+            <p className="empty">
+              No games match these filters. <button type="button" className="link" onClick={filters.reset}>Clear filters</button>
+            </p>
           )}
           {games && !searching && community.length === 0 && (
             <p className="empty">
