@@ -71,6 +71,14 @@ export default function App({ view = "home", gameName, indieId, featurePage }: {
   const [checking, setChecking] = useState(() => !!localStorage.getItem("token"));
   // Google sign-in; the first Google sign-in creates the account.
   const [signInOpen, setSignInOpen] = useState(!!returnTo || openSignIn);
+  const [menuOpen, setMenuOpen] = useState(false); // the Pages menu on small screens: a layer over the page, it moves nothing
+  useEffect(() => {
+    if (!menuOpen) return;
+    const close = (e: Event) => { if (e instanceof KeyboardEvent ? e.key === "Escape" : !(e.target as Element).closest("header.nav")) setMenuOpen(false); };
+    document.addEventListener("keydown", close);
+    document.addEventListener("click", close);
+    return () => { document.removeEventListener("keydown", close); document.removeEventListener("click", close); };
+  }, [menuOpen]);
   const [error, setError] = useState("");
   const [editing, setEditing] = useState(openProfile);
   // Published games from the API; null while loading.
@@ -309,20 +317,24 @@ export default function App({ view = "home", gameName, indieId, featurePage }: {
 
   return (
     <>
-      <header className="container nav">
+      <header className={menuOpen ? "container nav open" : "container nav"}>
         <a className="logo" href="/"><b>start<span>.ng</span></b></a>
-        <nav aria-label="Pages">
+        <nav id="pages-menu" aria-label="Pages">
           <a href="/games" aria-current={allGames || gamePage ? "page" : undefined}>Games</a>
           <a href="/tournament" aria-current={tournamentPage || leaderboardPage ? "page" : undefined}>Tournament</a>
           <a href="/creators" aria-current={creatorsPage || indiePage ? "page" : undefined}>Creators</a>
           <a href="/docs">Docs</a>
+          <ThemeToggle withLabel />
         </nav>
         <div className="nav-account">
+          <button type="button" className="nav-menu-btn" aria-label={menuOpen ? "Close menu" : "Menu"} aria-expanded={menuOpen} aria-controls="pages-menu" onClick={() => setMenuOpen((o) => !o)}>
+            <span aria-hidden="true" className="nav-menu-icon" /><span className="nav-menu-text">Menu</span>
+          </button>
           <ThemeToggle />
           {user ? (
             <AccountMenu user={user} isAdmin={!!adminAccess} onProfile={() => setEditing(true)} onFavorites={() => setFavoritesOpen(true)} onSignOut={signOutToHome} />
           ) : (
-            <button onClick={() => setSignInOpen(true)}>Sign in</button>
+            <button className="nav-signin" onClick={() => setSignInOpen(true)}>Sign in</button>
           )}
         </div>
       </header>
