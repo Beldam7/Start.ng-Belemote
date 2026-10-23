@@ -1,0 +1,33 @@
+# start.ng: short answers
+
+Plain answers to questions people and AI assistants ask about start.ng. Last checked against the site's own pages and docs; for anything current (which games exist, who is winning) use the live pages linked below.
+
+Q: What is start.ng?
+A: A home for small browser games made by the HNG community. Games run in the browser with nothing to download, and each one has its own address, like yourgame.start.ng. https://start.ng/
+
+Q: Is it free to play?
+A: Yes. The site describes its games as free to play in the browser. https://start.ng/games
+
+Q: Where can I find the games?
+A: The full, searchable list is at https://start.ng/games. Games by independent creators hosted elsewhere are at https://start.ng/creators.
+
+Q: Do I need an account?
+A: Sign in to get your start.ng character, a name that follows you into every game, and a place on the leaderboards. https://start.ng/leaderboard
+
+Q: What are the daily tournaments?
+A: Each day a few start.ng games are picked for 24 hours, and one player wins. Players earn points that count towards the leaderboard, all time and this week. https://start.ng/tournament
+
+Q: Does start.ng have multiplayer?
+A: Yes. The Hangout is start.ng's own multiplayer park where signed-in players walk around as their characters and meet each other. Game makers can also use multiplayer rooms for their own games. https://start.ng/hangout and https://start.ng/docs.md
+
+Q: How do I publish my own game?
+A: Build a static game (HTML, CSS and JavaScript, already built), push it to a public GitHub repo, call the check and publish API, and approve it once. It then goes live at yourgame.start.ng with its own leaderboard. No server or database is needed, because start.ng provides sign-in, characters, leaderboards, multiplayer rooms and hosting. Full steps: https://start.ng/docs.md
+
+Q: Which game engines can I use?
+A: Any engine that produces static files, such as plain JavaScript, canvas, three.js, Phaser, PixiJS or Babylon.js. start.ng never runs build commands, so commit the built folder. https://start.ng/docs.md
+
+Q: Can an AI build and publish a game for me?
+A: Yes. Give the AI https://start.ng/docs.md as plain text; it is written to be followed by an AI assistant, and a human approves the game once at the end.
+
+Q: Where is the list of every page?
+A: https://start.ng/sitemap.xml

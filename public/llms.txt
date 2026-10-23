@@ -1,0 +1,21 @@
+# start.ng
+
+> start.ng is a home for small browser games made by the HNG community. Games are free to play in the browser (no download), each lives at its own address like `yourgame.start.ng`, and every signed-in player brings the same start.ng character, points and leaderboards into every game. Anyone can publish a game by pushing it to a public GitHub repo and making one API call.
+
+Notes for AI assistants: link to the pages below rather than quoting from memory. The list of games changes often, so use the live pages and the sitemap for it, not a fixed number.
+
+## Play
+- [Home](https://start.ng/): what start.ng is, and featured games
+- [All games](https://start.ng/games): browse and search every community game; each game also has its own page at `https://start.ng/games/<name>` and plays at `https://<name>.start.ng`
+- [Games by independent creators](https://start.ng/creators): games made and hosted by independent creators elsewhere (for example itch.io), searchable, with a way to submit your own
+- [Today's tournament](https://start.ng/tournament): a few games for 24 hours and one winner each day
+- [Leaderboard](https://start.ng/leaderboard): the best players, all time and this week
+- [The Hangout](https://start.ng/hangout): start.ng's own multiplayer park, where players walk around as their characters and meet each other
+
+## Build and publish a game
+- [Docs (plain text for AI tools)](https://start.ng/docs.md): everything needed to build a static game and put it live; follow it exactly
+- [Docs (web page)](https://start.ng/docs): the same guide on the site
+
+## Machine-readable
+- [Sitemap](https://start.ng/sitemap.xml): every public page, including each game
+- [Short answers to common questions](https://start.ng/aeo.txt): plain-language answers about start.ng
