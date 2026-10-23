@@ -13,10 +13,13 @@
 (() => {
   if (window.startng) return;
 
-  const START_NG = 'https://start.ng';
-  const VERSION = '0.1.0';
+  // Games on *.start.localhost (local testing) talk to the local website and API.
+  const LOCAL = location.hostname.endsWith('.start.localhost');
+  const START_NG = LOCAL ? 'http://start.localhost:5173' : 'https://start.ng';
+  const API_URL = LOCAL ? 'http://localhost:8000' : 'https://api.start.ng';
+  const VERSION = '0.2.0';
   // start.ng's connect page only answers games served from *.start.ng.
-  const ON_START_NG = location.hostname.endsWith('.start.ng');
+  const ON_START_NG = location.hostname.endsWith('.start.ng') || LOCAL;
   // The start.ng homepage opens games with ?guest when the player chose "play as guest".
   const CHOSE_GUEST = new URLSearchParams(location.search).has('guest');
   const script = document.currentScript;
@@ -104,7 +107,11 @@
   }
 
   function signIn() {
-    location.href = `${START_NG}/?return_to=${encodeURIComponent(location.origin + location.pathname)}`;
+    // The address comes back with its query (an invite link is ?room=CODE) but not ?guest.
+    const back = new URLSearchParams(location.search);
+    back.delete('guest');
+    const query = back.toString();
+    location.href = `${START_NG}/?return_to=${encodeURIComponent(location.origin + location.pathname + (query ? `?${query}` : ''))}`;
   }
 
   // Saves a run for a signed-in player: stats (matching startng.json) or a plain score.
@@ -213,6 +220,118 @@
     open(intent, '_blank', 'noopener');
   }
 
+
+  // ---------- Rooms: refereed multiplayer (tic-tac-toe, chess ...) ----------
+  // start.ng's server runs the rules, so a player can't cheat and a dropped player can come back.
+  //   const room = await startng.rooms.create();       // a room with a code to share
+  //   const room = await startng.rooms.join('K7M2QX');  // a friend's room
+  //   const room = await startng.rooms.quickMatch();    // find someone to play
+  //   room.on('state', ({ state, turn, result }) => draw(state));   room.send({ cell: 4 });
+  // Players must be signed in with start.ng. Opening a room rejects with an Error whose message is 'signin' if they
+  // aren't (call startng.signIn(), which brings them back to the same address, ?room=CODE included).
+  const ROOM_EVENTS = ['open', 'welcome', 'state', 'join', 'away', 'back', 'waiting', 'no_match', 'error', 'closed', 'reconnecting'];
+  const NO_RETRY = [4401, 4403, 4404, 4409, 4429]; // not signed in, full, no such room, replaced by another tab, too many tries
+  let roomsBase = null; // where the API and rooms are, learned from the first ticket
+
+  async function roomTicket() {
+    const reply = await ask({ type: 'startng:ticket' }, 'startng:ticketData');
+    if (!reply) throw new Error('start.ng did not answer');
+    if (!reply.ok) throw new Error(/sign in/i.test(reply.error || '') ? 'signin' : reply.error || 'Could not join');
+    roomsBase = { rooms: reply.roomsUrl, api: reply.apiUrl };
+    return reply;
+  }
+
+  function openRoom(game, which) {
+    const handlers = Object.fromEntries(ROOM_EVENTS.map((n) => [n, new Set()]));
+    const room = { game, code: null, you: null, players: [], status: null, state: null, turn: null, result: null };
+    let ws;
+    let closedForGood = false;
+    let tries = 0;
+    let ping;
+    let target = which; // 'new', 'match' or a code; once there is a room, always its code
+
+    const emit = (name, data) => handlers[name]?.forEach((fn) => { try { fn(data); } catch (e) { console.error(e); } });
+
+    function apply(msg) {
+      if (msg.type === 'welcome') {
+        Object.assign(room, { code: msg.room, you: msg.you, players: msg.players, status: msg.status, state: msg.state, turn: msg.turn, result: msg.result });
+        target = msg.room;
+      } else if (msg.type === 'state') {
+        Object.assign(room, { state: msg.state, turn: msg.turn, result: msg.result, status: msg.status });
+      } else if (msg.type === 'join') {
+        room.players = [...room.players.filter((p) => p.seat !== msg.player.seat), msg.player];
+      } else if (msg.type === 'away' || msg.type === 'back') {
+        room.players = room.players.map((p) => (p.seat === msg.seat ? { ...p, online: msg.type === 'back' } : p));
+      } else if (msg.type === 'closed') {
+        closedForGood = true;
+      }
+    }
+
+    async function connect() {
+      const t = await roomTicket();
+      const url = `${t.roomsUrl}?game=${encodeURIComponent(game)}&ticket=${encodeURIComponent(t.ticket)}&room=${encodeURIComponent(target)}`;
+      await new Promise((resolve, reject) => {
+        let opened = false;
+        ws = new WebSocket(url);
+        ws.onopen = () => { opened = true; tries = 0; resolve(); emit('open', room); };
+        ws.onmessage = (e) => {
+          let msg;
+          try { msg = JSON.parse(e.data); } catch { return; }
+          apply(msg);
+          emit(msg.type, msg);
+        };
+        ws.onclose = (e) => {
+          clearInterval(ping);
+          if (!opened) reject(new Error(NO_RETRY.includes(e.code) ? `closed:${e.code}` : 'Could not connect'));
+          else if (!closedForGood && !NO_RETRY.includes(e.code)) retry();
+          else if (!closedForGood) { closedForGood = true; emit('closed', { type: 'closed', reason: NO_RETRY.includes(e.code) ? `code_${e.code}` : 'closed' }); }
+        };
+        ws.onerror = () => {};
+      });
+      clearInterval(ping);
+      ping = setInterval(() => ws?.readyState === 1 && ws.send('{"type":"ping"}'), 25000); // keeps the connection open
+    }
+
+    // After a dropped connection: try again with a new ticket, a little slower each time (the server holds the seat for 10 minutes).
+    async function retry() {
+      if (closedForGood) return;
+      tries += 1;
+      if (tries > 8) { closedForGood = true; emit('closed', { type: 'closed', reason: 'offline' }); return; }
+      emit('reconnecting', { attempt: tries });
+      await new Promise((r) => setTimeout(r, Math.min(1000 * 2 ** (tries - 1), 15000)));
+      try { await connect(); } catch (e) { if (!closedForGood) retry(); }
+    }
+
+    const send = (msg) => { if (ws?.readyState === 1) ws.send(JSON.stringify(msg)); };
+    Object.assign(room, {
+      on(name, fn) { (handlers[name] ??= new Set()).add(fn); return () => handlers[name].delete(fn); },
+      send: (move) => send({ type: 'move', data: move }),
+      resign: () => send({ type: 'resign' }),
+      playBot: () => send({ type: 'bot' }),
+      leave() { closedForGood = true; clearInterval(ping); ws?.close(1000); },
+      inviteUrl: () => (room.code ? `${location.origin}${location.pathname}?room=${room.code}` : null),
+    });
+    return connect().then(() => room);
+  }
+
+  const rooms = Object.freeze({
+    create: (game = gameName()) => openRoom(game, 'new'),
+    join: (code, game = gameName()) => openRoom(game, String(code).trim().toUpperCase()),
+    quickMatch: (game = gameName()) => openRoom(game, 'match'),
+    // The room code in the address (?room=CODE), if the player came from an invite.
+    codeFromUrl: () => (new URLSearchParams(location.search).get('room') || '').trim().toUpperCase() || null,
+    // How many people are in this game's rooms or waiting for a match (no sign-in needed). null if it can't be told.
+    async online(game = gameName()) {
+      try {
+        const res = await fetch(`${roomsBase?.api ?? API_URL}/rooms/online?game=${encodeURIComponent(game)}`);
+        return res.ok ? (await res.json()).online : null;
+      } catch { return null; }
+    },
+  });
+
+  // lanedash.start.ng -> "lanedash"
+  const gameName = () => location.hostname.split('.')[0];
+
   let card;
   function closeCard() {
     card?.remove();
@@ -271,7 +390,7 @@
 
   window.startng = Object.freeze({
     version: VERSION, onStartNg: ON_START_NG, choseGuest: CHOSE_GUEST,
-    getPlayer, onPlayerChange, signIn, saveRun, getLeaderboard, gameOver, closeCard, share,
+    getPlayer, onPlayerChange, signIn, saveRun, getLeaderboard, gameOver, closeCard, share, rooms,
   });
 
   const init = () => { addChrome(); startTelemetry(); };

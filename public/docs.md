@@ -558,6 +558,28 @@ For games where players see each other live, like the Hangout. This uses the con
 
 Players are `{ id, name, style, seat, x, z, ry, moving }`, with names and looks from start.ng, so nobody can pretend to be someone else. Positions stay within ±60 metres. If the connection closes with code `4401`, the player needs to sign in; `4403`, the room is full; `4409`, they joined from another tab. Up to 50 players share a room. See [the Hangout](https://github.com/Blackburn0/startng-hangout) for a full example.
 
+### Rooms: two-player and group games (start.ng referees)
+
+For games where players take turns or play together in a room, like tic-tac-toe or chess, start.ng can run the rules on its server, so nobody can cheat and a player who drops can come back. This is for games start.ng builds and referees itself. If your own game needs players to see each other live, use the first part of this section.
+
+With the Kit loaded (`<script src="https://start.ng/kit.js" defer></script>`):
+
+```js
+const room = await startng.rooms.create();         // a room with a code to share
+// const room = await startng.rooms.join('K7M2QX'); // a friend's room
+// const room = await startng.rooms.quickMatch();   // find someone to play
+
+room.on('state', ({ state, turn, result }) => draw(state));  // after every move
+room.send({ cell: 4 });                                      // your move (the shape depends on the game)
+room.inviteUrl();                                            // https://your-game.start.ng/?room=K7M2QX
+```
+
+- Players must be signed in with start.ng. If they are not, opening a room fails with an error whose message is `signin`; call `startng.signIn()`, which brings them back to the same address, `?room=CODE` included.
+- Events on `room.on(...)`: `welcome`, `state`, `join`, `away` (a player dropped: they have 10 minutes to come back), `back`, `waiting`, `no_match` (offer a bot), `error`, `closed`, `reconnecting`. The kit reconnects by itself after a dropped connection.
+- `room.resign()`, `room.playBot()` (play against start.ng's bot) and `room.leave()`. `startng.rooms.online()` says how many people are in the game's rooms, and `startng.rooms.codeFromUrl()` reads `?room=CODE`.
+- A room waits 15 minutes for a friend, and matchmaking 60 seconds. A room closes after 30 minutes without a move or 10 minutes with nobody in it. Messages are limited to 2 KB and 30 a second.
+- The first refereed game is tic-tac-toe (`startng-tictactoe`).
+
 ## Friends and follows
 
 Players can follow each other on start.ng. Two players who follow each other are **friends**. This part of start.ng is switched on step by step: until it's on, these addresses answer 404.
