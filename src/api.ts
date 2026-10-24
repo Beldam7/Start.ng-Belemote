@@ -269,6 +269,7 @@ export async function removeIndieGame(token: string | null, id: number): Promise
 /** Someone opened a game from start.ng: counted for "most played". Fire and forget, survives leaving the page. */
 export function trackPlay(game: string) {
   analytics.play(game);
+  window.dispatchEvent(new Event("startng:played")); // the rating box asks again whether you can rate it now
   const url = `${API_URL}/games/${encodeURIComponent(game)}/plays`;
   // A signed-in player's open is remembered on their account (the progress features), which needs their sign-in on the
   // request. A beacon can't carry headers, so this is a fetch that survives the page being left. Anyone else still
