@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  ActivityKind, admin, AdminAccount, adminMe, AdminMe, AdminTournament, AdminTournaments, Developer, GameCard, LogEntry, me,
+  ActivityKind, admin, AdminAccount, adminMe, AdminMe, AdminTournament, AdminTournaments, Developer, GameCard, LogEntry, LogPage, me,
   Analytics, Overview, Permission, reasonLabel, Report, ReviewGame, Role, User,
 } from "./api";
 import { toCard } from "./games";
@@ -8,6 +8,7 @@ import ThemeToggle from "./ThemeToggle";
 import Boundary from "./features/Boundary";
 import { useFeatures } from "./features/flags";
 import { allAdminTabs, registerAdminTab, type AdminTabProps } from "./features/registry";
+import Pagination from "./Pagination";
 
 // start.ng/admin. Only admins get past the first check: super admins (SUPER_ADMIN_EMAILS on the API) and the admins
 // they add by email. There's no admin sign-up: admins sign in to start.ng with Google, then come here.
@@ -713,25 +714,48 @@ function describe(e: LogEntry): React.ReactNode {
 
 function LogTab(_: AdminTabProps) {
   const [kind, setKind] = useState<ActivityKind | null>(null);
-  const { data, setData, error } = useLoad<LogEntry[]>(() => admin.log(token(), kind), [kind]);
-  const [more, setMore] = useState(true);
-  useEffect(() => setMore(true), [kind]);
-  async function older() {
-    if (!data?.length) return;
-    const next = await admin.log(token(), kind, data[data.length - 1].id);
-    setMore(next.length > 0);
-    setData([...data, ...next]);
-  }
+  const [text, setText] = useState(""); // what is typed; `q` follows it after a short pause
+  const [q, setQ] = useState("");
+  const [action, setAction] = useState("");
+  const [since, setSince] = useState("");
+  const [until, setUntil] = useState("");
+  const [page, setPage] = useState(1);
+  const [actions, setActions] = useState<string[]>([]);
+  const filtered = !!(kind || q || action || since || until);
+
+  useEffect(() => { admin.logActions(token()).then(setActions).catch(() => {}); }, []);
+  useEffect(() => {
+    const t = window.setTimeout(() => { setQ(text.trim()); setPage(1); }, 300);
+    return () => window.clearTimeout(t);
+  }, [text]);
+
+  const { data, error } = useLoad<LogPage>(
+    () => admin.logSearch(token(), { q, kind, action, since, until, page }), [q, kind, action, since, until, page]);
+
+  const pick = <T,>(set: (v: T) => void) => (v: T) => { set(v); setPage(1); };
+  const clear = () => { setKind(null); setText(""); setQ(""); setAction(""); setSince(""); setUntil(""); setPage(1); };
+
   return (
     <section>
       <h2>Activity</h2>
-      <p className="note">Everything that happens on start.ng, newest first.</p>
+      <p className="note">Everything that happens on start.ng, newest first. Search by a person, a game, an action or a detail.</p>
+      <div className="log-filters">
+        <input type="search" className="log-search" placeholder="Search the log" aria-label="Search the log" value={text} onChange={(e) => setText(e.target.value)} />
+        <select aria-label="Action" value={action} onChange={(e) => pick(setAction)(e.target.value)}>
+          <option value="">All actions</option>
+          {actions.map((a) => <option key={a} value={a}>{a}</option>)}
+        </select>
+        <label>From <input type="date" value={since} max={until || undefined} onChange={(e) => pick(setSince)(e.target.value)} /></label>
+        <label>To <input type="date" value={until} min={since || undefined} onChange={(e) => pick(setUntil)(e.target.value)} /></label>
+        {filtered && <button type="button" className="link" onClick={clear}>Clear filters</button>}
+      </div>
       <div className="chips" role="group" aria-label="Show">
-        {KINDS.map(([k, label]) => <button key={label} type="button" className={kind === k ? "on" : ""} aria-pressed={kind === k} onClick={() => setKind(k)}>{label}</button>)}
+        {KINDS.map(([k, label]) => <button key={label} type="button" className={kind === k ? "on" : ""} aria-pressed={kind === k} onClick={() => pick(setKind)(k)}>{label}</button>)}
       </div>
       <Problem error={error} />
+      {data && <p className="log-count" role="status">{data.total === 0 ? "No matching events" : `${data.total.toLocaleString()} ${data.total === 1 ? "event" : "events"}${data.pages > 1 ? `, page ${data.page} of ${data.pages}` : ""}`}</p>}
       <ol className="activity">
-        {data?.map((e) => (
+        {data?.items.map((e) => (
           <li key={e.id} className={e.kind}>
             <span className={`kind ${e.kind}`}>{e.kind === "system" ? "start.ng" : e.kind}</span>
             <span className="what">{describe(e)}</span>
@@ -739,8 +763,8 @@ function LogTab(_: AdminTabProps) {
           </li>
         ))}
       </ol>
-      {data?.length === 0 && <p className="empty">Nothing yet.</p>}
-      {data && data.length >= 100 && more && <button type="button" className="ghost" onClick={older}>Older</button>}
+      {data?.total === 0 && <p className="empty">{filtered ? "Nothing matches. Try fewer filters." : "Nothing yet."}</p>}
+      {data && <Pagination page={data.page} pages={data.pages} onPage={(n) => { setPage(n); window.scrollTo({ top: 0 }); }} hrefFor={() => "#log"} />}
     </section>
   );
 }

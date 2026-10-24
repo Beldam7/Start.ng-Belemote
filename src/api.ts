@@ -416,6 +416,8 @@ export type Contact = { id: number; issue: string; game_name: string | null; rep
 export type Developer = { id: number; email: string; name: string | null; blocked_at: string | null; games: string[]; contacts: Contact[]; contacts_needed: number; can_block: boolean };
 export type AdminTournament = { id: number; starts_at: string; ends_at: string; started: boolean; games: GameCard[] };
 export type AdminTournaments = { tournaments: AdminTournament[]; eligible: GameCard[]; min_games: number; max_games: number };
+export type LogQuery = { q?: string; kind?: ActivityKind | null; action?: string; actor?: string; since?: string; until?: string; page?: number };
+export type LogPage = { items: LogEntry[]; total: number; page: number; pages: number; page_size: number };
 export type ActivityKind = "player" | "developer" | "admin" | "system";
 export type LogEntry = { id: number; actor: string | null; kind: ActivityKind; action: string; target: string | null; detail: Record<string, unknown> | null; at: string };
 export type DayCount = { day: string; n: number };
@@ -480,6 +482,13 @@ export const admin = {
   addAdmin: (t: string | null, email: string, role_id: number | null) => call<AdminAccount>(t, "/admin/admins", send("POST", { email, role_id })),
   setAdminRole: (t: string | null, id: number, role_id: number | null) => call<AdminAccount>(t, `/admin/admins/${id}`, send("PUT", { role_id })),
   removeAdmin: (t: string | null, id: number) => call<void>(t, `/admin/admins/${id}`, send("DELETE")),
+  /** The activity log with search, filters and page numbers. */
+  logSearch: (t: string | null, f: LogQuery) => {
+    const p = new URLSearchParams();
+    for (const [k, v] of Object.entries(f)) if (v !== undefined && v !== null && v !== "") p.set(k, String(v));
+    return call<LogPage>(t, `/admin/log/search?${p}`);
+  },
+  logActions: (t: string | null) => call<string[]>(t, "/admin/log/actions"),
   log: (t: string | null, kind: ActivityKind | null, before?: number) => {
     const q = new URLSearchParams();
     if (kind) q.set("kind", kind);
