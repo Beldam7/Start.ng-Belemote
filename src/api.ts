@@ -17,10 +17,24 @@ async function post(path: string, body: unknown): Promise<TokenResponse> {
   return data;
 }
 
-export const register = (email: string, password: string, name?: string) =>
-  post("/auth/register", { email, password, name });
-export const login = (email: string, password: string) => post("/auth/login", { email, password });
-export const googleLogin = (idToken: string) => post("/auth/google", { id_token: idToken });
+export const register = (email: string, password: string, name?: string, remember = false) =>
+  post("/auth/register", { email, password, name, remember });
+export const login = (email: string, password: string, remember = false) => post("/auth/login", { email, password, remember });
+/** remember: the person chose to stay signed in (a year instead of a week without a visit). */
+export const googleLogin = (idToken: string, remember = false) => post("/auth/google", { id_token: idToken, remember });
+
+// Every visit keeps a sign-in going: when the API sees a token that is past half of its life, it answers with a fresh one in
+// X-Refreshed-Token. This swaps it in for any call the website makes (so each call site doesn't have to), as long as someone is
+// still signed in here.
+const nativeFetch = window.fetch.bind(window);
+window.fetch = async (...args: Parameters<typeof fetch>) => {
+  const res = await nativeFetch(...args);
+  try {
+    const fresh = res.headers.get("X-Refreshed-Token");
+    if (fresh && localStorage.getItem("token")) localStorage.setItem("token", fresh);
+  } catch { /* storage blocked: the old token keeps working until it ends */ }
+  return res;
+};
 
 // The user for a saved token, or null if the token is missing, expired or invalid.
 export async function me(token: string | null): Promise<User | null> {

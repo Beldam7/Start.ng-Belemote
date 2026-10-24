@@ -980,3 +980,8 @@ option { background: var(--card); color: var(--ink); }
 .wd-history > summary { padding: 12px 16px; font-weight: 600; }
 .wd-history > :not(summary) { margin-left: 16px; margin-right: 16px; }
 .wd-history[open] { padding-bottom: 14px; }
+
+/* "Keep me signed in" in the sign-in box */
+.keep-signed-in { display: flex; align-items: flex-start; gap: 10px; margin: 4px 0 12px; cursor: pointer; font-weight: 600; font-size: .92rem; }
+.keep-signed-in input { margin-top: 3px; width: 18px; height: 18px; accent-color: var(--ink); flex: none; }
+.keep-signed-in small { display: block; margin-top: 1px; color: var(--muted); font-weight: 400; font-size: .8rem; }
