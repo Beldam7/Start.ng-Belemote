@@ -15,7 +15,7 @@ function loadDocs(): Promise<Section[]> {
   docs ??= fetch("/docs.md").then((r) => (r.ok ? r.text() : "")).then((md) => {
     const out: Section[] = [];
     let cur: Section | null = null;
-    for (const line of md.split("\n")) {
+    for (const line of md.split(/\r?\n/)) { // the file may have Windows line endings
       const h = line.match(/^#{2,3}\s+(.*)$/);
       if (h) {
         cur = { title: h[1].replace(/`/g, ""), anchor: slug(h[1]), text: "" };
