@@ -17,10 +17,24 @@ async function post(path: string, body: unknown): Promise<TokenResponse> {
   return data;
 }
 
-export const register = (email: string, password: string, name?: string) =>
-  post("/auth/register", { email, password, name });
-export const login = (email: string, password: string) => post("/auth/login", { email, password });
-export const googleLogin = (idToken: string) => post("/auth/google", { id_token: idToken });
+export const register = (email: string, password: string, name?: string, remember = false) =>
+  post("/auth/register", { email, password, name, remember });
+export const login = (email: string, password: string, remember = false) => post("/auth/login", { email, password, remember });
+/** remember: the person chose to stay signed in (a year instead of a week without a visit). */
+export const googleLogin = (idToken: string, remember = false) => post("/auth/google", { id_token: idToken, remember });
+
+// Every visit keeps a sign-in going: when the API sees a token that is past half of its life, it answers with a fresh one in
+// X-Refreshed-Token. This swaps it in for any call the website makes (so each call site doesn't have to), as long as someone is
+// still signed in here.
+const nativeFetch = window.fetch.bind(window);
+window.fetch = async (...args: Parameters<typeof fetch>) => {
+  const res = await nativeFetch(...args);
+  try {
+    const fresh = res.headers.get("X-Refreshed-Token");
+    if (fresh && localStorage.getItem("token")) localStorage.setItem("token", fresh);
+  } catch { /* storage blocked: the old token keeps working until it ends */ }
+  return res;
+};
 
 // The user for a saved token, or null if the token is missing, expired or invalid.
 export async function me(token: string | null): Promise<User | null> {
@@ -269,6 +283,7 @@ export async function removeIndieGame(token: string | null, id: number): Promise
 /** Someone opened a game from start.ng: counted for "most played". Fire and forget, survives leaving the page. */
 export function trackPlay(game: string) {
   analytics.play(game);
+  window.dispatchEvent(new Event("startng:played")); // the rating box asks again whether you can rate it now
   const url = `${API_URL}/games/${encodeURIComponent(game)}/plays`;
   // A signed-in player's open is remembered on their account (the progress features), which needs their sign-in on the
   // request. A beacon can't carry headers, so this is a fetch that survives the page being left. Anyone else still
@@ -416,6 +431,8 @@ export type Contact = { id: number; issue: string; game_name: string | null; rep
 export type Developer = { id: number; email: string; name: string | null; blocked_at: string | null; games: string[]; contacts: Contact[]; contacts_needed: number; can_block: boolean };
 export type AdminTournament = { id: number; starts_at: string; ends_at: string; started: boolean; games: GameCard[] };
 export type AdminTournaments = { tournaments: AdminTournament[]; eligible: GameCard[]; min_games: number; max_games: number };
+export type LogQuery = { q?: string; kind?: ActivityKind | null; action?: string; actor?: string; since?: string; until?: string; page?: number };
+export type LogPage = { items: LogEntry[]; total: number; page: number; pages: number; page_size: number };
 export type ActivityKind = "player" | "developer" | "admin" | "system";
 export type LogEntry = { id: number; actor: string | null; kind: ActivityKind; action: string; target: string | null; detail: Record<string, unknown> | null; at: string };
 export type DayCount = { day: string; n: number };
@@ -480,6 +497,13 @@ export const admin = {
   addAdmin: (t: string | null, email: string, role_id: number | null) => call<AdminAccount>(t, "/admin/admins", send("POST", { email, role_id })),
   setAdminRole: (t: string | null, id: number, role_id: number | null) => call<AdminAccount>(t, `/admin/admins/${id}`, send("PUT", { role_id })),
   removeAdmin: (t: string | null, id: number) => call<void>(t, `/admin/admins/${id}`, send("DELETE")),
+  /** The activity log with search, filters and page numbers. */
+  logSearch: (t: string | null, f: LogQuery) => {
+    const p = new URLSearchParams();
+    for (const [k, v] of Object.entries(f)) if (v !== undefined && v !== null && v !== "") p.set(k, String(v));
+    return call<LogPage>(t, `/admin/log/search?${p}`);
+  },
+  logActions: (t: string | null) => call<string[]>(t, "/admin/log/actions"),
   log: (t: string | null, kind: ActivityKind | null, before?: number) => {
     const q = new URLSearchParams();
     if (kind) q.set("kind", kind);

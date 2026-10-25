@@ -19,4 +19,5 @@ import "./challenges";
 import "./creator_hub"; // T2 creator hub (Hamzat, for Tega)
 import "./wardrobe"; // wardrobe rewards: coins, rarity items and the shop (Kaka)
 import "./tags"; // tags and category pages (Chloe)
+import "./feature_toggle"; // admin Features tab: switch features on and off (Hamzat)
 export {};
