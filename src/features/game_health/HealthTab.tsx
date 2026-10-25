@@ -33,7 +33,7 @@ export default function HealthTab({ go, can }: AdminTabProps) {
       <div className="dup-head">
         <div>
           <h2>Game health</h2>
-          <p className="note">Every live game is checked about every 20 minutes: its page is there and not blank, the files it loads exist, and its address answers. Three failures in a row make it unhealthy, and its owner sees why.</p>
+          <p className="note">Every live game is checked about every 20 minutes: its page is there and not blank, the files it loads exist, and its address answers. Three failures in a row make it unhealthy: it's hidden through Needs fixing, and its owner and the super admins are emailed. If many games fail at once, nothing is hidden and super admins get an alert instead.</p>
         </div>
         <button type="button" className="ghost" disabled={!!busy} onClick={() => act("all", async () => {
           await checkAll();
