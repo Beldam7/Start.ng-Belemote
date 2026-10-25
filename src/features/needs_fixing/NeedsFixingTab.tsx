@@ -41,6 +41,7 @@ export default function NeedsFixingTab({ ask }: AdminTabProps) {
         <div className="admin-item-title">
           <h3>
             <a href={r.game_url} target="_blank" rel="noreferrer">{titleOf(r.game)}</a>
+            {r.automatic && <span className="pill">health check</span>}
             <span className={`pill ${r.status === "owner_fixed" ? "waiting" : "reported"}`}>{r.status === "owner_fixed" ? "owner says fixed" : "waiting for owner"}</span>
             {r.rounds > 1 && <span className="pill">round {r.rounds}</span>}
           </h3>
