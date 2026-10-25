@@ -12,7 +12,7 @@ export type AdminFeatured = { featured: AdminGame[]; staff: AdminGame[]; candida
 const token = () => localStorage.getItem("token");
 
 export const getShelves = () => call<Shelves>(token(), "/discover/shelves");
-export const getNext = (after: string) => call<{ games: string[] }>(token(), `/discover/next?after=${encodeURIComponent(after)}`);
+export const getNext = (after: string) => call<{ games: string[]; tournament?: string | null }>(token(), `/discover/next?after=${encodeURIComponent(after)}`);
 export const getFeaturing = (game: string) => call<Featuring>(token(), `/games/${encodeURIComponent(game)}/featuring`);
 export const adminFeatured = () => call<AdminFeatured>(token(), "/admin/featured");
 export const addFeatured = (shelf: string, game: string) => call<void>(token(), `/admin/featured/${shelf}/${encodeURIComponent(game)}`, send("PUT"));
