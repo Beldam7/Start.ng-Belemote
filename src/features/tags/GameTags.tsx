@@ -29,15 +29,6 @@ export default function GameTags({ game }: PagePartProps) {
       </section>
     );
   }
-  if (game && !(loaded && loaded.game === game)) {
-    return (
-      <section className="container game-tags" aria-label="Categories">
-        <p className="eyebrow">Categories</p>
-        <p className="tags-state" role="status">Loading categories…</p>
-      </section>
-    );
-  }
-  const tags = loaded && loaded.game === game ? loaded.tags : [];
   if (tags.length === 0) return null;
   return (
     <section className="container game-tags" aria-label="Categories">
