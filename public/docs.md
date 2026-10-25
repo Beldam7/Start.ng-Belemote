@@ -575,10 +575,22 @@ room.inviteUrl();                                            // https://your-gam
 ```
 
 - Players must be signed in with start.ng. If they are not, opening a room fails with an error whose message is `signin`; call `startng.signIn()`, which brings them back to the same address, `?room=CODE` included.
-- Events on `room.on(...)`: `welcome`, `state`, `join`, `away` (a player dropped: they have 10 minutes to come back), `back`, `waiting`, `no_match` (offer a bot), `error`, `closed`, `reconnecting`. The kit reconnects by itself after a dropped connection.
+- Events on `room.on(...)`: `welcome`, `state`, `join`, `away` (a player dropped: they have 10 minutes to come back), `back`, `waiting`, `no_match` (offer a bot), `setup_ok`, `error`, `closed`, `reconnecting`. The kit reconnects by itself after a dropped connection.
 - `room.resign()`, `room.playBot()` (play against start.ng's bot) and `room.leave()`. `startng.rooms.online()` says how many people are in the game's rooms, and `startng.rooms.codeFromUrl()` reads `?room=CODE`.
 - A room waits 15 minutes for a friend, and matchmaking 60 seconds. A room closes after 30 minutes without a move or 10 minutes with nobody in it. Messages are limited to 2 KB and 30 a second.
 - The first refereed game is tic-tac-toe (`startng-tictactoe`).
+
+**Games with a host (a quiz, bingo).** The person who makes the room is the host (seat 0, `room.host === 0`) and sets the game up; everyone else joins with the code (up to 100 players). Matchmaking and bots are not used.
+
+```js
+const room = await startng.rooms.create();
+room.setup({ title: 'Capitals', questions: [{ q: 'Capital of Nigeria?', answers: ['Lagos', 'Abuja'], correct: 1 }] }); // wait for the 'setup_ok' event
+room.start();                                  // the host starts it once people have joined
+room.send({ answer: 1 });                      // a player's move (a host sends { skip: true })
+room.serverNow();                              // the server's clock in ms: count down to state.deadline_ms against it
+```
+
+What `setup` takes is the game's own: the quiz takes questions (2 to 4 answers each, up to 50 questions); bingo takes `{ mode: 'numbers' | 'terms', terms, speed, pattern }`. A setup may be up to 64 KB. The server keeps score and checks every answer and claim; each player's state holds only what they may see.
 
 ## Friends and follows
 

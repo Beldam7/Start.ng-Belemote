@@ -227,9 +227,11 @@
   //   const room = await startng.rooms.join('K7M2QX');  // a friend's room
   //   const room = await startng.rooms.quickMatch();    // find someone to play
   //   room.on('state', ({ state, turn, result }) => draw(state));   room.send({ cell: 4 });
+  // Games with a host (a quiz, bingo): the creator is room.host (seat 0). room.setup({...}), wait for 'setup_ok', then room.start().
+  // room.serverNow() is the server's clock in milliseconds: count down to the deadlines in state against it.
   // Players must be signed in with start.ng. Opening a room rejects with an Error whose message is 'signin' if they
   // aren't (call startng.signIn(), which brings them back to the same address, ?room=CODE included).
-  const ROOM_EVENTS = ['open', 'welcome', 'state', 'join', 'away', 'back', 'waiting', 'no_match', 'error', 'closed', 'reconnecting'];
+  const ROOM_EVENTS = ['open', 'welcome', 'state', 'join', 'away', 'back', 'waiting', 'no_match', 'setup_ok', 'error', 'closed', 'reconnecting'];
   const NO_RETRY = [4401, 4403, 4404, 4409, 4429]; // not signed in, full, no such room, replaced by another tab, too many tries
   let roomsBase = null; // where the API and rooms are, learned from the first ticket
 
@@ -243,7 +245,7 @@
 
   function openRoom(game, which) {
     const handlers = Object.fromEntries(ROOM_EVENTS.map((n) => [n, new Set()]));
-    const room = { game, code: null, you: null, players: [], status: null, state: null, turn: null, result: null };
+    const room = { game, code: null, you: null, players: [], status: null, state: null, turn: null, result: null, host: null, clock: 0 };
     let ws;
     let closedForGood = false;
     let tries = 0;
@@ -253,8 +255,9 @@
     const emit = (name, data) => handlers[name]?.forEach((fn) => { try { fn(data); } catch (e) { console.error(e); } });
 
     function apply(msg) {
+      if (msg.now) room.clock = msg.now - Date.now(); // the server's clock minus this device's, so countdowns match the server
       if (msg.type === 'welcome') {
-        Object.assign(room, { code: msg.room, you: msg.you, players: msg.players, status: msg.status, state: msg.state, turn: msg.turn, result: msg.result });
+        Object.assign(room, { code: msg.room, you: msg.you, players: msg.players, status: msg.status, state: msg.state, turn: msg.turn, result: msg.result, host: msg.host ?? null });
         target = msg.room;
       } else if (msg.type === 'state') {
         Object.assign(room, { state: msg.state, turn: msg.turn, result: msg.result, status: msg.status });
@@ -308,6 +311,10 @@
       send: (move) => send({ type: 'move', data: move }),
       resign: () => send({ type: 'resign' }),
       playBot: () => send({ type: 'bot' }),
+      // Games with a host (a quiz, bingo): the room's creator sets the game up, then starts it.
+      setup: (data) => send({ type: 'setup', data }),
+      start: () => send({ type: 'start' }),
+      serverNow: () => Date.now() + room.clock,
       leave() { closedForGood = true; clearInterval(ping); ws?.close(1000); },
       inviteUrl: () => (room.code ? `${location.origin}${location.pathname}?room=${room.code}` : null),
     });
