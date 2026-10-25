@@ -228,6 +228,7 @@ Every refusal from publish and check has this shape: `detail` for people, and `e
 | `leaves_start_ng` | The game sends players to another site |
 | `no_cover` | No `cover.png` next to `index.html` |
 | `no_start_ng_player` | The game doesn't ask start.ng who's playing (see the character rule) |
+| `thin_page` | start.ng found nothing to say about your game on its own page. Add a `description` and a `story` to `startng.json` (or a paragraph about the game in a README) so the page tells people what it is about |
 
 ### When an update doesn't pass
 
@@ -494,6 +495,110 @@ Examples:
 | Runner | `distance` "Km run" (highest), `coins` (highest) |
 | Race or escape | `gems` (highest), `time` (lowest, `"format": "time"`) |
 
+### Pick your game's categories: `categories` and `other_category`
+
+start.ng sorts games into categories, so players can browse "Endless runners" or "Brainy games", and each category has its own page. **You choose yours.** Add `categories` to `startng.json`: a list of up to 5 from the table below. Use the code in the first column (the name as it is shown on start.ng works too).
+
+```json
+{ "categories": ["endless-runners", "nigerian-themed", "five-minute-fun"], "other_category": "Rhythm" }
+```
+
+- **None of them fit?** Write your own in `other_category` (plain text, up to 40 characters). It is not shown to players, but the start.ng team reads them and adds a new category when many games ask for the same thing. You can use `other_category` together with `categories`, or on its own.
+- **A word that isn't in the list** in `categories` is refused when you publish, with the list to pick from, so a typo never goes live by accident.
+- **If you leave it out,** start.ng guesses from your game's name and what it says about itself, and the guess can be wrong. Choosing is better.
+- "Web games", "Browser games" and the other search words are on every game already. Don't add them.
+- Publishing again with a different list changes your categories. A category the start.ng team has set for your game stays as they set it.
+
+| Code | Name | Group |
+| --- | --- | --- |
+| `endless-runners` | Endless runners | How you play |
+| `racing-and-driving` | Racing and driving | How you play |
+| `shooting-and-action` | Shooting and action | How you play |
+| `archery` | Archery | How you play |
+| `platformers` | Platformers | How you play |
+| `brainy-games` | Brainy games | How you play |
+| `board-and-card` | Board and card | How you play |
+| `catch-and-dodge` | Catch and dodge | How you play |
+| `coin-collecting` | Coin collecting | How you play |
+| `stack-and-timing` | Stack and timing | How you play |
+| `survival` | Survival | How you play |
+| `tower-defence-and-strategy` | Tower defence and strategy | How you play |
+| `football-and-sports` | Football and sports | How you play |
+| `simulation-and-management` | Simulation and management | How you play |
+| `escape-games` | Escape games | How you play |
+| `nigerian-themed` | Nigerian themed | Setting and theme |
+| `african-themed` | African themed | Setting and theme |
+| `lagos` | Lagos | Setting and theme |
+| `markets-and-street-life` | Markets and street life | Setting and theme |
+| `food-and-cooking` | Food and cooking | Setting and theme |
+| `space-and-sci-fi` | Space and sci-fi | Setting and theme |
+| `neon-and-cyberpunk` | Neon and cyberpunk | Setting and theme |
+| `fantasy-and-magic` | Fantasy and magic | Setting and theme |
+| `ancient-ruins-and-treasure` | Ancient ruins and treasure | Setting and theme |
+| `horror-and-spooky` | Horror and spooky | Setting and theme |
+| `mystery-and-detective` | Mystery and detective | Setting and theme |
+| `cosy-and-relaxing` | Cosy and relaxing | Setting and theme |
+| `educational` | Educational | Learn and grow |
+| `maths-and-numbers` | Maths and numbers | Learn and grow |
+| `words-and-reading` | Words and reading | Learn and grow |
+| `coding-and-tech` | Coding and tech | Learn and grow |
+| `money-and-careers` | Money and careers | Learn and grow |
+| `with-friends` | With friends | Play together |
+| `for-a-class-or-cohort` | For a class or a cohort | Play together |
+| `two-player-classics` | Two-player classics | Play together |
+| `five-minute-fun` | 5-minute fun | Play together |
+| `3d-games` | 3D games | Look and feel |
+| `retro-and-pixel` | Retro and pixel | Look and feel |
+### If your game is hosted outside start.ng: pick categories on the form
+
+Games by independent creators are listed with the **Submit your game** form on the Creators page. The form has a **Categories** field: pick up to 5 from the same list as above. If none fit, write your own in **Other**. Your categories show on your game's own page. Independent games are not listed on the category pages or the homepage. Leaving the field empty is fine.
+
+### Pages about your game: `story`, `controls`, `howToPlay`, `features`, `walkthrough`
+
+Your game's page is at `start.ng/games/<your-game>`. start.ng can also write up to four more pages about it, so more people can find it when they search for how to play it or what it is:
+
+| Page | Address | It needs |
+| --- | --- | --- |
+| About | `start.ng/games/<your-game>/about` | a `description` or a `story` (or at least 2 `features`) |
+| How to play | `start.ng/games/<your-game>/how-to-play` | `controls` or `howToPlay` |
+| FAQ | `start.ng/games/<your-game>/faq` | a `description`, or `controls` or `howToPlay`, plus a leaderboard, categories or a way to play to answer with |
+| Walkthrough | `start.ng/games/<your-game>/walkthrough` | a `walkthrough` of at least 3 steps or tips |
+
+**What is on them.** The About page says what the game is about (your `description` and `story`, plus anything more your README and your game's own page say about it), the facts at a glance (who made it, since when, its categories, its leaderboard, its first control), your `features`, and how scoring works. The How to play page has the goal, your `controls` and `howToPlay` steps, how the leaderboard ranks players, and what to do before you start. Every page also shows, live: the top players right now, more games by you, and games like yours. **The more you write in `startng.json`, the more your game's pages say.**
+
+**Where start.ng reads from.** When you publish or update, start.ng reads your game's `startng.json`, its README, and the messages and opening comments in your repo's source (only as text: nothing is run) and keeps a short summary to write your game's pages from. Lines your game shows, like "RUN! Escape the boulder" or "Climb the ledge and pull the lever", can appear on its About and How to play pages, so write them the way you want players to read them. Messages from libraries and from start.ng itself are left out.
+
+The pages are written **only from what your game says about itself**. start.ng never guesses how your game plays. If your files don't say how to play, the game gets no "How to play" page. Add the words, and the page becomes possible.
+
+Put them in `startng.json`, next to `description`:
+
+```json
+{
+  "description": "Dodge the lava and climb as high as you can.",
+  "story": "A small fire spirit runs from an erupting volcano.",
+  "controls": ["Space or tap to jump", "Down arrow or swipe down to slide"],
+  "howToPlay": ["Run and jump the gaps.", "Slide under the stone arches.", "Grab every crystal for a higher score."],
+  "features": ["Endless levels", "A daily goal", "Your own start.ng character"],
+  "walkthrough": ["Learn the first three gaps by heart.", "Slide early, not late.", "Save your crystals for the last ridge."]
+}
+```
+
+| Key | What to write |
+| --- | --- |
+| `description` | One or two plain sentences about the game (up to 300 characters). It is also used on your game's page. |
+| `story` | The idea or story behind the game, in a sentence or two (up to 600 characters). |
+| `controls` | A list of short lines, one per control: keys, taps or gestures. |
+| `howToPlay` | A list of steps in order, as you would tell a new player. |
+| `features` | A list of the things that are in your game. |
+| `walkthrough` | A list of tips or steps for getting through the game (at least 3). |
+
+- Every list takes up to **12 lines**, each up to **240 characters**, as plain text. No HTML. A single string also works for `controls`.
+- Names are **exact**: `howToPlay` with a capital P and T. Publishing does **not** check these keys (it ignores keys it doesn't know), so a typo won't stop you publishing, but it also won't produce a page.
+- **No `startng.json`?** start.ng also reads your `README.md`. Headings it understands: "How to play" or "Controls" (a numbered list is the steps, bullets are the controls), "Features", "Story" or "About", and "Walkthrough", "Tips" or "Guide". The first paragraph is used as the description if you didn't write one. It also reads the description tag and any words under a "How to play" heading in your game's own `index.html`.
+- Write true things. Pages go live by themselves once they pass an automatic check, and the start.ng team may change the words or take a page down.
+- A game that says the same as another game gets one page, not two. A game that says very little gets no extra pages.
+- Pushing an update doesn't publish a page by itself. start.ng makes the pages from time to time, and a page appears at its address once it has been approved.
+
 ### Save a run
 
 Signed-in players only. Send **exactly** the stats in your `startng.json` (or a plain `score` if you don't have one), each a **whole number** from 0 to 1,000,000,000. Anything else is refused.
@@ -561,6 +666,63 @@ For games where players see each other live, like the Hangout. This uses the con
 | You get after | `join`, `move`, `wave` and `leave` from everyone else |
 
 Players are `{ id, name, style, seat, x, z, ry, moving }`, with names and looks from start.ng, so nobody can pretend to be someone else. Positions stay within ±60 metres. If the connection closes with code `4401`, the player needs to sign in; `4403`, the room is full; `4409`, they joined from another tab. Up to 50 players share a room. See [the Hangout](https://github.com/Blackburn0/startng-hangout) for a full example.
+
+### Rooms: two-player and group games (start.ng referees)
+
+For games where players take turns or play together in a room, like tic-tac-toe or chess, start.ng can run the rules on its server, so nobody can cheat and a player who drops can come back. This is for games start.ng builds and referees itself. For your own multiplayer game, use Relay rooms (next section); for an open world like the Hangout, use the first part of this section.
+
+With the Kit loaded (`<script src="https://start.ng/kit.js" defer></script>`):
+
+```js
+const room = await startng.rooms.create();         // a room with a code to share
+// const room = await startng.rooms.join('K7M2QX'); // a friend's room
+// const room = await startng.rooms.quickMatch();   // find someone to play
+
+room.on('state', ({ state, turn, result }) => draw(state));  // after every move
+room.send({ cell: 4 });                                      // your move (the shape depends on the game)
+room.inviteUrl();                                            // https://your-game.start.ng/?room=K7M2QX
+```
+
+- Players must be signed in with start.ng. If they are not, opening a room fails with an error whose message is `signin`; call `startng.signIn()`, which brings them back to the same address, `?room=CODE` included.
+- Events on `room.on(...)`: `welcome`, `state`, `join`, `away` (a player dropped: they have 10 minutes to come back), `back`, `waiting`, `no_match` (offer a bot), `setup_ok`, `error`, `closed`, `reconnecting`. The kit reconnects by itself after a dropped connection.
+- `room.resign()`, `room.playBot()` (play against start.ng's bot) and `room.leave()`. `startng.rooms.online()` says how many people are in the game's rooms, and `startng.rooms.codeFromUrl()` reads `?room=CODE`.
+- A room waits 15 minutes for a friend, and matchmaking 60 seconds. A room closes after 30 minutes without a move or 10 minutes with nobody in it. Messages are limited to 2 KB and 30 a second.
+- The first refereed game is tic-tac-toe (`startng-tictactoe`).
+
+**Games with a host (a quiz, bingo).** The person who makes the room is the host (seat 0, `room.host === 0`) and sets the game up; everyone else joins with the code (up to 100 players). Matchmaking and bots are not used.
+
+```js
+const room = await startng.rooms.create();
+room.setup({ title: 'Capitals', questions: [{ q: 'Capital of Nigeria?', answers: ['Lagos', 'Abuja'], correct: 1 }] }); // wait for the 'setup_ok' event
+room.start();                                  // the host starts it once people have joined
+room.send({ answer: 1 });                      // a player's move (a host sends { skip: true })
+room.serverNow();                              // the server's clock in ms: count down to state.deadline_ms against it
+```
+
+What `setup` takes is the game's own: the quiz takes questions (2 to 4 answers each, up to 50 questions); bingo takes `{ mode: 'numbers' | 'terms', terms, speed, pattern }`. A setup may be up to 64 KB. The server keeps score and checks every answer and claim; each player's state holds only what they may see.
+
+### Relay rooms: your own multiplayer game
+
+Relay rooms are for your own game. Players make or join a room with a code, and start.ng carries your messages between them. **start.ng does not know your rules**, so the game itself decides who won and what is allowed (there is no protection against a player who edits their copy of the game). It suits party games, co-op and casual games for 2 to 8 players.
+
+```js
+const room = await startng.rooms.create({ seats: 4 });   // or startng.rooms.join('K7M2QX'); invite link: room.inviteUrl()
+
+room.on('message', ({ from, data }) => handle(from, data));   // from is the sender's seat
+room.on('join', ({ player }) => {});  room.on('away', ({ seat }) => {});  room.on('back', ({ seat }) => {});
+room.broadcast({ x: 3, y: 4, shot: true });                    // to everyone else
+room.broadcast('psst', 2);                                     // to one seat
+
+room.updateState((state) => ({ ...state, turn: 1 }));          // the shared state of the room (see below)
+room.shared;                                                    // { version, data }: the latest shared state
+room.on('room_state', ({ version, data, by }) => draw(data));
+```
+
+- **Seats and names.** `room.you` is your seat and `room.players` lists everyone (`{ seat, name, style, online }`) with names and looks from start.ng. The person who made the room is seat 0 (`room.host === 0`), so a game can let seat 0 decide when it begins. Up to 8 players; `seats` is how many this room is for (2 to 8, 4 if you leave it out). A full room says `4403`. There is no matchmaking for Relay rooms: players share the code or the link.
+- **The shared state** is a small JSON value (up to 8 KB) the whole room keeps, and anyone who joins or comes back gets it in `room.shared`. It is for things everyone must agree on (whose turn, the board, scores), not for fast updates; send those with `broadcast`. A write says which version it started from, and if someone else wrote first it is refused; `updateState` handles that for you by running your function again on the newer state, so two players never overwrite each other. `room.setState(data)` is the low level call, and `state_conflict` is the event when it was refused.
+- **A player who drops** keeps their seat for 10 minutes and the kit reconnects by itself; the others hear `away` and `back`. After a restart of start.ng, or when everyone has left for 10 minutes, the room closes (`closed`) and the game should offer a new one.
+- **Limits.** A message is up to 2 KB and a player can send 30 a second, so do not stream a position every frame: 10 to 20 updates a second is plenty. Players must be signed in with start.ng. A player who joins from an invite link (`?room=CODE`) is taken through sign-in and back to the room. Delay is the time to start.ng and back, from tens to a few hundred milliseconds, so games built on quick reactions will feel it.
+- A tic-tac-toe example that keeps its rules in the page, `startng-relay-template`, shows all of this in about 150 lines.
 
 ## Friends and follows
 
@@ -694,3 +856,4 @@ For your own game:
 9. The repo is public on GitHub and pushed.
 10. `POST /games/check` passes with no errors (and you've looked at the warnings).
 11. Publish with the API and open the `approve_url` the first time. After that, pushing to the branch is enough.
+12. Optional, but it helps people find you: your `categories` (and `other_category` if none fit), a `description`, and `controls` or `howToPlay` in `startng.json`, so your game can have its own about and how-to-play pages.
