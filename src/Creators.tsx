@@ -10,6 +10,7 @@ import { hostOf, indiePath } from "./indie";
 import { PAGES, setSeo } from "./seo";
 import { withHandle } from "./share";
 import { analytics } from "./analytics";
+import { NotFoundSection } from "./NotFound";
 import { SkeletonCards } from "./Skeleton";
 
 // Games by independent creators: made and hosted outside start.ng. The homepage shows the newest 4
@@ -266,7 +267,6 @@ export function CreatorsPage({ user, onSignIn }: { user: User | null; onSignIn: 
   const [q, setQ] = useState(queryFromUrl);
   const [page, setPage] = useState(pageFromUrl);
   useEffect(() => {
-    setSeo(PAGES.creators);
     const onPop = () => { setPage(pageFromUrl()); setQ(queryFromUrl()); };
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
@@ -287,6 +287,14 @@ export function CreatorsPage({ user, onSignIn }: { user: User | null; onSignIn: 
   const pages = Math.max(1, Math.ceil(found.length / PER_PAGE));
   const current = Math.min(page, pages); // a page past the end shows the last one
   const shown = found.slice((current - 1) * PER_PAGE, current * PER_PAGE);
+  // /creators?page= past the last page is "Page not found", as nginx serves it (a 404); a search shows its last page.
+  const pastEnd = games !== null && !searching && page > pages;
+  // The same tags nginx serves: each page is its own address, searches are noindex.
+  useEffect(() => {
+    if (pastEnd) return; // NotFoundSection sets its own
+    setSeo({ ...PAGES.creators, path: page > 1 ? `${PAGES.creators.path}?page=${page}` : PAGES.creators.path, noindex: searching });
+  }, [pastEnd, page, searching]);
+  if (pastEnd) return <NotFoundSection />;
   return (
     <section className="container all-games creators-page">
       <div className="section-head">
