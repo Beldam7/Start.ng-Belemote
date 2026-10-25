@@ -49,6 +49,7 @@ function Row({ row, tags, onSaved }: { row: ReviewRow; tags: Tag[]; onSaved: () 
 
 export default function TagsTab({ ask }: AdminTabProps) {
   const [tags, setTags] = useState<Tag[]>([]);
+  const [tagsError, setTagsError] = useState("");
   const [rows, setRows] = useState<ReviewRow[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [pending, setPending] = useState(true);
@@ -59,14 +60,17 @@ export default function TagsTab({ ask }: AdminTabProps) {
   const reload = useCallback(() => {
     const mine = ++latest.current;
     setError("");
-    setRows(null); // never show games from the other filter while this one loads
     setLoading(true);
     adminReview(pending)
       .then((r) => { if (mine === latest.current) setRows(r); })
       .catch((e) => { if (mine === latest.current) setError(e instanceof Error ? e.message : "Couldn't load the games"); })
       .finally(() => { if (mine === latest.current) setLoading(false); });
   }, [pending]);
-  useEffect(() => { adminTags().then(setTags).catch((e) => setError(e instanceof Error ? e.message : "Couldn't load the tags")); }, []);
+  const loadTags = useCallback(() => {
+    setTagsError("");
+    adminTags().then(setTags).catch((e) => setTagsError(e instanceof Error ? e.message : "Couldn't load the tags"));
+  }, []);
+  useEffect(loadTags, [loadTags]);
   useEffect(reload, [reload]);
 
   async function suggest() {
@@ -87,11 +91,12 @@ export default function TagsTab({ ask }: AdminTabProps) {
           <p className="note">Approve the tags on each game. Tap a tag to take it off, or add one. A tag gets its own page once 3 games have it. "Web games" and the other search words are on every game already.</p>
         </div>
         <div className="actions">
-          <button type="button" className="ghost" onClick={() => setPending((p) => !p)}>{pending ? "Show all games" : "Show only games to review"}</button>
+          <button type="button" className="ghost" onClick={() => { setRows(null); setPending((p) => !p); }}>{pending ? "Show all games" : "Show only games to review"}</button>
           <button type="button" onClick={suggest}>Suggest tags</button>
         </div>
       </div>
       {note && <p className="note" role="status">{note}</p>}
+      {tagsError && <p className="error" role="alert">{tagsError} <button type="button" className="link" onClick={loadTags}>Try again</button></p>}
       {error && <p className="error" role="alert">{error} <button type="button" className="link" onClick={reload}>Try again</button></p>}
       {loading && <p className="tags-state" role="status">Loading games…</p>}
       {rows && rows.length === 0 && <p className="empty">{pending ? "Nothing to review. Run Suggest tags to look for new suggestions." : "No games."}</p>}

@@ -12,19 +12,23 @@ export default function SubPageLinks({ id, load }: { id: string | undefined; loa
   useEffect(() => {
     if (!id) return;
     let live = true;
+    setLoaded(null);
     setFailed(null);
     load(id).then((pages) => live && setLoaded({ key: id, pages })).catch(() => live && setFailed(id));
     return () => { live = false; };
   }, [id, load, attempt]);
-  if (id && failed === id) {
+  if (!id) return null;
+  const pages = loaded && loaded.key === id ? loaded.pages : null;
+  if (failed === id || pages === null) {
     return (
       <section className="container game-tags" aria-label="More about this game">
         <p className="eyebrow">More about this game</p>
-        <p className="tags-state" role="status">These links didn't load. <button type="button" className="link" onClick={() => setAttempt((n) => n + 1)}>Try again</button></p>
+        {failed === id
+          ? <p className="tags-state" role="status">These links didn't load. <button type="button" className="link" onClick={() => setAttempt((n) => n + 1)}>Try again</button></p>
+          : <p className="tags-state" role="status" aria-busy="true">Loading pages…</p>}
       </section>
     );
   }
-  const pages = loaded && loaded.key === id ? loaded.pages : [];
   if (pages.length === 0) return null;
   return (
     <section className="container game-tags" aria-label="More about this game">
