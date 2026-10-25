@@ -155,7 +155,7 @@ export class PublishFailed extends Error {
 }
 
 /** Publish (or update) a game from a public GitHub repo. It goes live at <name>.start.ng. */
-export async function publishGame(token: string | null, repoUrl: string): Promise<{ name: string; url: string; created: boolean; warnings: Problem[] }> {
+export async function publishGame(token: string | null, repoUrl: string): Promise<{ name: string; url: string; created: boolean; warnings: Problem[]; hidden?: string | null }> {
   const res = await fetch(`${API_URL}/games/publish`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
