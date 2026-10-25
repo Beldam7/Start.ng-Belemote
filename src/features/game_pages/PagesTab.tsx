@@ -66,6 +66,8 @@ export default function PagesTab({ ask }: AdminTabProps) {
   const [open, setOpen] = useState<number | null>(null);
   const [note, setNote] = useState("");
   const [error, setError] = useState("");
+  const [generating, setGenerating] = useState(false);
+  const generationInProgress = useRef(false);
   const latest = useRef(0); // each list request gets a number; only the newest one may change what is shown
 
   const load = useCallback((offset: number) => {
@@ -84,11 +86,15 @@ export default function PagesTab({ ask }: AdminTabProps) {
   }, [status]);
   const reload = useCallback(() => {
     load(0);
-    adminSummary().then(setSummary).catch(() => {});
+    const mine = latest.current;
+    adminSummary().then((s) => { if (mine === latest.current) setSummary(s); }).catch(() => {});
   }, [load]);
   useEffect(reload, [reload]);
 
   async function generate() {
+    if (generationInProgress.current) return;
+    generationInProgress.current = true;
+    setGenerating(true);
     try {
       const ok = await ask({ title: "Make draft pages?", body: "This reads each game's files and writes draft pages from what they say. Pages already approved or edited by a person are kept.", confirm: "Make drafts" });
       if (ok === null) return;
@@ -96,6 +102,7 @@ export default function PagesTab({ ask }: AdminTabProps) {
       setNote(`${c.draft ?? 0} drafts, ${c.approved ?? 0} approved, ${c.skipped ?? 0} not made.`);
       reload();
     } catch (e) { setError(e instanceof Error ? e.message : "Couldn't make pages"); }
+    finally { generationInProgress.current = false; setGenerating(false); }
   }
 
   return (
@@ -112,7 +119,7 @@ export default function PagesTab({ ask }: AdminTabProps) {
             <option value="skipped">Not made</option>
             <option value="all">Everything</option>
           </select>
-          <button type="button" onClick={generate}>Make draft pages</button>
+          <button type="button" disabled={generating} onClick={generate}>Make draft pages</button>
         </div>
       </div>
       {note && <p className="note" role="status">{note}</p>}
