@@ -27,6 +27,17 @@ function docsText(site: string): string {
   );
 }
 
+/** /hangout as text inside #root: the page is a 3D park (src/hangout), so search engines get a few lines about it in the
+ *  same words as its description and its on-screen hints. The app replaces it when it loads. */
+function hangoutText(): string {
+  return (
+    '<main class="container"><h1>The Hangout</h1>' +
+    `<p>${esc(PAGES.hangout.description)}</p>` +
+    "<p>Walk with WASD or the arrows, Shift to run, drag to look around, Space to wave and Enter to chat. On a phone, use the stick to walk.</p>" +
+    '<p><a href="/games">Play the games</a> · <a href="/tournament">Today\'s tournament</a></p></main>'
+  );
+}
+
 // Link previews and search crawlers read the HTML they're served, so the build writes one HTML file
 // per page (games.html, docs.html ...) with that page's title, description and Open Graph tags,
 // plus robots.txt and sitemap.xml. nginx serves them (see nginx.conf). The tags come from src/seo.ts.
@@ -65,8 +76,14 @@ function seoPages(site: string): Plugin {
       fill("tournament.html", PAGES.tournament.path, `<!--# include virtual="/_ssr/tournament" -->`);
       fill("leaderboard.html", PAGES.leaderboard.path, `<!--# include virtual="/_ssr/leaderboard?period=$leaderboard_period" -->`,
         `<!--# if expr="$leaderboard_period = week" -->?period=week<!--# endif -->`);
-      // /docs: the docs written into the page at build time (they change only with a deploy).
+      // Features' pages, from the API while the feature is on (see "location ~ ^/_ssr/feature/" in nginx.conf).
+      fill("spotlight.html", PAGES.spotlight.path, `<!--# include virtual="/_ssr/feature/spotlight" -->`);
+      fill("creators-board.html", PAGES.creatorsBoard.path, `<!--# include virtual="/_ssr/feature/by" -->`);
+      fill("shop.html", PAGES.shop.path, `<!--# include virtual="/_ssr/feature/shop" -->`);
+      fill("friends-tournaments.html", PAGES.friendsTournaments.path, `<!--# include virtual="/_ssr/feature/friends" -->`);
+      // /docs and /hangout: written into the page at build time (they change only with a deploy).
       fill("docs.html", PAGES.docs.path, docsText(site));
+      fill("hangout.html", PAGES.hangout.path, hangoutText());
       mkdirSync(out, { recursive: true });
       writeFileSync(resolve(out, "robots.txt"), `User-agent: *\nAllow: /\nDisallow: /approve/\nDisallow: /connect\n\nSitemap: ${site}/sitemap.xml\n`);
       const urls = SITEMAP_PATHS.map((p) => `  <url><loc>${site}${p}</loc></url>`).join("\n");
