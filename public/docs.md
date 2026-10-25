@@ -504,6 +504,8 @@ Your game's page is at `start.ng/games/<your-game>`. start.ng can also write up 
 
 **What is on them.** The About page says what the game is about (your `description` and `story`, plus anything more your README and your game's own page say about it), the facts at a glance (who made it, since when, its categories, its leaderboard, its first control), your `features`, and how scoring works. The How to play page has the goal, your `controls` and `howToPlay` steps, how the leaderboard ranks players, and what to do before you start. Every page also shows, live: the top players right now, more games by you, and games like yours. **The more you write in `startng.json`, the more your game's pages say.**
 
+**Where start.ng reads from.** When you publish or update, start.ng reads your game's `startng.json`, its README, and the messages and opening comments in your repo's source (only as text: nothing is run) and keeps a short summary to write your game's pages from. Lines your game shows, like "RUN! Escape the boulder" or "Climb the ledge and pull the lever", can appear on its About and How to play pages, so write them the way you want players to read them. Messages from libraries and from start.ng itself are left out.
+
 The pages are written **only from what your game says about itself**. start.ng never guesses how your game plays. If your files don't say how to play, the game gets no "How to play" page. Add the words, and the page becomes possible.
 
 Put them in `startng.json`, next to `description`:
