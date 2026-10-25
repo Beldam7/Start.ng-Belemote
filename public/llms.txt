@@ -1,16 +1,22 @@
 # start.ng
 
-> start.ng is a home for small browser games made by the HNG community. Games are free to play in the browser (no download), each lives at its own address like `yourgame.start.ng`, and every signed-in player brings the same start.ng character, points and leaderboards into every game. Anyone can publish a game by pushing it to a public GitHub repo and making one API call.
+> start.ng is a home for free browser games made by the HNG community. Games play in the browser with nothing to download, each lives at its own address like `yourgame.start.ng`, and every signed-in player brings the same start.ng character, level, coins and leaderboard places into every game. Anyone can publish a game by pushing it to a public GitHub repo and making one API call.
 
-Notes for AI assistants: link to the pages below rather than quoting from memory. The list of games changes often, so use the live pages and the sitemap for it, not a fixed number.
+Notes for AI assistants: link to the pages below rather than quoting from memory. The games, tournaments and leaderboards change every day, so use the live pages and the sitemap for them, not a fixed list or number.
 
 ## Play
-- [Home](https://start.ng/): what start.ng is, and featured games
-- [All games](https://start.ng/games): browse and search every community game; each game also has its own page at `https://start.ng/games/<name>` and plays at `https://<name>.start.ng`
-- [Games by independent creators](https://start.ng/creators): games made and hosted by independent creators elsewhere (for example itch.io), searchable, with a way to submit your own
-- [Today's tournament](https://start.ng/tournament): a few games for 24 hours and one winner each day
-- [Leaderboard](https://start.ng/leaderboard): the best players, all time and this week
+- [Home](https://start.ng/): what start.ng is, featured games, staff picks, new games and the most played
+- [All games](https://start.ng/games): browse and search every community game, 20 to a page; each game also has its own page at `https://start.ng/games/<name>` and plays at `https://<name>.start.ng`
+- [Spotlight](https://start.ng/spotlight): the Game of the Week and today's daily challenge
+- [Games by independent creators](https://start.ng/creators): games made and hosted elsewhere (for example itch.io), each with its own page at `https://start.ng/creators/<id>-<name>`, and a way to submit your own
+- [Top creators](https://start.ng/by): the creators whose games the most different players opened this month; each creator has a page at `https://start.ng/by/<id>`
 - [The Hangout](https://start.ng/hangout): start.ng's own multiplayer park, where players walk around as their characters and meet each other
+
+## Compete
+- [Today's tournament](https://start.ng/tournament): 5 games for 24 hours, ending at 18:00 Nigeria time, and one winner each day
+- [Leaderboard](https://start.ng/leaderboard): the best players by tournament points, all time and this week
+- [Tournaments with friends](https://start.ng/friends): pick any games, set how long it runs, and share a link
+- [Shop](https://start.ng/shop): spend coins earned by playing on items for your character; new stock every day
 
 ## Build and publish a game
 - [Docs (plain text for AI tools)](https://start.ng/docs.md): everything needed to build a static game and put it live; follow it exactly
