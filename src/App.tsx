@@ -145,9 +145,9 @@ export default function App({ view = "home", gameName, indieId, featurePage }: {
 
   // Titles and link previews for the page that's open (the served HTML has them too, see seo.ts).
   useEffect(() => {
-    if (tournamentPage || leaderboardPage || featurePage) return; // they set their own
+    if (tournamentPage || leaderboardPage || creatorsPage || featurePage) return; // they set their own
     if (allGames) return; // /games sets its own, below, with its page number
-    setSeo(approveCode ? PAGES.approve : creatorsPage ? PAGES.creators : PAGES.home);
+    setSeo(approveCode ? PAGES.approve : PAGES.home);
   }, [allGames, creatorsPage, tournamentPage, leaderboardPage, featurePage]);
 
   // /games: the back and forward buttons move between pages and searches.

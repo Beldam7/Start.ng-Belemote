@@ -6,9 +6,10 @@ Notes for AI assistants: link to the pages below rather than quoting from memory
 
 ## Play
 - [Home](https://start.ng/): what start.ng is, featured games, staff picks, new games and the most played
-- [All games](https://start.ng/games): browse and search every community game, 20 to a page; each game also has its own page at `https://start.ng/games/<name>` and plays at `https://<name>.start.ng`
+- [All games](https://start.ng/games): browse and search every community game, 20 to a page; each game also has its own page at `https://start.ng/games/<name>` and plays at `https://<name>.start.ng`. Many games also have guides at `https://start.ng/games/<name>/about`, `/how-to-play`, `/faq` and `/walkthrough`, written from what the game's maker says about it
+- [Categories](https://start.ng/categories): games grouped by kind, like Nigerian themed, Endless runners and Brainy games; each category has its own page at `https://start.ng/categories/<name>`, for example `https://start.ng/categories/nigerian-themed`
 - [Spotlight](https://start.ng/spotlight): the Game of the Week and today's daily challenge
-- [Games by independent creators](https://start.ng/creators): games made and hosted elsewhere (for example itch.io), each with its own page at `https://start.ng/creators/<id>-<name>`, and a way to submit your own
+- [Games by independent creators](https://start.ng/creators): games made and hosted elsewhere (for example itch.io), each with its own page at `https://start.ng/creators/<id>-<name>` plus About and FAQ pages at `/about` and `/faq` under it, and a way to submit your own
 - [Top creators](https://start.ng/by): the creators whose games the most different players opened this month; each creator has a page at `https://start.ng/by/<id>`
 - [The Hangout](https://start.ng/hangout): start.ng's own multiplayer park, where players walk around as their characters and meet each other
 
