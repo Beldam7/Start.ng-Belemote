@@ -8,7 +8,7 @@ import DateField from "./DateField";
 import ThemeToggle from "./ThemeToggle";
 import Boundary from "./features/Boundary";
 import { useFeatures } from "./features/flags";
-import { allAdminTabs, registerAdminTab, type AdminTabProps } from "./features/registry";
+import { adminTabPartsFor, allAdminTabs, registerAdminTab, type AdminTabProps } from "./features/registry";
 import Pagination from "./Pagination";
 
 // start.ng/admin. Only admins get past the first check: super admins (SUPER_ADMIN_EMAILS on the API) and the admins
@@ -464,7 +464,22 @@ function Countdowns({ t }: { t: AdminTournament }) {
   );
 }
 
-function TournamentsTab({ can, ask }: AdminTabProps) {
+/** The sections features add under one of these tabs (registerAdminTabPart), each behind its flag and permission. */
+function TabParts({ tab, ...props }: AdminTabProps & { tab: string }) {
+  const isOn = useFeatures();
+  return (
+    <>
+      {adminTabPartsFor(tab).filter((p) => isOn(p.feature) && (!p.permission || props.can(p.permission))).map((p) => (
+        <Boundary key={p.key} name={p.key}>
+          <p.Component {...props} />
+        </Boundary>
+      ))}
+    </>
+  );
+}
+
+function TournamentsTab(props: AdminTabProps) {
+  const { can, ask } = props;
   const { data, setData, error } = useLoad<AdminTournaments>(() => admin.tournaments(token()), []);
   const [editing, setEditing] = useState<{ id: number; games: string[] } | null>(null);
   const [actionError, setActionError] = useState("");
@@ -518,6 +533,7 @@ function TournamentsTab({ can, ask }: AdminTabProps) {
           </article>
         ))}
       </div>
+      <TabParts tab="tournaments" {...props} />
     </section>
   );
 }
