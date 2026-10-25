@@ -533,7 +533,7 @@ Put them in `startng.json`, next to `description`:
 - Every list takes up to **12 lines**, each up to **240 characters**, as plain text. No HTML. A single string also works for `controls`.
 - Names are **exact**: `howToPlay` with a capital P and T. Publishing does **not** check these keys (it ignores keys it doesn't know), so a typo won't stop you publishing, but it also won't produce a page.
 - **No `startng.json`?** start.ng also reads your `README.md`. Headings it understands: "How to play" or "Controls" (a numbered list is the steps, bullets are the controls), "Features", "Story" or "About", and "Walkthrough", "Tips" or "Guide". The first paragraph is used as the description if you didn't write one. It also reads the description tag and any words under a "How to play" heading in your game's own `index.html`.
-- Write true things. A person on the start.ng team reads and approves every page before it goes live, and may change the words.
+- Write true things. Pages go live by themselves once they pass an automatic check, and the start.ng team may change the words or take a page down.
 - A game that says the same as another game gets one page, not two. A game that says very little gets no extra pages.
 - Pushing an update doesn't publish a page by itself. start.ng makes the pages from time to time, and a page appears at its address once it has been approved.
 
