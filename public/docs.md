@@ -132,6 +132,8 @@ If a push doesn't publish (say `index.html` went missing), the game stays as it 
 
 **Pushed but not live yet?** The game's card in **Your games** shows when start.ng last checked your repo and which commit is live (for example "Repo checked 3 min ago · live: 07b08b1"). If GitHub's limit has paused checking, it says so and when checking resumes. A push goes live once start.ng has checked it and it passes. A game that start.ng has no record of yet is republished from its repo the first time it's checked.
 
+**Want pushes live straight away?** Install the **start.ng GitHub App** on your game's repo (the link is on the game in **Your games**, once the app is set up). GitHub then tells start.ng about every push and the game updates within seconds. Without it, start.ng still checks your repo every few minutes, so nothing breaks if you don't install it.
+
 ### A cover picture
 
 Your game's card on start.ng shows a cover picture. Put **`cover.png`** (or `cover.jpg` / `cover.webp`) next to your `index.html` or at the top of your repo: start.ng picks it up automatically.
