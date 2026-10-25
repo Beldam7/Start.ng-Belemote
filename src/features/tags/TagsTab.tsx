@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { AdminTabProps } from "../registry";
 import { adminReview, adminSetTags, adminSuggest, adminTags, type ReviewRow, type Tag } from "./api";
 
@@ -10,8 +10,10 @@ function Row({ row, tags, onSaved }: { row: ReviewRow; tags: Tag[]; onSaved: () 
   const [picked, setPicked] = useState<string[]>(() => [...new Set([...row.approved, ...row.suggested])]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const toggle = (s: string) => setPicked((p) => (p.includes(s) ? p.filter((x) => x !== s) : [...p, s]));
+  // Nothing can change while a save is on its way: it sends the list as it was when Save was pressed.
+  const toggle = (s: string) => { if (!saving) setPicked((p) => (p.includes(s) ? p.filter((x) => x !== s) : [...p, s])); };
   const addable = tags.filter((t) => !picked.includes(t.slug) && !t.group.startsWith("Words people"));
+  const waiting = (s: string) => row.suggested.includes(s) && !row.approved.includes(s); // suggested by the rules, not approved yet
 
   async function save() {
     setSaving(true);
@@ -30,9 +32,12 @@ function Row({ row, tags, onSaved }: { row: ReviewRow; tags: Tag[]; onSaved: () 
       </div>
       <div className="chips tags-admin-chips" role="group" aria-label={`Tags for ${row.game}`}>
         {picked.map((s) => (
-          <button key={s} type="button" className="on" aria-pressed="true" onClick={() => toggle(s)} title="Tap to remove">{label.get(s) ?? s} ✕</button>
+          <button key={s} type="button" className={waiting(s) ? "on suggested" : "on"} aria-pressed="true" disabled={saving} onClick={() => toggle(s)}
+            title={waiting(s) ? "Suggested by the rules, not approved until you save. Tap to remove" : "Approved. Tap to remove"}>
+            {label.get(s) ?? s}{waiting(s) ? " · suggested" : ""} ✕
+          </button>
         ))}
-        <select value="" onChange={(e) => e.target.value && toggle(e.target.value)} aria-label={`Add a tag to ${row.game}`}>
+        <select value="" disabled={saving} onChange={(e) => e.target.value && toggle(e.target.value)} aria-label={`Add a tag to ${row.game}`}>
           <option value="">+ Add a tag</option>
           {addable.map((t) => <option key={t.slug} value={t.slug}>{t.label}</option>)}
         </select>
@@ -45,21 +50,33 @@ function Row({ row, tags, onSaved }: { row: ReviewRow; tags: Tag[]; onSaved: () 
 export default function TagsTab({ ask }: AdminTabProps) {
   const [tags, setTags] = useState<Tag[]>([]);
   const [rows, setRows] = useState<ReviewRow[] | null>(null);
+  const [loading, setLoading] = useState(true);
   const [pending, setPending] = useState(true);
   const [note, setNote] = useState("");
   const [error, setError] = useState("");
+  const latest = useRef(0); // each reload gets a number; only the newest one may change what is shown
 
   const reload = useCallback(() => {
+    const mine = ++latest.current;
     setError("");
-    adminReview(pending).then(setRows).catch((e) => setError(e.message));
+    setRows(null); // never show games from the other filter while this one loads
+    setLoading(true);
+    adminReview(pending)
+      .then((r) => { if (mine === latest.current) setRows(r); })
+      .catch((e) => { if (mine === latest.current) setError(e instanceof Error ? e.message : "Couldn't load the games"); })
+      .finally(() => { if (mine === latest.current) setLoading(false); });
   }, [pending]);
-  useEffect(() => { adminTags().then(setTags).catch((e) => setError(e.message)); }, []);
+  useEffect(() => { adminTags().then(setTags).catch((e) => setError(e instanceof Error ? e.message : "Couldn't load the tags")); }, []);
   useEffect(reload, [reload]);
 
   async function suggest() {
-    const ok = await ask({ title: "Suggest tags for every game?", body: "The rules look at each game's name and description and add suggestions. Nothing becomes public until you approve it.", confirm: "Suggest" });
-    if (ok === null) return;
-    try { const r = await adminSuggest(); setNote(`${r.added} suggestions added.`); reload(); } catch (e) { setError(e instanceof Error ? e.message : "Couldn't suggest"); }
+    try {
+      const ok = await ask({ title: "Suggest tags for every game?", body: "The rules look at each game's name and description and add suggestions. Nothing becomes public until you approve it.", confirm: "Suggest" });
+      if (ok === null) return;
+      const r = await adminSuggest();
+      setNote(`${r.added} suggestions added.`);
+      reload();
+    } catch (e) { setError(e instanceof Error ? e.message : "Couldn't suggest"); }
   }
 
   return (
@@ -75,7 +92,8 @@ export default function TagsTab({ ask }: AdminTabProps) {
         </div>
       </div>
       {note && <p className="note" role="status">{note}</p>}
-      {error && <p className="error" role="alert">{error}</p>}
+      {error && <p className="error" role="alert">{error} <button type="button" className="link" onClick={reload}>Try again</button></p>}
+      {loading && <p className="tags-state" role="status">Loading games…</p>}
       {rows && rows.length === 0 && <p className="empty">{pending ? "Nothing to review. Run Suggest tags to look for new suggestions." : "No games."}</p>}
       <div className="admin-list">
         {rows?.map((r) => <Row key={r.game + r.approved.join() + r.suggested.join()} row={r} tags={tags} onSaved={reload} />)}

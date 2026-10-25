@@ -6,7 +6,6 @@ import { registerAdminTab, registerPagePart, type AdminTabProps } from "../regis
 import CategoriesHome from "./CategoriesHome";
 import CategoriesRow from "./CategoriesRow";
 import GameTags from "./GameTags";
-import "./tags.css";
 
 const TagsTab = lazy(() => import("./TagsTab"));
 const FEATURE = "tags";
