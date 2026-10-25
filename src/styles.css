@@ -980,3 +980,10 @@ option { background: var(--card); color: var(--ink); }
 .wd-history > summary { padding: 12px 16px; font-weight: 600; }
 .wd-history > :not(summary) { margin-left: 16px; margin-right: 16px; }
 .wd-history[open] { padding-bottom: 14px; }
+
+/* admin activity log: search and filters */
+.log-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 12px 0 10px; }
+.log-search { flex: 1 1 240px; min-width: 200px; padding: 9px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg); color: inherit; font: inherit; }
+.log-filters label { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: .85rem; }
+.log-filters .datefield-button { min-width: 168px; padding: 7px 12px; font-size: .9rem; }
+.log-count { margin: 10px 0 6px; color: var(--muted); font-size: .85rem; }
