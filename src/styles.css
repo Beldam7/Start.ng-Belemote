@@ -1003,6 +1003,36 @@ option { background: var(--card); color: var(--ink); }
 .wd-history > :not(summary) { margin-left: 16px; margin-right: 16px; }
 .wd-history[open] { padding-bottom: 14px; }
 
+/* A game's own pages (about, how to play, FAQ, walkthrough): written by the server, so the top bar is plain links (no script). */
+.sub-top { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px 20px; padding: 22px 24px 8px; }
+.sub-top nav { display: flex; flex-wrap: wrap; gap: 6px 20px; font-size: .95rem; }
+.sub-top nav a { color: var(--muted); }
+.sub-top nav a:hover { color: var(--ink); }
+.game-sub { padding-top: 22px; padding-bottom: 44px; }
+.game-sub .crumbs { font: .8rem var(--mono); color: var(--muted); margin: 0 0 18px; }
+.game-sub .crumbs a:hover { color: var(--ink); text-decoration: underline; }
+.game-sub .eyebrow { margin: 0 0 10px; }
+.game-sub h1 { font-size: clamp(2rem, 6vw, 2.8rem); letter-spacing: -.04em; line-height: 1.05; margin: 0 0 22px; }
+.game-sub-body { max-width: 68ch; line-height: 1.7; color: var(--text-2); }
+.game-sub-body h2 { font-size: 1.35rem; letter-spacing: -.02em; color: var(--ink); margin: 28px 0 8px; }
+.game-sub-body p, .game-sub-body ul, .game-sub-body ol { margin: 0 0 14px; }
+.game-sub-body ul, .game-sub-body ol { padding-left: 1.3em; }
+.game-sub-body li { margin: 0 0 6px; }
+.game-sub-play { display: flex; flex-wrap: wrap; gap: 10px; margin: 28px 0 0; }
+.game-sub-links { margin: 34px 0 0; padding: 18px 20px; background: var(--card); border: 1px solid var(--line); border-radius: 18px; max-width: 68ch; }
+.game-sub-links h2 { font-size: 1.1rem; margin: 0 0 10px; letter-spacing: -.02em; }
+.game-sub-links ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.game-sub-links a { text-decoration: underline; text-underline-offset: 3px; }
+.game-sub-links a:hover { color: var(--ink); }
+.game-sub .game-tags { margin-top: 26px; padding: 0; max-width: 68ch; }
+
+/* live blocks on a game's own pages (written by the server): top players, and more games to play */
+.game-sub-more { margin: 40px 0 0; }
+.game-sub-more .section-head { margin-bottom: 14px; }
+.game-sub-more .section-head h2 { font-size: 1.3rem; letter-spacing: -.02em; margin: 0; }
+.game-sub-top span { color: var(--muted); font-family: var(--mono); font-size: .82rem; margin-left: 6px; }
+.game-sub-top p { margin: 12px 0 0; }
+
 /* tags and category pages (src/features/tags): colours come from the variables; the tiles use the same colour pairs as game covers */
 .tags-picks { padding-top: 8px; padding-bottom: 8px; }
 .tags-picks-head { display: flex; justify-content: space-between; align-items: baseline; margin: 0 0 14px; }
@@ -1027,6 +1057,14 @@ option { background: var(--card); color: var(--ink); }
 .game-tags .eyebrow { margin: 0 0 10px; }
 .game-tags ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
 .game-tags a { display: inline-block; padding: 7px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); font-size: .9rem; font-weight: 600; }
+.game-tags ul.plain li { display: inline-block; padding: 7px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); font-size: .9rem; font-weight: 600; }
+.indie-categories { border: 0; padding: 0; margin: 0; }
+.indie-categories legend { font-weight: 700; padding: 0; margin: 0 0 4px; }
+.indie-categories legend em, .indie-categories-other em { font-style: normal; color: var(--muted); font-family: var(--mono); font-size: .8rem; margin-left: 6px; }
+.indie-categories-group { margin: 12px 0 0; }
+.indie-categories-group .eyebrow { margin: 0 0 6px; }
+.indie-categories .chips button:disabled { opacity: .5; cursor: not-allowed; }
+.indie-categories-other { display: grid; gap: 6px; margin-top: 14px; }
 .game-tags a:hover { border-color: var(--ink); background: var(--lime); color: var(--on-lime); }
 .tags-admin-chips { margin-top: 12px; align-items: center; }
 .tags-admin-chips select { padding: 7px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg); color: inherit; font: inherit; font-size: .9rem; }
@@ -1034,6 +1072,15 @@ option { background: var(--card); color: var(--ink); }
 .tags-admin-chips button.suggested { border-style: dashed; }
 .tags-admin-chips button:disabled, .tags-admin-chips select:disabled { opacity: .55; cursor: not-allowed; }
 .tags-state { margin: 0 0 10px; color: var(--muted); }
+
+/* game pages admin (src/features/game_pages) */
+.gp-editor { display: grid; gap: 12px; margin-top: 14px; }
+.gp-editor label { display: grid; gap: 6px; font-weight: 600; font-size: .9rem; }
+.gp-editor input, .gp-editor textarea { font: inherit; font-weight: 400; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
+.gp-editor textarea { font-family: var(--mono); font-size: .85rem; line-height: 1.5; resize: vertical; }
+.gp-facts { background: var(--bg); color: var(--ink); border: 1px solid var(--line); padding: 12px; border-radius: 10px; overflow: auto; font-size: .78rem; }
+.gp-gaps { margin-top: 26px; }
+.gp-gaps ul { margin: 14px 0 0; padding-left: 1.2em; display: grid; gap: 6px; color: var(--muted); }
 /* "Keep me signed in" in the sign-in box */
 .keep-signed-in { display: flex; align-items: flex-start; gap: 10px; margin: 4px 0 12px; cursor: pointer; font-weight: 600; font-size: .92rem; }
 .keep-signed-in input { margin-top: 3px; width: 18px; height: 18px; accent-color: var(--ink); flex: none; }

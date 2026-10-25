@@ -31,8 +31,11 @@ const LEADERBOARD_PATHS = ["/leaderboard", "/leaderboard/"]; // tournament point
 const CREATORS_PATHS = ["/creators", "/creators/"]; // every game by independent creators
 const INDIE_PATH = /^\/creators\/(\d{1,10})(?:-[a-z0-9-]*)?\/?$/; // one independent creator's game page
 const GAME_PATH = /^\/games\/([a-z0-9][a-z0-9-]{0,39})\/?$/; // one game's page, before its own address
+// A game's about / how to play / FAQ / walkthrough pages: the server writes the whole page (startng-be app/features/game_pages).
 // The category pages are written by the server too (startng-be app/features/tags): /categories and /categories/<slug>.
 const CATEGORY_PATH = /^\/categories(\/[a-z0-9][a-z0-9-]{0,39})?\/?$/;
+const INDIE_SUB_PATH = /^\/creators\/(\d{1,10})(?:-[a-z0-9-]*)?\/(about|faq)\/?$/; // the About and FAQ pages of an independent creator's game
+const GAME_SUB_PATH = /^\/games\/([a-z0-9][a-z0-9-]{0,39})\/(about|how-to-play|faq|walkthrough)\/?$/;
 
 // nginx answers a missing page with the generated 404.html (status 404). It loads this same file, at the address that was asked
 // for, so a missing /categories/<slug> looks like a category page to the checks below. It marks itself noindex; the plain page
@@ -46,6 +49,13 @@ if (location.pathname === "/connect") {
   // React does not start here: the server's page is the page, for everyone. If it could not be written (the plain page came
   // back, with nothing in it), go to the games. nginx serves a missing category as the 404 page: that one stays as it is.
   if (!document.querySelector(".tags-page")) location.replace("/games");
+} else if (GAME_SUB_PATH.test(location.pathname) && !isNotFoundPage) {
+  // React does not start here: the server's page is the page, for everyone. If the server could not write it (the plain
+  // page came back, with nothing in it), go to the game's own page instead of showing nothing.
+  if (!document.querySelector(".game-sub")) location.replace(`/games/${location.pathname.match(GAME_SUB_PATH)![1]}`);
+} else if (INDIE_SUB_PATH.test(location.pathname) && !isNotFoundPage) {
+  // The same for a game by an independent creator: if the server could not write the page, go to the game's own page.
+  if (!document.querySelector(".game-sub")) location.replace(`/creators/${location.pathname.match(INDIE_SUB_PATH)![1]}`);
 } else {
   const path = location.pathname;
   const feature = findPage(path); // a feature's page (src/features), shown only while its flag is on

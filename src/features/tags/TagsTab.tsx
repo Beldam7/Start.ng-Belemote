@@ -63,7 +63,6 @@ export default function TagsTab({ ask }: AdminTabProps) {
   const reload = useCallback(() => {
     const mine = ++latest.current;
     setError("");
-    setRows(null); // never show games from the other filter while this one loads
     setLoading(true);
     adminReview(pending)
       .then((r) => { if (mine === latest.current) setRows(r); })
@@ -98,7 +97,7 @@ export default function TagsTab({ ask }: AdminTabProps) {
           <p className="note">Tags are suggested and approved automatically. Check or change them here: tap a tag to take it off, or add one. A tag gets its own page once 3 games have it. "Web games" and the other search words are on every game already.</p>
         </div>
         <div className="actions">
-          <button type="button" className="ghost" onClick={() => setPending((p) => !p)}>{pending ? "Show all games" : "Show only games to review"}</button>
+          <button type="button" className="ghost" onClick={() => { setRows(null); setPending((p) => !p); }}>{pending ? "Show all games" : "Show only games to review"}</button>
           <button type="button" onClick={suggest} disabled={suggesting}>{suggesting ? "Suggesting…" : "Suggest tags"}</button>
         </div>
       </div>

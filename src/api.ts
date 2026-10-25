@@ -241,8 +241,9 @@ export type IndieGame = {
   created_at: string;
   mine: boolean; // the signed-in user added it (they can remove it)
   plays: number; // opened from start.ng in the last 7 days
+  categories?: string[]; // its categories (names): only on the game's own page, only while the tags feature is on
 };
-export type IndieGameIn = { name: string; url: string; description: string; cover: string /* data URL */ };
+export type IndieGameIn = { name: string; url: string; description: string; cover: string /* data URL */; categories?: string[]; other_category?: string };
 
 export const indieCoverUrl = (g: IndieGame) => `${API_URL}${g.cover_path}`;
 

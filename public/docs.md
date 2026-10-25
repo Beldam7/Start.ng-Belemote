@@ -224,6 +224,7 @@ Every refusal from publish and check has this shape: `detail` for people, and `e
 | `leaves_start_ng` | The game sends players to another site |
 | `no_cover` | No `cover.png` next to `index.html` |
 | `no_start_ng_player` | The game doesn't ask start.ng who's playing (see the character rule) |
+| `thin_page` | start.ng found nothing to say about your game on its own page. Add a `description` and a `story` to `startng.json` (or a paragraph about the game in a README) so the page tells people what it is about |
 
 ### When an update doesn't pass
 
@@ -544,6 +545,55 @@ start.ng sorts games into categories, so players can browse "Endless runners" or
 | `five-minute-fun` | 5-minute fun | Play together |
 | `3d-games` | 3D games | Look and feel |
 | `retro-and-pixel` | Retro and pixel | Look and feel |
+### If your game is hosted outside start.ng: pick categories on the form
+
+Games by independent creators are listed with the **Submit your game** form on the Creators page. The form has a **Categories** field: pick up to 5 from the same list as above. If none fit, write your own in **Other**. Your categories show on your game's own page. Independent games are not listed on the category pages or the homepage. Leaving the field empty is fine.
+
+### Pages about your game: `story`, `controls`, `howToPlay`, `features`, `walkthrough`
+
+Your game's page is at `start.ng/games/<your-game>`. start.ng can also write up to four more pages about it, so more people can find it when they search for how to play it or what it is:
+
+| Page | Address | It needs |
+| --- | --- | --- |
+| About | `start.ng/games/<your-game>/about` | a `description` or a `story` (or at least 2 `features`) |
+| How to play | `start.ng/games/<your-game>/how-to-play` | `controls` or `howToPlay` |
+| FAQ | `start.ng/games/<your-game>/faq` | a `description`, or `controls` or `howToPlay`, plus a leaderboard, categories or a way to play to answer with |
+| Walkthrough | `start.ng/games/<your-game>/walkthrough` | a `walkthrough` of at least 3 steps or tips |
+
+**What is on them.** The About page says what the game is about (your `description` and `story`, plus anything more your README and your game's own page say about it), the facts at a glance (who made it, since when, its categories, its leaderboard, its first control), your `features`, and how scoring works. The How to play page has the goal, your `controls` and `howToPlay` steps, how the leaderboard ranks players, and what to do before you start. Every page also shows, live: the top players right now, more games by you, and games like yours. **The more you write in `startng.json`, the more your game's pages say.**
+
+**Where start.ng reads from.** When you publish or update, start.ng reads your game's `startng.json`, its README, and the messages and opening comments in your repo's source (only as text: nothing is run) and keeps a short summary to write your game's pages from. Lines your game shows, like "RUN! Escape the boulder" or "Climb the ledge and pull the lever", can appear on its About and How to play pages, so write them the way you want players to read them. Messages from libraries and from start.ng itself are left out.
+
+The pages are written **only from what your game says about itself**. start.ng never guesses how your game plays. If your files don't say how to play, the game gets no "How to play" page. Add the words, and the page becomes possible.
+
+Put them in `startng.json`, next to `description`:
+
+```json
+{
+  "description": "Dodge the lava and climb as high as you can.",
+  "story": "A small fire spirit runs from an erupting volcano.",
+  "controls": ["Space or tap to jump", "Down arrow or swipe down to slide"],
+  "howToPlay": ["Run and jump the gaps.", "Slide under the stone arches.", "Grab every crystal for a higher score."],
+  "features": ["Endless levels", "A daily goal", "Your own start.ng character"],
+  "walkthrough": ["Learn the first three gaps by heart.", "Slide early, not late.", "Save your crystals for the last ridge."]
+}
+```
+
+| Key | What to write |
+| --- | --- |
+| `description` | One or two plain sentences about the game (up to 300 characters). It is also used on your game's page. |
+| `story` | The idea or story behind the game, in a sentence or two (up to 600 characters). |
+| `controls` | A list of short lines, one per control: keys, taps or gestures. |
+| `howToPlay` | A list of steps in order, as you would tell a new player. |
+| `features` | A list of the things that are in your game. |
+| `walkthrough` | A list of tips or steps for getting through the game (at least 3). |
+
+- Every list takes up to **12 lines**, each up to **240 characters**, as plain text. No HTML. A single string also works for `controls`.
+- Names are **exact**: `howToPlay` with a capital P and T. Publishing does **not** check these keys (it ignores keys it doesn't know), so a typo won't stop you publishing, but it also won't produce a page.
+- **No `startng.json`?** start.ng also reads your `README.md`. Headings it understands: "How to play" or "Controls" (a numbered list is the steps, bullets are the controls), "Features", "Story" or "About", and "Walkthrough", "Tips" or "Guide". The first paragraph is used as the description if you didn't write one. It also reads the description tag and any words under a "How to play" heading in your game's own `index.html`.
+- Write true things. Pages go live by themselves once they pass an automatic check, and the start.ng team may change the words or take a page down.
+- A game that says the same as another game gets one page, not two. A game that says very little gets no extra pages.
+- Pushing an update doesn't publish a page by itself. start.ng makes the pages from time to time, and a page appears at its address once it has been approved.
 
 ### Save a run
 
@@ -745,3 +795,4 @@ For your own game:
 9. The repo is public on GitHub and pushed.
 10. `POST /games/check` passes with no errors (and you've looked at the warnings).
 11. Publish with the API and open the `approve_url` the first time. After that, pushing to the branch is enough.
+12. Optional, but it helps people find you: your `categories` (and `other_category` if none fit), a `description`, and `controls` or `howToPlay` in `startng.json`, so your game can have its own about and how-to-play pages.

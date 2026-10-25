@@ -1,3 +1,4 @@
+import IndieCategoryPicker from "./features/tags/IndieCategoryPicker";
 import { ChangeEvent, FormEvent, RefObject, useCallback, useEffect, useRef, useState } from "react";
 import {
   COVER_TYPES, IndieGame, indieCoverUrl, listIndieGames, MAX_COVER_BYTES, submitIndieGame, User,
@@ -95,6 +96,8 @@ function SubmitGame({ user, onSignIn, onClose, onAdded }: {
   const [url, setUrl] = useState("");
   const [description, setDescription] = useState("");
   const [cover, setCover] = useState<string | null>(null); // data URL
+  const [categories, setCategories] = useState<string[]>([]);
+  const [other, setOther] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [added, setAdded] = useState<IndieGame | null>(null);
@@ -119,7 +122,7 @@ function SubmitGame({ user, onSignIn, onClose, onAdded }: {
     setBusy(true);
     setError("");
     try {
-      setAdded(await submitIndieGame(token(), { name, url, description, cover }));
+      setAdded(await submitIndieGame(token(), { name, url, description, cover, categories, other_category: other.trim() || undefined }));
       setBusy(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not add your game");
@@ -181,6 +184,7 @@ function SubmitGame({ user, onSignIn, onClose, onAdded }: {
               {cover && <button type="button" className="link" onClick={() => setCover(null)}>Use another picture</button>}
             </div>
             {error && <p className="error">{error}</p>}
+            <IndieCategoryPicker picked={categories} other={other} onPick={setCategories} onOther={setOther} />
             <button type="submit" disabled={busy}>{busy ? "Adding your game…" : "Add my game"}</button>
           </form>
         )}

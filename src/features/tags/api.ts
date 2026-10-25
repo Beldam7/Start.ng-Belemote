@@ -9,6 +9,11 @@ export type ReviewRow = { game: string; approved: string[]; suggested: string[];
 
 const token = () => localStorage.getItem("token");
 
+export type Choice = { slug: string; label: string };
+export type ChoiceGroup = { name: string; tags: Choice[] };
+/** The categories a creator can pick from (the submit form for independent games). */
+export const getChoices = () => call<ChoiceGroup[]>(token(), "/tags/choices");
+
 export const getTags = () => call<TagsData>(token(), "/tags");
 export const getTagPage = (slug: string, page: number) => call<TagPage>(token(), `/tags/${encodeURIComponent(slug)}?page=${page}`);
 export const getGameTags = (game: string) => call<{ slug: string; label: string }[]>(token(), `/games/${encodeURIComponent(game)}/tags`);
