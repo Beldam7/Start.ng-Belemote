@@ -560,7 +560,7 @@ Players are `{ id, name, style, seat, x, z, ry, moving }`, with names and looks 
 
 ### Rooms: two-player and group games (start.ng referees)
 
-For games where players take turns or play together in a room, like tic-tac-toe or chess, start.ng can run the rules on its server, so nobody can cheat and a player who drops can come back. This is for games start.ng builds and referees itself. If your own game needs players to see each other live, use the first part of this section.
+For games where players take turns or play together in a room, like tic-tac-toe or chess, start.ng can run the rules on its server, so nobody can cheat and a player who drops can come back. This is for games start.ng builds and referees itself. For your own multiplayer game, use Relay rooms (next section); for an open world like the Hangout, use the first part of this section.
 
 With the Kit loaded (`<script src="https://start.ng/kit.js" defer></script>`):
 
@@ -591,6 +591,29 @@ room.serverNow();                              // the server's clock in ms: coun
 ```
 
 What `setup` takes is the game's own: the quiz takes questions (2 to 4 answers each, up to 50 questions); bingo takes `{ mode: 'numbers' | 'terms', terms, speed, pattern }`. A setup may be up to 64 KB. The server keeps score and checks every answer and claim; each player's state holds only what they may see.
+
+### Relay rooms: your own multiplayer game
+
+Relay rooms are for your own game. Players make or join a room with a code, and start.ng carries your messages between them. **start.ng does not know your rules**, so the game itself decides who won and what is allowed (there is no protection against a player who edits their copy of the game). It suits party games, co-op and casual games for 2 to 8 players.
+
+```js
+const room = await startng.rooms.create({ seats: 4 });   // or startng.rooms.join('K7M2QX'); invite link: room.inviteUrl()
+
+room.on('message', ({ from, data }) => handle(from, data));   // from is the sender's seat
+room.on('join', ({ player }) => {});  room.on('away', ({ seat }) => {});  room.on('back', ({ seat }) => {});
+room.broadcast({ x: 3, y: 4, shot: true });                    // to everyone else
+room.broadcast('psst', 2);                                     // to one seat
+
+room.updateState((state) => ({ ...state, turn: 1 }));          // the shared state of the room (see below)
+room.shared;                                                    // { version, data }: the latest shared state
+room.on('room_state', ({ version, data, by }) => draw(data));
+```
+
+- **Seats and names.** `room.you` is your seat and `room.players` lists everyone (`{ seat, name, style, online }`) with names and looks from start.ng. The person who made the room is seat 0 (`room.host === 0`), so a game can let seat 0 decide when it begins. Up to 8 players; `seats` is how many this room is for (2 to 8, 4 if you leave it out). A full room says `4403`. There is no matchmaking for Relay rooms: players share the code or the link.
+- **The shared state** is a small JSON value (up to 8 KB) the whole room keeps, and anyone who joins or comes back gets it in `room.shared`. It is for things everyone must agree on (whose turn, the board, scores), not for fast updates; send those with `broadcast`. A write says which version it started from, and if someone else wrote first it is refused; `updateState` handles that for you by running your function again on the newer state, so two players never overwrite each other. `room.setState(data)` is the low level call, and `state_conflict` is the event when it was refused.
+- **A player who drops** keeps their seat for 10 minutes and the kit reconnects by itself; the others hear `away` and `back`. After a restart of start.ng, or when everyone has left for 10 minutes, the room closes (`closed`) and the game should offer a new one.
+- **Limits.** A message is up to 2 KB and a player can send 30 a second, so do not stream a position every frame: 10 to 20 updates a second is plenty. Players must be signed in with start.ng. A player who joins from an invite link (`?room=CODE`) is taken through sign-in and back to the room. Delay is the time to start.ng and back, from tens to a few hundred milliseconds, so games built on quick reactions will feel it.
+- A tic-tac-toe example that keeps its rules in the page, `startng-relay-template`, shows all of this in about 150 lines.
 
 ## Friends and follows
 
