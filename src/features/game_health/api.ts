@@ -2,7 +2,7 @@ import { call, send } from "../../api";
 
 export type Health = {
   game: string; url: string; owner: string | null; status: "ok" | "failing" | "unhealthy" | "unchecked"; failures: number;
-  problems: { code: string; message: string }[]; checked_at: string | null; last_ok_at: string | null; unhealthy_since: string | null;
+  problems: { code: string; message: string }[]; checked_at: string | null; last_ok_at: string | null; unhealthy_since: string | null; hidden?: string | null;
 };
 export type Overview = { counts: Record<string, number>; games: Health[] };
 

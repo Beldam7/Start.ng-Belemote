@@ -6,10 +6,13 @@
   --dot: rgba(41, 42, 35, .16); --danger: #c0392b; --ok: #2e7d32; --warn-ink: #8a6d00;
   --warn-bg: #fff7d6; --warn-line: #f0d77a; --bad-bg: #fdecea; --bad-line: #f3b8b0;
   /* wardrobe item rarities (src/features/wardrobe): at least 4.5:1 with the --on-solid label text, in both themes */
+  /* the text and shading on a coloured card (a category tile): white on a darkened gradient, a little darker in dark mode */
+  --on-art: #fff; --art-shade: rgba(0, 0, 0, .5); --art-text-shadow: rgba(0, 0, 0, .35);
   --r-common: #75766c; --r-uncommon: #278546; --r-rare: #346fdf; --r-epic: #8e4fd6; --r-legendary: #a9630a; --r-limited: #db2967;
   color-scheme: light;
 }
 :root[data-theme="dark"] {
+  --art-shade: rgba(0, 0, 0, .62);
   --bg: #292a23; --card: #33342c; --ink: #f6f5ee; --muted: #b0b1a6; --line: #4a4b41;
   --text-2: #dedcd0; --on-solid: #292a23; --on-solid-accent: #292a23; --solid-hover: #fff;
   --scrim: rgba(20, 21, 17, .65); --shimmer: #44453b; --code-bg: #1f201b; --legendary-bg: #38402a; --banner-tint: #343b27;
@@ -119,6 +122,22 @@ mark { background: linear-gradient(transparent 62%, var(--lime) 62%, var(--lime)
 .how li span { color: var(--muted); line-height: 1.55; }
 .how li code { font-size: .85em; }
 .how-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+/* The homepage's every-game list, A to Z, and its About and questions. The API writes the same words for search
+   engines before the app loads (startng-be app/routers/pages.py), using these classes so it looks the same. */
+.az-games { margin-top: 28px; background: var(--card); border: 1px solid var(--line); border-radius: 18px; }
+.az-games > summary { padding: 14px 18px; font-weight: 600; }
+.az-games ul { list-style: none; margin: 0; padding: 0 18px 16px; columns: 3 200px; column-gap: 24px; }
+.az-games li { padding: 4px 0; break-inside: avoid; font-size: .95rem; }
+.az-games li a:hover { text-decoration: underline; }
+.az-games li span { color: var(--muted); font-size: .85rem; }
+.about { padding: 24px 24px 72px; }
+.about h2 { font-size: 2.1rem; letter-spacing: -.035em; margin: 0 0 16px; }
+.about > p { max-width: 720px; margin: 0 0 12px; color: var(--muted); font-size: 1.05rem; line-height: 1.7; }
+.about h3 { margin: 32px 0 12px; font-size: 1.3rem; letter-spacing: -.02em; }
+.faq { display: grid; gap: 10px; }
+.faq details { background: var(--card); border: 1px solid var(--line); border-radius: 18px; }
+.faq summary { padding: 14px 18px; font-weight: 600; }
+.faq details p { margin: 0; padding: 0 18px 16px; color: var(--muted); line-height: 1.6; }
 
 .footer { display: flex; justify-content: space-between; margin-top: 40px; padding: 28px 24px 40px; border-top: 1px solid var(--line); color: var(--muted); font-size: .9rem; }
 .footer > span:first-child { color: var(--ink); font-weight: 800; }
@@ -445,6 +464,9 @@ button.game-link:hover { background: none; }
 .indie-fields { display: grid; gap: 14px; }
 .indie-fields .field > span { display: flex; justify-content: space-between; }
 .indie-fields .field em { font-style: normal; }
+/* After a game is added: why sharing helps, and the post they can share. */
+.indie-share-note { margin: 0; padding: 10px 12px; border-radius: 10px; background: var(--lime); color: var(--on-lime); font-size: .9rem; line-height: 1.45; }
+.indie-post { margin: 0; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); line-height: 1.5; overflow-wrap: anywhere; }
 textarea { padding: 13px 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: inherit; font: inherit; font-size: 1rem; resize: vertical; }
 textarea:focus { outline: 2px solid var(--ink); outline-offset: -1px; }
 .indie-cover { position: relative; display: grid; place-items: center; aspect-ratio: 16 / 10; border: 1.5px dashed var(--line); border-radius: 12px; background: var(--bg); cursor: pointer; overflow: hidden; text-align: center; }
@@ -515,7 +537,7 @@ textarea:focus { outline: 2px solid var(--ink); outline-offset: -1px; }
 .docs-body, .docs-body a { overflow-wrap: anywhere; }
 @media (max-width: 600px) {
   .section-head { flex-wrap: wrap; align-items: center; gap: 4px 12px; margin-bottom: 16px; }
-  .section-head h2, .how h2 { font-size: 1.6rem; }
+  .section-head h2, .how h2, .about h2 { font-size: 1.6rem; }
   .all-games h1 { font-size: 1.7rem; }
   .list-tools { gap: 10px; }
   .list-tools .count { font-size: .8rem; }
@@ -662,12 +684,14 @@ button:disabled { opacity: .5; cursor: not-allowed; }
 
 /* The admin page (Admin.tsx) */
 .admin-shell { max-width: 1320px; margin: 0 auto; padding: 14px 20px 60px; display: grid; grid-template-columns: 220px minmax(0, 1fr); grid-template-areas: "top top" "side main"; gap: 22px 28px; align-items: start; }
-.admin-top { grid-area: top; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 8px 4px 14px; border-bottom: 1px solid var(--line); }
+.admin-top { grid-area: top; position: sticky; top: 0; z-index: 20; background: var(--bg); display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 8px 4px 14px; border-bottom: 1px solid var(--line); }
 .admin-brand { display: flex; align-items: center; gap: 10px; }
 .admin-me { display: flex; align-items: center; gap: 12px; }
 .admin-who { display: grid; text-align: right; min-width: 0; font-size: .8rem; color: var(--muted); }
 .admin-who b { font-weight: 600; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .88rem; }
-.admin-side { grid-area: side; position: sticky; top: 14px; max-height: calc(100vh - 28px); overflow-y: auto; }
+/* The header stays at the top, and the sidebar fills the space under it (scrolling on its own when it's longer), so
+   every section is reachable without scrolling the page. */
+.admin-side { grid-area: side; position: sticky; top: 96px; max-height: calc(100vh - 110px); overflow-y: auto; overscroll-behavior: contain; }
 .admin-main { grid-area: main; min-width: 0; }
 .admin-tabs { display: flex; flex-direction: column; gap: 2px; margin: 0; }
 .admin-tabs button { display: block; width: 100%; text-align: left; padding: 9px 14px; border-radius: 10px; border: 0; background: none; color: var(--muted); font-size: .94rem; font-weight: 600; transition: background .15s, color .15s; }
@@ -855,7 +879,12 @@ button.small { padding: 7px 12px; font-size: .85rem; border-radius: 8px; }
 .filter-result { margin: 0 0 6px; font-weight: 600; }
 .filter-result.ok { color: var(--ok); }
 .filter-result.bad { color: var(--danger); }
-.filter-strong { display: flex; gap: 6px; align-items: center; font-size: .9rem; }
+.filter-add { display: grid; gap: 10px; margin: 10px 0 14px; }
+.filter-add-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.filter-add-row input { flex: 1 1 240px; min-width: 0; }
+.filter-add-row .segmented { flex: none; }
+.filter-strong { display: inline-flex; gap: 8px; align-items: center; justify-self: start; font-size: .9rem; color: var(--muted); cursor: pointer; }
+.filter-strong input { width: 18px; height: 18px; margin: 0; accent-color: var(--ink); flex: none; }
 .filter-builtin { margin-top: 22px; }
 .filter-builtin summary { cursor: pointer; font-weight: 600; }
 
@@ -968,15 +997,105 @@ option { background: var(--card); color: var(--ink); }
 .game-card p.update-status { display: block; -webkit-line-clamp: unset; overflow: visible; }
 
 /* dropdowns made of <details>: no triangle, a chevron on the right that turns when it opens, content that eases in */
-.your-stats-head, .feature-checklist > summary, .wd-history > summary, .filter-builtin > summary { display: flex; align-items: center; gap: 10px; cursor: pointer; list-style: none; }
-.your-stats-head::-webkit-details-marker, .feature-checklist > summary::-webkit-details-marker, .wd-history > summary::-webkit-details-marker, .filter-builtin > summary::-webkit-details-marker { display: none; }
-.feature-checklist > summary::after, .wd-history > summary::after, .filter-builtin > summary::after { content: ""; width: 10px; height: 7px; margin-left: auto; flex: none; transition: rotate .2s;
+.your-stats-head, .feature-checklist > summary, .wd-history > summary, .filter-builtin > summary, .az-games > summary, .faq summary { display: flex; align-items: center; gap: 10px; cursor: pointer; list-style: none; }
+.your-stats-head::-webkit-details-marker, .feature-checklist > summary::-webkit-details-marker, .wd-history > summary::-webkit-details-marker, .filter-builtin > summary::-webkit-details-marker, .az-games > summary::-webkit-details-marker, .faq summary::-webkit-details-marker { display: none; }
+.feature-checklist > summary::after, .wd-history > summary::after, .filter-builtin > summary::after, .az-games > summary::after, .faq summary::after { content: ""; width: 10px; height: 7px; margin-left: auto; flex: none; transition: rotate .2s;
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23909086' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat; }
-.feature-checklist[open] > summary::after, .wd-history[open] > summary::after, .filter-builtin[open] > summary::after { rotate: 180deg; }
-.your-stats[open] > :not(summary), .feature-checklist[open] > :not(summary), .wd-history[open] > :not(summary), .filter-builtin[open] > :not(summary) { animation: dd-open .22s ease-out; }
+.feature-checklist[open] > summary::after, .wd-history[open] > summary::after, .filter-builtin[open] > summary::after, .az-games[open] > summary::after, .faq details[open] > summary::after { rotate: 180deg; }
+.your-stats[open] > :not(summary), .feature-checklist[open] > :not(summary), .wd-history[open] > :not(summary), .filter-builtin[open] > :not(summary), .az-games[open] > :not(summary), .faq details[open] > :not(summary) { animation: dd-open .22s ease-out; }
 @keyframes dd-open { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
-@media (prefers-reduced-motion: reduce) { .your-stats[open] > :not(summary), .feature-checklist[open] > :not(summary), .wd-history[open] > :not(summary), .filter-builtin[open] > :not(summary) { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .your-stats[open] > :not(summary), .feature-checklist[open] > :not(summary), .wd-history[open] > :not(summary), .filter-builtin[open] > :not(summary), .az-games[open] > :not(summary), .faq details[open] > :not(summary) { animation: none; } }
 .wd-history { padding: 0; }
 .wd-history > summary { padding: 12px 16px; font-weight: 600; }
 .wd-history > :not(summary) { margin-left: 16px; margin-right: 16px; }
 .wd-history[open] { padding-bottom: 14px; }
+.admin-tournament-times { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; }
+
+/* A game's own pages (about, how to play, FAQ, walkthrough): written by the server, so the top bar is plain links (no script). */
+.sub-top { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px 20px; padding: 22px 24px 8px; }
+.sub-top nav { display: flex; flex-wrap: wrap; gap: 6px 20px; font-size: .95rem; }
+.sub-top nav a { color: var(--muted); }
+.sub-top nav a:hover { color: var(--ink); }
+.game-sub { padding-top: 22px; padding-bottom: 44px; }
+.game-sub .crumbs { font: .8rem var(--mono); color: var(--muted); margin: 0 0 18px; }
+.game-sub .crumbs a:hover { color: var(--ink); text-decoration: underline; }
+.game-sub .eyebrow { margin: 0 0 10px; }
+.game-sub h1 { font-size: clamp(2rem, 6vw, 2.8rem); letter-spacing: -.04em; line-height: 1.05; margin: 0 0 22px; }
+.game-sub-body { max-width: 68ch; line-height: 1.7; color: var(--text-2); }
+.game-sub-body h2 { font-size: 1.35rem; letter-spacing: -.02em; color: var(--ink); margin: 28px 0 8px; }
+.game-sub-body p, .game-sub-body ul, .game-sub-body ol { margin: 0 0 14px; }
+.game-sub-body ul, .game-sub-body ol { padding-left: 1.3em; }
+.game-sub-body li { margin: 0 0 6px; }
+.game-sub-play { display: flex; flex-wrap: wrap; gap: 10px; margin: 28px 0 0; }
+.game-sub-links { margin: 34px 0 0; padding: 18px 20px; background: var(--card); border: 1px solid var(--line); border-radius: 18px; max-width: 68ch; }
+.game-sub-links h2 { font-size: 1.1rem; margin: 0 0 10px; letter-spacing: -.02em; }
+.game-sub-links ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.game-sub-links a { text-decoration: underline; text-underline-offset: 3px; }
+.game-sub-links a:hover { color: var(--ink); }
+.game-sub .game-tags { margin-top: 26px; padding: 0; max-width: 68ch; }
+
+/* live blocks on a game's own pages (written by the server): top players, and more games to play */
+.game-sub-more { margin: 40px 0 0; }
+.game-sub-more .section-head { margin-bottom: 14px; }
+.game-sub-more .section-head h2 { font-size: 1.3rem; letter-spacing: -.02em; margin: 0; }
+.game-sub-top span { color: var(--muted); font-family: var(--mono); font-size: .82rem; margin-left: 6px; }
+.game-sub-top p { margin: 12px 0 0; }
+
+/* tags and category pages (src/features/tags): colours come from the variables; the tiles use the same colour pairs as game covers */
+.tags-picks { padding-top: 8px; padding-bottom: 8px; }
+.tags-picks-head { display: flex; justify-content: space-between; align-items: baseline; margin: 0 0 14px; }
+.tags-picks-head h2 { margin: 0; font-size: 1.5rem; letter-spacing: -.03em; }
+.tag-tiles { display: grid; gap: 12px; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.tag-tile { position: relative; display: flex; flex-direction: column; justify-content: flex-end; gap: 4px; min-height: 112px; padding: 14px 16px; border-radius: 18px; border: 1px solid var(--line); overflow: hidden; color: var(--on-art); transition: transform .15s, box-shadow .15s, border-color .15s; }
+.tag-tile::before { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, var(--art-shade), transparent 70%); }
+.tag-tile > * { position: relative; text-shadow: 0 1px 6px var(--art-text-shadow); }
+.tag-tile:hover { transform: translateY(-2px); border-color: var(--ink); box-shadow: 4px 4px 0 var(--lime); }
+.tag-tile b { font-size: 1.1rem; letter-spacing: -.02em; line-height: 1.15; }
+.tag-tile span { font: .7rem var(--mono); text-transform: uppercase; letter-spacing: .14em; opacity: .9; }
+.tags-page { padding-top: 28px; padding-bottom: 40px; }
+.tags-page h1 { font-size: 2.6rem; letter-spacing: -.04em; line-height: 1.05; margin: 0 0 12px; }
+.tags-page .lead-sm { max-width: 60ch; margin: 0 0 8px; font-size: 1.05rem; }
+.tags-page .crumbs { font: .8rem var(--mono); color: var(--muted); margin: 0 0 18px; }
+.tags-page .crumbs a:hover { color: var(--ink); text-decoration: underline; }
+.tags-page .section-head { margin-top: 30px; }
+.tags-group { margin: 34px 0 0; }
+.tags-group h2 { font-size: 1.3rem; letter-spacing: -.02em; margin: 0 0 14px; }
+.tags-pager { display: flex; justify-content: space-between; align-items: center; margin: 26px 0 0; }
+.game-tags { padding-top: 6px; padding-bottom: 6px; }
+.game-tags .eyebrow { margin: 0 0 10px; }
+.game-tags ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.game-tags a { display: inline-block; padding: 7px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); font-size: .9rem; font-weight: 600; }
+.game-tags ul.plain li { display: inline-block; padding: 7px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); font-size: .9rem; font-weight: 600; }
+.indie-categories { border: 0; padding: 0; margin: 0; }
+.indie-categories legend { font-weight: 700; padding: 0; margin: 0 0 4px; }
+.indie-categories legend em, .indie-categories-other em { font-style: normal; color: var(--muted); font-family: var(--mono); font-size: .8rem; margin-left: 6px; }
+.indie-categories-group { margin: 12px 0 0; }
+.indie-categories-group .eyebrow { margin: 0 0 6px; }
+.indie-categories .chips button:disabled { opacity: .5; cursor: not-allowed; }
+.indie-categories-other { display: grid; gap: 6px; margin-top: 14px; }
+.game-tags a:hover { border-color: var(--ink); background: var(--lime); color: var(--on-lime); }
+.tags-admin-chips { margin-top: 12px; align-items: center; }
+.tags-admin-chips select { padding: 7px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg); color: inherit; font: inherit; font-size: .9rem; }
+@media (max-width: 760px) { .tags-page h1 { font-size: 2rem; } .tag-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; } .tag-tile { min-height: 92px; } }
+.tags-admin-chips button.suggested { border-style: dashed; }
+.tags-admin-chips button:disabled, .tags-admin-chips select:disabled { opacity: .55; cursor: not-allowed; }
+.tags-state { margin: 0 0 10px; color: var(--muted); }
+
+/* game pages admin (src/features/game_pages) */
+.gp-editor { display: grid; gap: 12px; margin-top: 14px; }
+.gp-editor label { display: grid; gap: 6px; font-weight: 600; font-size: .9rem; }
+.gp-editor input, .gp-editor textarea { font: inherit; font-weight: 400; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
+.gp-editor textarea { font-family: var(--mono); font-size: .85rem; line-height: 1.5; resize: vertical; }
+.gp-facts { background: var(--bg); color: var(--ink); border: 1px solid var(--line); padding: 12px; border-radius: 10px; overflow: auto; font-size: .78rem; }
+.gp-gaps { margin-top: 26px; }
+.gp-gaps ul { margin: 14px 0 0; padding-left: 1.2em; display: grid; gap: 6px; color: var(--muted); }
+/* "Keep me signed in" in the sign-in box */
+.keep-signed-in { display: flex; align-items: flex-start; gap: 10px; margin: 4px 0 12px; cursor: pointer; font-weight: 600; font-size: .92rem; }
+.keep-signed-in input { margin-top: 3px; width: 18px; height: 18px; accent-color: var(--ink); flex: none; }
+.keep-signed-in small { display: block; margin-top: 1px; color: var(--muted); font-weight: 400; font-size: .8rem; }
+/* admin activity log: search and filters */
+.log-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 12px 0 10px; }
+.log-search { flex: 1 1 240px; min-width: 200px; padding: 9px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg); color: inherit; font: inherit; }
+.log-filters label { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: .85rem; }
+.log-filters .datefield-button { min-width: 168px; padding: 7px 12px; font-size: .9rem; }
+.log-count { margin: 10px 0 6px; color: var(--muted); font-size: .85rem; }

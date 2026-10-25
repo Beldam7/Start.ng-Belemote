@@ -9,6 +9,7 @@ import { DEFAULT_SITE_URL, headTags, jsonLd, PAGES, SITEMAP_PATHS, STATIC_PAGES 
 // plus robots.txt and sitemap.xml. nginx serves them (see nginx.conf). The tags come from src/seo.ts.
 function seoPages(site: string): Plugin {
   const block = /<!--seo-->[\s\S]*?<!--\/seo-->/;
+  const ROOT = '<div id="root"></div>';
   return {
     name: "startng-seo",
     apply: "build",
@@ -20,6 +21,18 @@ function seoPages(site: string): Plugin {
       for (const [file, page] of STATIC_PAGES) {
         writeFileSync(resolve(out, file), index.replace(block, `<!--seo-->\n    ${headTags(page, site)}\n    <!--/seo-->`).replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/, ""));
       }
+      // The homepage nginx serves: index.html with the API's text for search engines and AI tools included
+      // inside #root (an SSI include, see "location = /" in nginx.conf). The app replaces it when it loads.
+      if (!index.includes(ROOT)) throw new Error(`index.html has no ${ROOT} for the homepage text`);
+      writeFileSync(resolve(out, "home.html"), index.replace(ROOT, `<div id="root"><!--# include virtual="/_ssr/home" --></div>`));
+      // /games the same way, one page of games at a time (see "location ~ ^/games/?$" in nginx.conf): each page
+      // (/games?page=2) is its own canonical address, and searches and filters get no text (nginx marks them noindex).
+      const games = readFileSync(resolve(out, "games.html"), "utf8");
+      const gamesUrl = `"${site}${PAGES.games.path}"`;
+      if (!games.includes(gamesUrl)) throw new Error(`games.html has no ${gamesUrl} for its canonical address`);
+      writeFileSync(resolve(out, "games.html"), games
+        .replaceAll(gamesUrl, `"${site}${PAGES.games.path}<!--# if expr="$games_page != 1" -->?page=<!--# echo var="games_page" --><!--# endif -->"`)
+        .replace(ROOT, `<div id="root"><!--# if expr="$games_ssr = yes" --><!--# include virtual="/_ssr/games?page=$games_page" --><!--# endif --></div>`));
       mkdirSync(out, { recursive: true });
       writeFileSync(resolve(out, "robots.txt"), `User-agent: *\nAllow: /\nDisallow: /approve/\nDisallow: /connect\n\nSitemap: ${site}/sitemap.xml\n`);
       const urls = SITEMAP_PATHS.map((p) => `  <url><loc>${site}${p}</loc></url>`).join("\n");

@@ -32,7 +32,7 @@ export type Seo = {
 };
 
 const HOME_DESCRIPTION =
-  "Play free browser games made by the HNG community, each at its own start.ng address. Build your character, climb the leaderboards, or publish your own game in minutes.";
+  "Nigeria's home for free browser games. Play Naija-themed web games like Danfo Defense and Jollof Rush, no download. Built by the HNG community.";
 
 export const PAGES: Record<string, Seo> = {
   home: { title: "start.ng · Good vibes. Good games.", description: HOME_DESCRIPTION, path: "/" },
