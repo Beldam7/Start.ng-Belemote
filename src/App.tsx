@@ -477,6 +477,7 @@ export default function App({ view = "home", gameName, indieId, featurePage }: {
         <span>start<span>.ng</span></span>
         <span>Built by the HNG community</span>
       </footer>
+      <PageParts page="everywhere" user={user} onSignIn={() => setSignInOpen(true)} />
       <ScrollJump />
       {user && wardrobeOn && !profileOpen && <Suspense fallback={null}><UnlockPopup user={user} /></Suspense>}
 

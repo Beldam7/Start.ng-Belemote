@@ -18,4 +18,5 @@ import "./share_cards";
 import "./challenges";
 import "./creator_hub"; // T2 creator hub (Hamzat, for Tega)
 import "./wardrobe"; // wardrobe rewards: coins, rarity items and the shop (Kaka)
+import "./support"; // F10 Help button and problem reports (Hamzat)
 export {};

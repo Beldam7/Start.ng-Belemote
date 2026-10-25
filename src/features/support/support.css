@@ -1,0 +1,40 @@
+/* F10: the Help button on every page and its panel. Bottom left, so it doesn't sit on the scroll button. */
+.help-button {
+  position: fixed; left: 20px; bottom: 20px; z-index: 6; display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 16px 10px 10px; border-radius: 999px; background: var(--ink); color: var(--on-solid-accent, var(--lime));
+  font-weight: 700; box-shadow: 0 6px 18px rgba(41, 42, 35, .25);
+}
+.help-button span { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--lime); color: #292a23; font-size: .95rem; }
+.help-panel {
+  position: fixed; left: 20px; bottom: 76px; z-index: 30; width: min(400px, calc(100vw - 32px)); max-height: min(620px, calc(100vh - 110px));
+  overflow-y: auto; background: var(--card); color: var(--ink); border: 1px solid var(--line); border-radius: 18px; padding: 14px 16px 16px;
+  box-shadow: 6px 6px 0 var(--lime), 0 16px 40px rgba(0, 0, 0, .18);
+}
+.help-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.help-head b { font-size: 1.1rem; }
+.help-close { background: none; border: 0; color: var(--muted); font-size: 1.5rem; line-height: 1; padding: 0 4px; }
+.help-tabs { margin-bottom: 12px; }
+.help-tabs button { font-size: .85rem; padding: 7px 12px; }
+.help-body { display: grid; gap: 10px; }
+.help-body input[type="search"] { width: 100%; padding: 10px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); color: inherit; font: inherit; }
+.help-results { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.help-results a { font-weight: 700; color: var(--ink); }
+.help-results p { margin: 2px 0 0; font-size: .84rem; color: var(--muted); line-height: 1.45; }
+.help-report { display: grid; gap: 8px; }
+.help-report label { font-weight: 600; }
+.help-report textarea { width: 100%; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); color: inherit; font: inherit; resize: vertical; }
+.help-report .note { margin: 0; font-size: .8rem; }
+.help-report button[type="submit"] { justify-self: start; }
+.help-sub { margin: 8px 0 0; font-size: .95rem; }
+.help-mine { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.help-mine li { border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; }
+.help-mine p { margin: 6px 0 0; font-size: .88rem; }
+.help-coins { margin-left: 8px; font-weight: 700; font-size: .85rem; }
+@media (max-width: 480px) {
+  .help-button { left: 14px; bottom: 14px; }
+  .help-panel { left: 16px; right: 16px; bottom: 70px; width: auto; }
+}
+
+/* the admin tab: reports that look alike */
+.support-similar { display: grid; gap: 6px; margin-top: 8px; padding: 10px 12px; border-radius: 12px; background: var(--bg); font-size: .88rem; }
+.support-similar-item { display: flex; flex-wrap: wrap; gap: 6px; align-items: baseline; }
