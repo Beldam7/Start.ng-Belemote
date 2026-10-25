@@ -49,14 +49,48 @@ A feature that works but looks like a different app will be sent back.
 - The current page link in the nav has `aria-current="page"`.
 - Short, plain English. No jargon on the page. Say what a thing does.
 
-## Pages that search engines read
+## Pages that search engines read: Google and people see the same page
 
-Some pages are also written by the API as plain HTML, so Google and link previews see real content (`startng-be` `app/routers/pages.py`, routed in `nginx.conf`). When you work on one of them:
-- **Anything the API writes into a page must also be visible to people on the real React page.** Never put text on the server version that users cannot see.
-- **Keep the server and React versions in step.** Same words, same headings, same links. Use the same class names so the server version looks like the real page while it loads.
-- A new address needs: a `location` in `nginx.conf`, a path in `src/main.tsx`, an entry in the sitemap (`pages.py`), and a title and description (`src/seo.ts`).
-- Every indexable page has exactly one `h1`, a title, a description and a canonical link.
-- Never change a published address without a redirect.
+Some pages are written twice. The API writes them as plain HTML for Google, AI tools and link previews (`startng-be` `app/routers/pages.py`, put in place by `nginx.conf`), and then React draws the real page. Google compares the two. If what it is served differs from what people see, it treats that as cloaking and ranks the whole site lower, or drops it. So the two versions must match.
+
+Today these pages are written by the API:
+
+| Address | API route | React |
+| --- | --- | --- |
+| `/` | `GET /pages/home` | home view in `src/App.tsx`, text in `src/home-copy.ts` |
+| `/games`, `/games?page=2` | `GET /pages/games` | games view in `src/App.tsx` |
+| `/games/<name>` | `GET /pages/games/{name}` | `src/GamePage.tsx` |
+| `/creators/<id>-<name>` | `GET /pages/creators/{id}` | `src/IndiePage.tsx` |
+
+### The content must match
+1. **Nothing for Google only.** Every word, heading, link and number the API writes must be on the React page when it loads, with no sign-in and no clicks beyond opening a dropdown. No hidden text, no extra keywords, no text in a colour or size people can't read.
+2. **Nothing missing either.** The main content people see (headings, the games listed, the About and questions) must be in the server version too.
+3. **Same words.** Copy lives once in each repo and is kept identical: `src/home-copy.ts` and `HOME_ABOUT` / `HOME_QUESTIONS` in `pages.py`, and so on. Change one, change the other in the same pair of PRs.
+4. **Same data, same order, same counts.** The server uses the same query as the API endpoint React reads (hidden games left out, same sort) and the same numbers: games per page, games on the homepage, games in the A to Z list. These constants carry a comment naming their twin (for example `PER_PAGE` in `pages.py` and in `src/App.tsx`). Change both.
+5. **Same links.** The same addresses in the same places, as real `<a href>` links Google can follow, never a click handler only.
+6. **Same structure.** One `h1` with the same text, the same heading levels and the same class names, so the server version also looks right while the app loads.
+7. **Everyone gets the same page.** Never change what is served based on the user agent, bot detection or country.
+
+### The head must match
+8. The title, description, canonical link, robots tag and preview image are the same in the served HTML (`src/seo.ts` at build time, or `pages.py`) and in what React sets with `setSeo()` as people move around.
+9. **Each address is its own canonical**, including pages of a list (`/games?page=2`). Searches, filters, sign-in flows, invites and private pages are `noindex`, both in what is served (meta tag or `X-Robots-Tag` header) **and** in React.
+10. **Structured data (JSON-LD) only describes what is on the page.** No ratings, prices or authors that people can't see.
+11. **The sitemap lists only canonical, indexable addresses.** Never a `noindex` page.
+
+### When the API can't answer
+12. The page falls back to the plain app, with no error text and never a different page. nginx already does this (`@ssr_empty` and the shell fallbacks in `nginx.conf`); keep it that way.
+
+### A new page that search engines should read
+It needs all of these, in one pair of PRs: the route in `pages.py` with tests that check its text, a `location` in `nginx.conf`, a path in `src/main.tsx`, a title and description in `src/seo.ts`, an entry in the sitemap, and a row in the table above. Everything the API writes goes through `_esc()`. Never change a published address without a redirect.
+
+### Check it before you open the PR
+Run the API locally, build the frontend and serve it with nginx (the `Dockerfile`, with `SSR_UPSTREAM` set to your local API). Then compare the two versions of each page you touched:
+```bash
+curl -s http://localhost:8080/games
+```
+That is what Google is served. Open the same address in a browser and check that every heading, game, count and link in the curl output is on the page, in the same order, and that the title, canonical and robots tags in the page's `<head>` match. Say in the PR that you did this.
+
+A PR that lets the two versions drift apart is sent back, even if both look fine on their own.
 
 ## Before you open a pull request
 
