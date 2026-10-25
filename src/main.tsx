@@ -31,10 +31,15 @@ const LEADERBOARD_PATHS = ["/leaderboard", "/leaderboard/"]; // tournament point
 const CREATORS_PATHS = ["/creators", "/creators/"]; // every game by independent creators
 const INDIE_PATH = /^\/creators\/(\d{1,10})(?:-[a-z0-9-]*)?\/?$/; // one independent creator's game page
 const GAME_PATH = /^\/games\/([a-z0-9][a-z0-9-]{0,39})\/?$/; // one game's page, before its own address
+// The category pages are written by the server too (startng-be app/features/tags): /categories and /categories/<slug>.
+const CATEGORY_PATH = /^\/categories(\/[a-z0-9][a-z0-9-]{0,39})?\/?$/;
 
 // /connect is loaded invisibly by games, so it renders nothing.
 if (location.pathname === "/connect") {
   serveConnect();
+} else if (CATEGORY_PATH.test(location.pathname)) {
+  // React does not start here: the server's page is the page, for everyone. If it could not be written, go to the games.
+  if (!document.querySelector(".tags-page")) location.replace("/games");
 } else {
   const path = location.pathname;
   const feature = findPage(path); // a feature's page (src/features), shown only while its flag is on
