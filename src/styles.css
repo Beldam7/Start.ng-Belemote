@@ -461,6 +461,9 @@ button.game-link:hover { background: none; }
 .indie-fields { display: grid; gap: 14px; }
 .indie-fields .field > span { display: flex; justify-content: space-between; }
 .indie-fields .field em { font-style: normal; }
+/* After a game is added: why sharing helps, and the post they can share. */
+.indie-share-note { margin: 0; padding: 10px 12px; border-radius: 10px; background: var(--lime); color: var(--on-lime); font-size: .9rem; line-height: 1.45; }
+.indie-post { margin: 0; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); line-height: 1.5; overflow-wrap: anywhere; }
 textarea { padding: 13px 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: inherit; font: inherit; font-size: 1rem; resize: vertical; }
 textarea:focus { outline: 2px solid var(--ink); outline-offset: -1px; }
 .indie-cover { position: relative; display: grid; place-items: center; aspect-ratio: 16 / 10; border: 1.5px dashed var(--line); border-radius: 12px; background: var(--bg); cursor: pointer; overflow: hidden; text-align: center; }
