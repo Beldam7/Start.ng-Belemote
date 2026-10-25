@@ -5,7 +5,7 @@ export type Tag = { slug: string; label: string; blurb: string; group: string; g
 export type TagGroup = { name: string; tags: Tag[] };
 export type TagsData = { total_games: number; groups: TagGroup[] };
 export type TagPage = { tag: Tag; games: PublishedGame[]; page: number; pages: number; related: Tag[] };
-export type ReviewRow = { game: string; approved: string[]; suggested: string[] };
+export type ReviewRow = { game: string; approved: string[]; suggested: string[]; requested?: string[] };
 
 const token = () => localStorage.getItem("token");
 
