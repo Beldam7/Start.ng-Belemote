@@ -23,7 +23,9 @@ export default function TournamentPage({ user, onSignIn, params }: PageProps) {
   // The invite page is private (noindex), but its title names the tournament, so a link pasted in a chat says what it is.
   useEffect(() => {
     const base = PAGES.privateTournament;
-    setSeo(t ? { ...base, title: `${t.title} · tournament with friends · start.ng`, description: `Join "${t.title}" on start.ng: ${t.games.length} ${t.games.length === 1 ? "game" : "games"}, ${t.members} ${t.members === 1 ? "player" : "players"}.` } : base);
+    setSeo(t ? (t.by_admin
+      ? { ...base, title: `${t.title} · start.ng tournament`, description: `Register for "${t.title}" on start.ng to see the games and play.` }
+      : { ...base, title: `${t.title} · tournament with friends · start.ng`, description: `Join "${t.title}" on start.ng: ${t.games.length} ${t.games.length === 1 ? "game" : "games"}, ${t.members} ${t.members === 1 ? "player" : "players"}.` }) : base);
   }, [t]);
   useEffect(() => {
     const load = () => getTournament(code).then(setT).catch((e) => (/no tournament/i.test(String(e?.message)) ? setT(null) : setError("Couldn't load this tournament. Try again in a moment.")));
@@ -85,7 +87,9 @@ export default function TournamentPage({ user, onSignIn, params }: PageProps) {
   if (!t) return <section className="container tournament-page"><p className="error">{error}</p></section>;
 
   const left = timeLeft(t.ends_at);
-  const text = `Join my start.ng tournament "${t.title}"! ${t.games.length} ${t.games.length === 1 ? "game" : "games"}, ${left}.`;
+  const startsLater = new Date(t.starts_at).getTime() > Date.now(); // F9: an admin's tournament can start later
+  const text = t.by_admin ? `Register for "${t.title}" on start.ng!`
+    : `Join my start.ng tournament "${t.title}"! ${t.games.length} ${t.games.length === 1 ? "game" : "games"}, ${left}.`;
   const whatsapp = `https://wa.me/?${new URLSearchParams({ text: `${text} ${link}` })}`;
   const detail = isDetail(t) ? t : null;
 
@@ -100,17 +104,21 @@ export default function TournamentPage({ user, onSignIn, params }: PageProps) {
 
       <div className="tournament-status">
         <div>
-          <span className={`tag ${t.finished ? "done" : ""}`}>{left}</span>
-          <p>{t.finished ? "Ended" : "Ends"} <b>{endsText(t.ends_at)}</b> your time.</p>
+          <span className={`tag ${t.finished ? "done" : ""}`}>{startsLater ? `Starts in ${timeLeft(t.starts_at).replace(" left", "")}` : left}</span>
+          {startsLater
+            ? <p>Starts <b>{endsText(t.starts_at)}</b>, ends <b>{endsText(t.ends_at)}</b> your time. Scores count once it starts.</p>
+            : <p>{t.finished ? "Ended" : "Ends"} <b>{endsText(t.ends_at)}</b> your time.</p>}
           <p className="note">Each game gives 10 points for 1st, 7 for 2nd, 5 for 3rd, 3 for 4th and 1 for everyone else who plays it. Most points wins. Nothing counts toward the main leaderboard.</p>
         </div>
         <div className="tournament-enter">
           {!t.joined && !t.finished && (
             <>
               <button type="button" disabled={busy} onClick={() => (user ? act(() => joinTournament(code)) : onSignIn())}>
-                {user ? (busy ? "Joining…" : "Join this tournament") : "Sign in to join"}
+                {t.by_admin
+                  ? (user ? (busy ? "Registering…" : "Register") : "Sign in to register")
+                  : (user ? (busy ? "Joining…" : "Join this tournament") : "Sign in to join")}
               </button>
-              <p className="note">Scores count from the moment you join.</p>
+              <p className="note">{t.by_admin ? "Register to see the games." : "Scores count from the moment you join."}{t.max_members ? ` Up to ${t.max_members} players.` : ""}</p>
             </>
           )}
           {!t.joined && t.finished && <p className="note">This tournament has ended.</p>}
@@ -195,7 +203,7 @@ export default function TournamentPage({ user, onSignIn, params }: PageProps) {
           </div>
         </>
       ) : (
-        <div className="grid tournament-games" aria-label="The games">
+        t.by_admin && !t.joined ? <p className="empty">The games show here once you register.</p> : <div className="grid tournament-games" aria-label="The games">
           {t.games.map((name) => (
             <article key={name} className="game"><div className="info"><h3>{name.replace(/-/g, " ")}</h3></div></article>
           ))}
