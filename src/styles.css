@@ -981,6 +981,10 @@ option { background: var(--card); color: var(--ink); }
 .wd-history > :not(summary) { margin-left: 16px; margin-right: 16px; }
 .wd-history[open] { padding-bottom: 14px; }
 
+/* "Keep me signed in" in the sign-in box */
+.keep-signed-in { display: flex; align-items: flex-start; gap: 10px; margin: 4px 0 12px; cursor: pointer; font-weight: 600; font-size: .92rem; }
+.keep-signed-in input { margin-top: 3px; width: 18px; height: 18px; accent-color: var(--ink); flex: none; }
+.keep-signed-in small { display: block; margin-top: 1px; color: var(--muted); font-weight: 400; font-size: .8rem; }
 /* admin activity log: search and filters */
 .log-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 12px 0 10px; }
 .log-search { flex: 1 1 240px; min-width: 200px; padding: 9px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg); color: inherit; font: inherit; }

@@ -71,6 +71,7 @@ export default function App({ view = "home", gameName, indieId, featurePage }: {
   const [checking, setChecking] = useState(() => !!localStorage.getItem("token"));
   // Google sign-in; the first Google sign-in creates the account.
   const [signInOpen, setSignInOpen] = useState(!!returnTo || openSignIn);
+  const [remember, setRemember] = useState(true); // "Keep me signed in" in the sign-in box (a year without a visit, instead of a week)
   const [menuOpen, setMenuOpen] = useState(false); // the Pages menu on small screens: a layer over the page, it moves nothing
   useEffect(() => {
     if (!menuOpen) return;
@@ -591,10 +592,14 @@ export default function App({ view = "home", gameName, indieId, featurePage }: {
               {goTo ? (new URL(goTo).origin === location.origin ? "Sign in to join the Hangout." : `Sign in to continue to ${new URL(goTo).host}.`) : "Use your Google account. New here? Signing in creates your account."}
             </p>
             {error && <p className="error">{error}</p>}
+            <label className="keep-signed-in">
+              <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
+              <span>Keep me signed in <small>{remember ? "even if you are away for months" : "for a week after your last visit"}</small></span>
+            </label>
             <div className="google">
               <GoogleLogin
                 onSuccess={async (c) => {
-                  try { onSuccess(await googleLogin(c.credential ?? "")); }
+                  try { onSuccess(await googleLogin(c.credential ?? "", remember)); }
                   catch (err) { setError(err instanceof Error ? err.message : "Google sign-in failed"); }
                 }}
                 onError={() => setError("Google sign-in failed")}
