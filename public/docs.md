@@ -490,6 +490,61 @@ Examples:
 | Runner | `distance` "Km run" (highest), `coins` (highest) |
 | Race or escape | `gems` (highest), `time` (lowest, `"format": "time"`) |
 
+### Pick your game's categories: `categories` and `other_category`
+
+start.ng sorts games into categories, so players can browse "Endless runners" or "Brainy games", and each category has its own page. **You choose yours.** Add `categories` to `startng.json`: a list of up to 5 from the table below. Use the code in the first column (the name as it is shown on start.ng works too).
+
+```json
+{ "categories": ["endless-runners", "nigerian-themed", "five-minute-fun"], "other_category": "Rhythm" }
+```
+
+- **None of them fit?** Write your own in `other_category` (plain text, up to 40 characters). It is not shown to players, but the start.ng team reads them and adds a new category when many games ask for the same thing. You can use `other_category` together with `categories`, or on its own.
+- **A word that isn't in the list** in `categories` is refused when you publish, with the list to pick from, so a typo never goes live by accident.
+- **If you leave it out,** start.ng guesses from your game's name and what it says about itself, and the guess can be wrong. Choosing is better.
+- "Web games", "Browser games" and the other search words are on every game already. Don't add them.
+- Publishing again with a different list changes your categories. A category the start.ng team has set for your game stays as they set it.
+
+| Code | Name | Group |
+| --- | --- | --- |
+| `endless-runners` | Endless runners | How you play |
+| `racing-and-driving` | Racing and driving | How you play |
+| `shooting-and-action` | Shooting and action | How you play |
+| `archery` | Archery | How you play |
+| `platformers` | Platformers | How you play |
+| `brainy-games` | Brainy games | How you play |
+| `board-and-card` | Board and card | How you play |
+| `catch-and-dodge` | Catch and dodge | How you play |
+| `coin-collecting` | Coin collecting | How you play |
+| `stack-and-timing` | Stack and timing | How you play |
+| `survival` | Survival | How you play |
+| `tower-defence-and-strategy` | Tower defence and strategy | How you play |
+| `football-and-sports` | Football and sports | How you play |
+| `simulation-and-management` | Simulation and management | How you play |
+| `escape-games` | Escape games | How you play |
+| `nigerian-themed` | Nigerian themed | Setting and theme |
+| `african-themed` | African themed | Setting and theme |
+| `lagos` | Lagos | Setting and theme |
+| `markets-and-street-life` | Markets and street life | Setting and theme |
+| `food-and-cooking` | Food and cooking | Setting and theme |
+| `space-and-sci-fi` | Space and sci-fi | Setting and theme |
+| `neon-and-cyberpunk` | Neon and cyberpunk | Setting and theme |
+| `fantasy-and-magic` | Fantasy and magic | Setting and theme |
+| `ancient-ruins-and-treasure` | Ancient ruins and treasure | Setting and theme |
+| `horror-and-spooky` | Horror and spooky | Setting and theme |
+| `mystery-and-detective` | Mystery and detective | Setting and theme |
+| `cosy-and-relaxing` | Cosy and relaxing | Setting and theme |
+| `educational` | Educational | Learn and grow |
+| `maths-and-numbers` | Maths and numbers | Learn and grow |
+| `words-and-reading` | Words and reading | Learn and grow |
+| `coding-and-tech` | Coding and tech | Learn and grow |
+| `money-and-careers` | Money and careers | Learn and grow |
+| `with-friends` | With friends | Play together |
+| `for-a-class-or-cohort` | For a class or a cohort | Play together |
+| `two-player-classics` | Two-player classics | Play together |
+| `five-minute-fun` | 5-minute fun | Play together |
+| `3d-games` | 3D games | Look and feel |
+| `retro-and-pixel` | Retro and pixel | Look and feel |
+
 ### Save a run
 
 Signed-in players only. Send **exactly** the stats in your `startng.json` (or a plain `score` if you don't have one), each a **whole number** from 0 to 1,000,000,000. Anything else is refused.
