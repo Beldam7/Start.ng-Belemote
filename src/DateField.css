@@ -7,6 +7,7 @@
   font: inherit; font-weight: 500; cursor: pointer; text-align: left;
 }
 .datefield-button:hover, .datefield-button[aria-expanded="true"] { border-color: var(--ink); }
+.datefield-button span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .datefield-button.empty span { color: var(--muted); }
 .datefield-button svg { flex: none; color: var(--muted); }
 .datefield-required { position: absolute; inset: 0; opacity: 0; pointer-events: none; }
