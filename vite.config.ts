@@ -27,14 +27,13 @@ function docsText(site: string): string {
   );
 }
 
-/** /hangout as text inside #root: the page is a 3D park (src/hangout), so search engines get a few lines about it in the
- *  same words as its description and its on-screen hints. The app replaces it when it loads. */
+/** /hangout as text inside #root: the page is a 3D park (src/hangout), so search engines get its heading, its description
+ *  and its on-screen hint, in the same words (src/hangout/Hangout.tsx). The app replaces it when it loads. */
 function hangoutText(): string {
   return (
     '<main class="container"><h1>The Hangout</h1>' +
     `<p>${esc(PAGES.hangout.description)}</p>` +
-    "<p>Walk with WASD or the arrows, Shift to run, drag to look around, Space to wave and Enter to chat. On a phone, use the stick to walk.</p>" +
-    '<p><a href="/games">Play the games</a> · <a href="/tournament">Today\'s tournament</a></p></main>'
+    "<p><b>WASD</b> or arrows to walk · <b>Shift</b> to run · <b>drag</b> to look · <b>Space</b> to wave · <b>Enter</b> to chat</p></main>"
   );
 }
 
