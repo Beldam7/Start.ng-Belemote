@@ -42,6 +42,7 @@ function Row({ row, tags, tagsLoading, onSaved }: { row: ReviewRow; tags: Tag[];
           {addable.map((t) => <option key={t.slug} value={t.slug}>{t.label}</option>)}
         </select>
       </div>
+      {row.requested && row.requested.length > 0 && <p className="note">The creator wrote their own category: {row.requested.map((r) => `"${r}"`).join(", ")}. If many games ask for the same, add it to the list.</p>}
       {error && <p className="error" role="alert">{error}</p>}
     </article>
   );

@@ -5,9 +5,14 @@ export type Tag = { slug: string; label: string; blurb: string; group: string; g
 export type TagGroup = { name: string; tags: Tag[] };
 export type TagsData = { total_games: number; groups: TagGroup[] };
 export type TagPage = { tag: Tag; games: PublishedGame[]; page: number; pages: number; related: Tag[] };
-export type ReviewRow = { game: string; approved: string[]; suggested: string[] };
+export type ReviewRow = { game: string; approved: string[]; suggested: string[]; requested?: string[] };
 
 const token = () => localStorage.getItem("token");
+
+export type Choice = { slug: string; label: string };
+export type ChoiceGroup = { name: string; tags: Choice[] };
+/** The categories a creator can pick from (the submit form for independent games). */
+export const getChoices = () => call<ChoiceGroup[]>(token(), "/tags/choices");
 
 export const getTags = () => call<TagsData>(token(), "/tags");
 export const getTagPage = (slug: string, page: number) => call<TagPage>(token(), `/tags/${encodeURIComponent(slug)}?page=${page}`);
