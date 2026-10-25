@@ -2,11 +2,12 @@ import { useCallback, useEffect, useState } from "react";
 import { colorsFor } from "../../games";
 import { getTags, type Tag, type TagsData } from "./api";
 
-// The category cards: a colour from the same set as the game covers, the name and how many games.
+// The category cards: a picture for the category (public/category-art/<slug>.webp, made for start.ng), the colours of the game covers behind it
+// until it loads, the name and how many games.
 export function TagTile({ tag }: { tag: Tag }) {
   const [a, b] = colorsFor(tag.slug);
   return (
-    <a className="tag-tile" href={`/categories/${tag.slug}`} style={{ background: `linear-gradient(135deg, ${a}, ${b})` }}>
+    <a className="tag-tile" href={`/categories/${tag.slug}`} style={{ background: `url(/category-art/${tag.slug}.webp) center / cover, linear-gradient(135deg, ${a}, ${b})` }}>
       <b>{tag.label}</b>
       <span>{tag.games} {tag.games === 1 ? "game" : "games"}</span>
     </a>
