@@ -93,7 +93,9 @@ export default function MyGames() {
     setWarnings([]);
     try {
       const res = await publishGame(token, link);
-      setNotice(`${res.created ? "Live" : "Updated"} at ${new URL(res.url).host}`);
+      setNotice(res.hidden === "in_review"
+        ? `In review: ${new URL(res.url).host} works, and it's listed once an admin approves it`
+        : `${res.created ? "Live" : "Updated"} at ${new URL(res.url).host}`);
       setWarnings(res.warnings);
       setUrl("");
       await refresh();
@@ -203,7 +205,8 @@ export default function MyGames() {
               <div className="game-card-body">
                 <h4>{card.title}</h4>
                 <div className="game-card-meta">
-                  {g.hidden ? <span className="tag off">Hidden</span> : <span className="tag">Live</span>}
+                  {g.hidden === "in_review" ? <span className="tag off">In review</span>
+                    : g.hidden ? <span className="tag off">Hidden</span> : <span className="tag">Live</span>}
                   <span>Updated {dateOf(g.updated_at)}</span>
                 </div>
                 <UpdateStatus game={g} />

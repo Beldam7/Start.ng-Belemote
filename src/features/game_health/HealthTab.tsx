@@ -69,7 +69,9 @@ export default function HealthTab({ go, can }: AdminTabProps) {
               <div className="row-actions">
                 <button type="button" className="ghost small" disabled={!!busy} onClick={() => act(g.game, async () => {
                   const r = await checkNow(g.game);
-                  return r.status === "ok" ? `${titleOf(g.game)} is fine now.` : `${titleOf(g.game)} still fails.`;
+                  return r.status === "ok" ? `${titleOf(g.game)} is fine now.`
+                    : r.hidden === "needs_fixing" ? `${titleOf(g.game)} failed again, so it's hidden now: it's waiting in Needs fixing.`
+                    : `${titleOf(g.game)} still fails.`;
                 })}>{busy === g.game ? "Checking…" : "Check now"}</button>
                 {can("games.needs_fixing") && (
                   <button type="button" className="link" onClick={() => go("needs-fixing")}>Mark as needing a fix</button>

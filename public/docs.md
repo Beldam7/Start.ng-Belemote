@@ -101,6 +101,10 @@ The first time you publish a repo, start.ng downloads it, checks it, and replies
 
 Signed-in requests (`Authorization: Bearer <start.ng token>`, as the start.ng website sends) skip the approve step and go live on that account straight away.
 
+### Then a quick review (new games only)
+
+A new game may wait for a quick look from the start.ng team before it's listed. The reply then has `"hidden": "in_review"`, and you get an email. While it waits, the game is **not** on start.ng's lists, search or tournaments, but its address (`https://tower-stack.start.ng`) works, so you can keep testing it. You get an email when it's approved, or why it wasn't. If it wasn't, fix it and push to your repo: it goes back in the queue by itself. Once a game is approved, updates go live straight away. AI assistants: tell the human it's waiting for review, not that it's live.
+
 ### An approved game: publishing again updates it
 
 Publishing a repo that's already live updates the game immediately, on its owner's account, with no link. The reply is **200**:
