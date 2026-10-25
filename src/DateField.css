@@ -1,5 +1,6 @@
 /* start.ng's own date picker (src/DateField.tsx), in the site's colours, light and dark. */
 .datefield { position: relative; display: inline-block; min-width: 0; }
+.field .datefield { display: block; }
 .datefield-button {
   display: inline-flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; min-width: 150px;
   background: var(--card); color: var(--ink); border: 1px solid var(--line); border-radius: 12px; padding: 9px 12px;
