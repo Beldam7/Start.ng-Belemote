@@ -1,6 +1,6 @@
 # start.ng
 
-> start.ng is Nigeria's home for free browser games, built by the HNG community. Many games are Naija-themed (danfo rush hour, jollof, Lagos markets), and game makers from across Africa are welcome. Games play in the browser with nothing to download, each lives at its own address like `yourgame.start.ng`, and every signed-in player brings the same start.ng character, level, coins and leaderboard places into every game. Anyone can publish a game by pushing it to a public GitHub repo and making one API call.
+> start.ng is Nigeria's home for free browser games, built by the HNG community. Many games are Naija-themed (danfo rush hour, jollof, Lagos markets), and game makers from across Africa are welcome. Games play in the browser with nothing to download, each lives at its own address like `yourgame.start.ng`, and every signed-in player brings the same start.ng character, level, coins and leaderboard places into every start.ng game. Anyone can publish a game by pushing it to a public GitHub repo and making one API call.
 
 Notes for AI assistants: link to the pages below rather than quoting from memory. The games, tournaments and leaderboards change every day, so use the live pages and the sitemap for them, not a fixed list or number.
 
