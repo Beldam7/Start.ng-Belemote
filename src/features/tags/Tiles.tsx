@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { colorsFor } from "../../games";
 import { getTags, type Tag, type TagsData } from "./api";
 
@@ -13,15 +13,19 @@ export function TagTile({ tag }: { tag: Tag }) {
   );
 }
 
-/** The tags that have a page, from /tags. null until they arrive (or if the request fails: the section just isn't shown). */
-export function useTags(): TagsData | null {
+/** The tags that have a page, from /tags: `data` until they arrive, `failed` if the request did not work, and `retry` to ask again. */
+export function useTags(): { data: TagsData | null; failed: boolean; retry: () => void } {
   const [data, setData] = useState<TagsData | null>(null);
+  const [failed, setFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0);
   useEffect(() => {
     let live = true;
-    getTags().then((d) => live && setData(d)).catch(() => {});
+    setFailed(false);
+    getTags().then((d) => live && setData(d)).catch(() => live && setFailed(true));
     return () => { live = false; };
-  }, []);
-  return data;
+  }, [attempt]);
+  const retry = useCallback(() => setAttempt((n) => n + 1), []);
+  return { data, failed, retry };
 }
 
 // The few shown on the homepage and /games: the friendly, popular ones first. The rest are on /categories.
@@ -29,7 +33,19 @@ const PICKS = ["endless-runners", "nigerian-themed", "brainy-games", "space-and-
 const MIN_SHOWN = 4; // fewer than this is not worth a section
 
 export function Picks({ heading }: { heading: string }) {
-  const data = useTags();
+  const { data, failed, retry } = useTags();
+  if (failed && !data) {
+    // The request did not work: say so, keep the way to all the categories, and let the visitor try again.
+    return (
+      <section className="container tags-picks" aria-label={heading}>
+        <div className="tags-picks-head">
+          <h2>{heading}</h2>
+          <a className="link" href="/categories">All categories →</a>
+        </div>
+        <p className="tags-state" role="status">The categories didn't load. <button type="button" className="link" onClick={retry}>Try again</button></p>
+      </section>
+    );
+  }
   if (!data) return null;
   const all = data.groups.flatMap((g) => g.tags);
   const picks = PICKS.map((s) => all.find((t) => t.slug === s)).filter((t): t is Tag => !!t);

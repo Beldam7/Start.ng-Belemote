@@ -36,11 +36,17 @@ const GAME_PATH = /^\/games\/([a-z0-9][a-z0-9-]{0,39})\/?$/; // one game's page,
 const CATEGORY_PATH = /^\/categories(\/[a-z0-9][a-z0-9-]{0,39})?\/?$/;
 const GAME_SUB_PATH = /^\/games\/([a-z0-9][a-z0-9-]{0,39})\/(about|how-to-play|faq|walkthrough)\/?$/;
 
+// nginx answers a missing page with the generated 404.html (status 404). It loads this same file, at the address that was asked
+// for, so a missing /categories/<slug> looks like a category page to the checks below. It marks itself noindex; the plain page
+// that stands in when the API is down does not.
+const isNotFoundPage = document.querySelector('meta[name="robots"]')?.getAttribute("content")?.includes("noindex") ?? false;
+
 // /connect is loaded invisibly by games, so it renders nothing.
 if (location.pathname === "/connect") {
   serveConnect();
-} else if (CATEGORY_PATH.test(location.pathname)) {
-  // Same as the game's own pages below: the server's page is the page. If it could not be written, go to the games.
+} else if (CATEGORY_PATH.test(location.pathname) && !isNotFoundPage) {
+  // React does not start here: the server's page is the page, for everyone. If it could not be written (the plain page came
+  // back, with nothing in it), go to the games. nginx serves a missing category as the 404 page: that one stays as it is.
   if (!document.querySelector(".tags-page")) location.replace("/games");
 } else if (GAME_SUB_PATH.test(location.pathname)) {
   // React does not start here: the server's page is the page, for everyone. If the server could not write it (the plain

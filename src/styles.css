@@ -6,10 +6,13 @@
   --dot: rgba(41, 42, 35, .16); --danger: #c0392b; --ok: #2e7d32; --warn-ink: #8a6d00;
   --warn-bg: #fff7d6; --warn-line: #f0d77a; --bad-bg: #fdecea; --bad-line: #f3b8b0;
   /* wardrobe item rarities (src/features/wardrobe): at least 4.5:1 with the --on-solid label text, in both themes */
+  /* the text and shading on a coloured card (a category tile): white on a darkened gradient, a little darker in dark mode */
+  --on-art: #fff; --art-shade: rgba(0, 0, 0, .5); --art-text-shadow: rgba(0, 0, 0, .35);
   --r-common: #75766c; --r-uncommon: #278546; --r-rare: #346fdf; --r-epic: #8e4fd6; --r-legendary: #a9630a; --r-limited: #db2967;
   color-scheme: light;
 }
 :root[data-theme="dark"] {
+  --art-shade: rgba(0, 0, 0, .62);
   --bg: #292a23; --card: #33342c; --ink: #f6f5ee; --muted: #b0b1a6; --line: #4a4b41;
   --text-2: #dedcd0; --on-solid: #292a23; --on-solid-accent: #292a23; --solid-hover: #fff;
   --scrim: rgba(20, 21, 17, .65); --shimmer: #44453b; --code-bg: #1f201b; --legendary-bg: #38402a; --banner-tint: #343b27;
@@ -1010,3 +1013,35 @@ option { background: var(--card); color: var(--ink); }
 .game-sub-more .section-head h2 { font-size: 1.3rem; letter-spacing: -.02em; margin: 0; }
 .game-sub-top span { color: var(--muted); font-family: var(--mono); font-size: .82rem; margin-left: 6px; }
 .game-sub-top p { margin: 12px 0 0; }
+
+/* tags and category pages (src/features/tags): colours come from the variables; the tiles use the same colour pairs as game covers */
+.tags-picks { padding-top: 8px; padding-bottom: 8px; }
+.tags-picks-head { display: flex; justify-content: space-between; align-items: baseline; margin: 0 0 14px; }
+.tags-picks-head h2 { margin: 0; font-size: 1.5rem; letter-spacing: -.03em; }
+.tag-tiles { display: grid; gap: 12px; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.tag-tile { position: relative; display: flex; flex-direction: column; justify-content: flex-end; gap: 4px; min-height: 112px; padding: 14px 16px; border-radius: 18px; border: 1px solid var(--line); overflow: hidden; color: var(--on-art); transition: transform .15s, box-shadow .15s, border-color .15s; }
+.tag-tile::before { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, var(--art-shade), transparent 70%); }
+.tag-tile > * { position: relative; text-shadow: 0 1px 6px var(--art-text-shadow); }
+.tag-tile:hover { transform: translateY(-2px); border-color: var(--ink); box-shadow: 4px 4px 0 var(--lime); }
+.tag-tile b { font-size: 1.1rem; letter-spacing: -.02em; line-height: 1.15; }
+.tag-tile span { font: .7rem var(--mono); text-transform: uppercase; letter-spacing: .14em; opacity: .9; }
+.tags-page { padding-top: 28px; padding-bottom: 40px; }
+.tags-page h1 { font-size: 2.6rem; letter-spacing: -.04em; line-height: 1.05; margin: 0 0 12px; }
+.tags-page .lead-sm { max-width: 60ch; margin: 0 0 8px; font-size: 1.05rem; }
+.tags-page .crumbs { font: .8rem var(--mono); color: var(--muted); margin: 0 0 18px; }
+.tags-page .crumbs a:hover { color: var(--ink); text-decoration: underline; }
+.tags-page .section-head { margin-top: 30px; }
+.tags-group { margin: 34px 0 0; }
+.tags-group h2 { font-size: 1.3rem; letter-spacing: -.02em; margin: 0 0 14px; }
+.tags-pager { display: flex; justify-content: space-between; align-items: center; margin: 26px 0 0; }
+.game-tags { padding-top: 6px; padding-bottom: 6px; }
+.game-tags .eyebrow { margin: 0 0 10px; }
+.game-tags ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.game-tags a { display: inline-block; padding: 7px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); font-size: .9rem; font-weight: 600; }
+.game-tags a:hover { border-color: var(--ink); background: var(--lime); color: var(--on-lime); }
+.tags-admin-chips { margin-top: 12px; align-items: center; }
+.tags-admin-chips select { padding: 7px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg); color: inherit; font: inherit; font-size: .9rem; }
+@media (max-width: 760px) { .tags-page h1 { font-size: 2rem; } .tag-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; } .tag-tile { min-height: 92px; } }
+.tags-admin-chips button.suggested { border-style: dashed; }
+.tags-admin-chips button:disabled, .tags-admin-chips select:disabled { opacity: .55; cursor: not-allowed; }
+.tags-state { margin: 0 0 10px; color: var(--muted); }
