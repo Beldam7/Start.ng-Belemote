@@ -51,7 +51,7 @@ A feature that works but looks like a different app will be sent back.
 
 ## Pages that search engines read: Google and people see the same page
 
-Some pages are written twice. The API writes them as plain HTML for Google, AI tools and link previews (`startng-be` `app/routers/pages.py`, put in place by `nginx.conf`), and then React draws the real page. Google compares the two. If what it is served differs from what people see, it treats that as cloaking and ranks the whole site lower, or drops it. So the two versions must match.
+The same rules are in `startng-be`'s `CONTRIBUTING.md`. Some pages are written twice. The API writes them as plain HTML for Google, AI tools and link previews (`startng-be` `app/routers/pages.py`, put in place by `nginx.conf`), and then React draws the real page. Google compares the two. If what it is served differs from what people see, it treats that as cloaking and ranks the whole site lower, or drops it. So the two versions must match.
 
 Today these pages are written by the API:
 
@@ -70,15 +70,16 @@ Today these pages are written by the API:
 5. **Same links.** The same addresses in the same places, as real `<a href>` links Google can follow, never a click handler only.
 6. **Same structure.** One `h1` with the same text, the same heading levels and the same class names, so the server version also looks right while the app loads.
 7. **Everyone gets the same page.** Never change what is served based on the user agent, bot detection or country.
+8. **A page that doesn't exist is a 404** for both (an unknown game, a page of games past the last one): nginx serves the 404 page with a 404 status, and React shows `NotFound`. Never a copy of another page.
 
 ### The head must match
-8. The title, description, canonical link, robots tag and preview image are the same in the served HTML (`src/seo.ts` at build time, or `pages.py`) and in what React sets with `setSeo()` as people move around.
-9. **Each address is its own canonical**, including pages of a list (`/games?page=2`). Searches, filters, sign-in flows, invites and private pages are `noindex`, both in what is served (meta tag or `X-Robots-Tag` header) **and** in React.
-10. **Structured data (JSON-LD) only describes what is on the page.** No ratings, prices or authors that people can't see.
-11. **The sitemap lists only canonical, indexable addresses.** Never a `noindex` page.
+9. The title, description, canonical link, robots tag and preview image are the same in the served HTML (`src/seo.ts` at build time, or `pages.py`) and in what React sets with `setSeo()` as people move around.
+10. **Each address is its own canonical**, including pages of a list (`/games?page=2`). Searches, filters, sign-in flows, invites and private pages are `noindex`, both in what is served (meta tag or `X-Robots-Tag` header) **and** in React.
+11. **Structured data (JSON-LD) only describes what is on the page.** No ratings, prices or authors that people can't see.
+12. **The sitemap lists only canonical, indexable addresses.** Never a `noindex` page.
 
 ### When the API can't answer
-12. The page falls back to the plain app, with no error text and never a different page. nginx already does this (`@ssr_empty` and the shell fallbacks in `nginx.conf`); keep it that way.
+13. The page falls back to the plain app, with no error text and never a different page. nginx already does this (`@ssr_empty` and the shell fallbacks in `nginx.conf`); keep it that way.
 
 ### A new page that search engines should read
 It needs all of these, in one pair of PRs: the route in `pages.py` with tests that check its text, a `location` in `nginx.conf`, a path in `src/main.tsx`, a title and description in `src/seo.ts`, an entry in the sitemap, and a row in the table above. Everything the API writes goes through `_esc()`. Never change a published address without a redirect.
