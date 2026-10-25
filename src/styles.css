@@ -985,3 +985,9 @@ option { background: var(--card); color: var(--ink); }
 .keep-signed-in { display: flex; align-items: flex-start; gap: 10px; margin: 4px 0 12px; cursor: pointer; font-weight: 600; font-size: .92rem; }
 .keep-signed-in input { margin-top: 3px; width: 18px; height: 18px; accent-color: var(--ink); flex: none; }
 .keep-signed-in small { display: block; margin-top: 1px; color: var(--muted); font-weight: 400; font-size: .8rem; }
+/* admin activity log: search and filters */
+.log-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 12px 0 10px; }
+.log-search { flex: 1 1 240px; min-width: 200px; padding: 9px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg); color: inherit; font: inherit; }
+.log-filters label { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: .85rem; }
+.log-filters .datefield-button { min-width: 168px; padding: 7px 12px; font-size: .9rem; }
+.log-count { margin: 10px 0 6px; color: var(--muted); font-size: .85rem; }
