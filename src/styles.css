@@ -119,6 +119,22 @@ mark { background: linear-gradient(transparent 62%, var(--lime) 62%, var(--lime)
 .how li span { color: var(--muted); line-height: 1.55; }
 .how li code { font-size: .85em; }
 .how-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+/* The homepage's every-game list, A to Z, and its About and questions. The API writes the same words for search
+   engines before the app loads (startng-be app/routers/pages.py), using these classes so it looks the same. */
+.az-games { margin-top: 28px; background: var(--card); border: 1px solid var(--line); border-radius: 18px; }
+.az-games > summary { padding: 14px 18px; font-weight: 600; }
+.az-games ul { list-style: none; margin: 0; padding: 0 18px 16px; columns: 3 200px; column-gap: 24px; }
+.az-games li { padding: 4px 0; break-inside: avoid; font-size: .95rem; }
+.az-games li a:hover { text-decoration: underline; }
+.az-games li span { color: var(--muted); font-size: .85rem; }
+.about { padding: 24px 24px 72px; }
+.about h2 { font-size: 2.1rem; letter-spacing: -.035em; margin: 0 0 16px; }
+.about > p { max-width: 720px; margin: 0 0 12px; color: var(--muted); font-size: 1.05rem; line-height: 1.7; }
+.about h3 { margin: 32px 0 12px; font-size: 1.3rem; letter-spacing: -.02em; }
+.faq { display: grid; gap: 10px; }
+.faq details { background: var(--card); border: 1px solid var(--line); border-radius: 18px; }
+.faq summary { padding: 14px 18px; font-weight: 600; }
+.faq details p { margin: 0; padding: 0 18px 16px; color: var(--muted); line-height: 1.6; }
 
 .footer { display: flex; justify-content: space-between; margin-top: 40px; padding: 28px 24px 40px; border-top: 1px solid var(--line); color: var(--muted); font-size: .9rem; }
 .footer > span:first-child { color: var(--ink); font-weight: 800; }
@@ -515,7 +531,7 @@ textarea:focus { outline: 2px solid var(--ink); outline-offset: -1px; }
 .docs-body, .docs-body a { overflow-wrap: anywhere; }
 @media (max-width: 600px) {
   .section-head { flex-wrap: wrap; align-items: center; gap: 4px 12px; margin-bottom: 16px; }
-  .section-head h2, .how h2 { font-size: 1.6rem; }
+  .section-head h2, .how h2, .about h2 { font-size: 1.6rem; }
   .all-games h1 { font-size: 1.7rem; }
   .list-tools { gap: 10px; }
   .list-tools .count { font-size: .8rem; }
@@ -968,14 +984,14 @@ option { background: var(--card); color: var(--ink); }
 .game-card p.update-status { display: block; -webkit-line-clamp: unset; overflow: visible; }
 
 /* dropdowns made of <details>: no triangle, a chevron on the right that turns when it opens, content that eases in */
-.your-stats-head, .feature-checklist > summary, .wd-history > summary, .filter-builtin > summary { display: flex; align-items: center; gap: 10px; cursor: pointer; list-style: none; }
-.your-stats-head::-webkit-details-marker, .feature-checklist > summary::-webkit-details-marker, .wd-history > summary::-webkit-details-marker, .filter-builtin > summary::-webkit-details-marker { display: none; }
-.feature-checklist > summary::after, .wd-history > summary::after, .filter-builtin > summary::after { content: ""; width: 10px; height: 7px; margin-left: auto; flex: none; transition: rotate .2s;
+.your-stats-head, .feature-checklist > summary, .wd-history > summary, .filter-builtin > summary, .az-games > summary, .faq summary { display: flex; align-items: center; gap: 10px; cursor: pointer; list-style: none; }
+.your-stats-head::-webkit-details-marker, .feature-checklist > summary::-webkit-details-marker, .wd-history > summary::-webkit-details-marker, .filter-builtin > summary::-webkit-details-marker, .az-games > summary::-webkit-details-marker, .faq summary::-webkit-details-marker { display: none; }
+.feature-checklist > summary::after, .wd-history > summary::after, .filter-builtin > summary::after, .az-games > summary::after, .faq summary::after { content: ""; width: 10px; height: 7px; margin-left: auto; flex: none; transition: rotate .2s;
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23909086' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat; }
-.feature-checklist[open] > summary::after, .wd-history[open] > summary::after, .filter-builtin[open] > summary::after { rotate: 180deg; }
-.your-stats[open] > :not(summary), .feature-checklist[open] > :not(summary), .wd-history[open] > :not(summary), .filter-builtin[open] > :not(summary) { animation: dd-open .22s ease-out; }
+.feature-checklist[open] > summary::after, .wd-history[open] > summary::after, .filter-builtin[open] > summary::after, .az-games[open] > summary::after, .faq details[open] > summary::after { rotate: 180deg; }
+.your-stats[open] > :not(summary), .feature-checklist[open] > :not(summary), .wd-history[open] > :not(summary), .filter-builtin[open] > :not(summary), .az-games[open] > :not(summary), .faq details[open] > :not(summary) { animation: dd-open .22s ease-out; }
 @keyframes dd-open { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
-@media (prefers-reduced-motion: reduce) { .your-stats[open] > :not(summary), .feature-checklist[open] > :not(summary), .wd-history[open] > :not(summary), .filter-builtin[open] > :not(summary) { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .your-stats[open] > :not(summary), .feature-checklist[open] > :not(summary), .wd-history[open] > :not(summary), .filter-builtin[open] > :not(summary), .az-games[open] > :not(summary), .faq details[open] > :not(summary) { animation: none; } }
 .wd-history { padding: 0; }
 .wd-history > summary { padding: 12px 16px; font-weight: 600; }
 .wd-history > :not(summary) { margin-left: 16px; margin-right: 16px; }

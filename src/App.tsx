@@ -25,6 +25,7 @@ import { CreatorsPage, CreatorsSection } from "./Creators";
 import PageParts from "./features/PageParts";
 import { useFeature } from "./features/flags";
 import { LeaderboardPage, TournamentBanner, TournamentPage, useTournament } from "./Tournament";
+import { ABOUT, QUESTIONS } from "./home-copy";
 
 // Set when a game sent the user here to sign in: we send them back afterwards.
 const returnTo = gameReturnUrl();
@@ -39,6 +40,9 @@ if (openProfile || openSignIn || openFavorites) history.replaceState(null, "", l
 
 // The homepage shows the first few games; /games has them all, a page at a time.
 const HOME_GAMES = 8;
+// Under them, every game by name, A to Z (the API writes the same list for search engines: HOME_GAMES_LISTED).
+const AZ_GAMES = 200;
+const byTitle = (g: Game) => g.title.toLowerCase(); // plain code-point order, the same as the API's sort
 const PER_PAGE = 20;
 const pageFromUrl = () => Math.max(1, Number.parseInt(new URLSearchParams(location.search).get("page") ?? "1", 10) || 1);
 
@@ -452,6 +456,16 @@ export default function App({ view = "home", gameName, indieId, featurePage }: {
               </div>
             )
           )}
+          {view === "home" && community.length > 0 && (
+            <details className="az-games">
+              <summary>Every game on start.ng, A to Z ({community.length})</summary>
+              <ul>
+                {[...community].sort((a, b) => byTitle(a) < byTitle(b) ? -1 : byTitle(a) > byTitle(b) ? 1 : 0).slice(0, AZ_GAMES).map((g) => (
+                  <li key={g.slug}><a href={`/games/${g.slug}`}>{g.title}</a> <span>by {g.by}</span></li>
+                ))}
+              </ul>
+            </details>
+          )}
         </section>
         )}
 
@@ -469,6 +483,19 @@ export default function App({ view = "home", gameName, indieId, featurePage }: {
           <div className="how-actions">
             <a className="btn" href="/docs">Read the docs</a>
             <a className="btn ghost" href="/docs.md" download="startng-docs.md">Docs for your AI (.md)</a>
+          </div>
+        </section>
+        )}
+
+        {view === "home" && (
+        <section id="about" className="container about">
+          <h2>About start.ng</h2>
+          {ABOUT.map((p) => <p key={p}>{p}</p>)}
+          <h3>Questions</h3>
+          <div className="faq">
+            {QUESTIONS.map(([q, a]) => (
+              <details key={q}><summary>{q}</summary><p>{a}</p></details>
+            ))}
           </div>
         </section>
         )}
