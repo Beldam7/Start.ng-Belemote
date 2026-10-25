@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { call, listGames, send, type PublishedGame } from "../../api";
+import DateField from "../../DateField";
 import type { AdminTabProps } from "../registry";
 import type { Summary } from "./api";
 import { endsText, timeLeft } from "./time";
 
-// F9, start.ng/admin#private-tournaments: make a tournament to share in a group. Only people who open the link and
+// F9, a section of start.ng/admin#tournaments: make a tournament to share in a group. Only people who open the link and
 // register see its games and standings; it never shows anywhere on start.ng.
 
 type AdminTournament = Summary & { link: string; game_names: string[] };
@@ -16,8 +17,12 @@ const create = (body: { title: string; games: string[]; starts_at: string; ends_
 const newLink = (code: string) => call<AdminTournament>(t(), `/admin/private-tournaments/${encodeURIComponent(code)}/new-link`, send("POST"));
 const remove = (code: string) => call<void>(t(), `/admin/private-tournaments/${encodeURIComponent(code)}`, send("DELETE"));
 
-/** "2026-10-25T18:00" for a datetime-local input, in the admin's own time. */
-const localInput = (d: Date) => new Date(d.getTime() - d.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
+/** "2026-10-25T18:00" in the admin's own time, on the hour (the picker offers :00, :15, :30, :45). */
+const localInput = (d: Date) => {
+  const h = new Date(d);
+  h.setMinutes(0, 0, 0);
+  return new Date(h.getTime() - h.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
+};
 const title = (name: string) => name.replace(/-/g, " ");
 
 export default function AdminTournaments({ ask }: AdminTabProps) {
@@ -97,8 +102,8 @@ export default function AdminTournaments({ ask }: AdminTabProps) {
           </div>
         </fieldset>
         <div className="admin-tournament-times">
-          <label className="field"><span>Starts</span><input type="datetime-local" value={start} onChange={(e) => setStart(e.target.value)} required /></label>
-          <label className="field"><span>Ends</span><input type="datetime-local" value={end} onChange={(e) => setEnd(e.target.value)} required /></label>
+          <div className="field"><span>Starts</span><DateField time value={start} onChange={setStart} label="Starts" required /></div>
+          <div className="field"><span>Ends</span><DateField time value={end} onChange={setEnd} min={start.slice(0, 10)} label="Ends" required /></div>
           <label className="field"><span>Player limit (optional)</span><input type="number" min={2} max={5000} value={cap} onChange={(e) => setCap(e.target.value)} placeholder="200" /></label>
         </div>
         <p className="note">Times are your own time. It runs from 1 hour to 30 days. Scores count between the start and the end.</p>

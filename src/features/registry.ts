@@ -83,6 +83,21 @@ export function registerAdminTab(tab: Omit<AdminTab, "order"> & { order?: number
 }
 export const allAdminTabs = () => adminTabs;
 
+// ---- parts of an admin tab
+
+/** A section a feature adds to one of the admin page's own tabs, under its content (private tournaments in Tournaments).
+ *  Shown while the feature's flag is on, to admins with its permission (super admins always). */
+type AdminTabPart = { feature: string; tab: string; key: string; order: number; permission?: string; Component: ComponentType<AdminTabProps> };
+const adminTabParts: AdminTabPart[] = [];
+
+export function registerAdminTabPart(p: Omit<AdminTabPart, "order"> & { order?: number }) {
+  const i = adminTabParts.findIndex((x) => x.key === p.key && x.tab === p.tab);
+  if (i >= 0) adminTabParts.splice(i, 1); // the same part again (a hot reload while developing)
+  adminTabParts.push({ order: 100, ...p });
+  adminTabParts.sort((a, b) => a.order - b.order);
+}
+export const adminTabPartsFor = (tab: string) => adminTabParts.filter((p) => p.tab === tab);
+
 // ---- profile sections
 
 export type ProfileSectionProps = { userId: number; isMe: boolean };
