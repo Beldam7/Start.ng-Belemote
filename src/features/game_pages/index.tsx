@@ -4,7 +4,6 @@
 import { lazy, Suspense } from "react";
 import { registerAdminTab, registerPagePart, type AdminTabProps } from "../registry";
 import GamePages from "./GamePages";
-import "./game_pages.css";
 
 const PagesTab = lazy(() => import("./PagesTab"));
 const FEATURE = "game_pages";
@@ -17,7 +16,7 @@ registerAdminTab({
   order: 90,
   permission: "gamepages.manage",
   Component: (props: AdminTabProps) => (
-    <Suspense fallback={null}>
+    <Suspense fallback={<p className="tags-state" role="status">Loading…</p>}>
       <PagesTab {...props} />
     </Suspense>
   ),

@@ -48,7 +48,7 @@ if (location.pathname === "/connect") {
   // React does not start here: the server's page is the page, for everyone. If it could not be written (the plain page came
   // back, with nothing in it), go to the games. nginx serves a missing category as the 404 page: that one stays as it is.
   if (!document.querySelector(".tags-page")) location.replace("/games");
-} else if (GAME_SUB_PATH.test(location.pathname)) {
+} else if (GAME_SUB_PATH.test(location.pathname) && !isNotFoundPage) {
   // React does not start here: the server's page is the page, for everyone. If the server could not write it (the plain
   // page came back, with nothing in it), go to the game's own page instead of showing nothing.
   if (!document.querySelector(".game-sub")) location.replace(`/games/${location.pathname.match(GAME_SUB_PATH)![1]}`);
