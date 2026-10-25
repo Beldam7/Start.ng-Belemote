@@ -1,0 +1,23 @@
+.ft-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 12px 24px; margin-bottom: 14px; }
+.ft-head .note { max-width: 62ch; margin: 4px 0 0; }
+.ft-search { min-width: 220px; padding: 9px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg); color: inherit; font: inherit; }
+.ft-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.ft-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 16px; border-radius: 16px; border: 1px solid var(--line); background: var(--card); }
+.ft-row.on { border-color: var(--ink); box-shadow: 3px 3px 0 var(--lime); }
+.ft-main { min-width: 0; display: grid; gap: 4px; }
+.ft-main p { margin: 0; color: var(--muted); font-size: .88rem; }
+.ft-title { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+.ft-title b { font-size: 1rem; text-transform: capitalize; }
+.ft-title code { font-size: .74rem; background: var(--bg); color: var(--muted); }
+.ft-state { padding: 1px 9px; border-radius: 999px; font-family: var(--mono); font-size: .68rem; letter-spacing: .1em; text-transform: uppercase; background: var(--line); color: var(--muted); }
+.ft-state.on { background: var(--lime); color: var(--on-lime); font-weight: 700; }
+.ft-warn { padding: 1px 9px; border-radius: 999px; font-size: .7rem; background: var(--warn-bg); color: var(--warn-ink); box-shadow: inset 0 0 0 1px var(--warn-line); }
+.ft-main .ft-meta { font-size: .8rem; }
+.ft-meta .link { font-size: inherit; }
+.ft-switch { flex: none; position: relative; width: 48px; height: 28px; padding: 0; border-radius: 999px; border: 1px solid var(--line); background: var(--line); cursor: pointer; transition: background .2s; }
+.ft-switch span { position: absolute; top: 2px; left: 2px; width: 22px; height: 22px; border-radius: 50%; background: var(--card); box-shadow: 0 1px 3px var(--dot); transition: transform .2s; }
+.ft-switch[aria-checked="true"] { background: var(--ink); border-color: var(--ink); }
+.ft-switch[aria-checked="true"] span { transform: translateX(20px); background: var(--lime); }
+.ft-switch:disabled { opacity: .55; cursor: default; }
+.ft-switch:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+@media (max-width: 600px) { .ft-row { align-items: flex-start; } }

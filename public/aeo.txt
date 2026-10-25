@@ -1,0 +1,57 @@
+# start.ng: short answers
+
+Plain answers to questions people and AI assistants ask about start.ng. Checked against the site's own pages and docs; for anything that changes (which games exist, who is winning) use the live pages linked below.
+
+Q: What is start.ng?
+A: Nigeria's home for free browser games, built by the HNG community. Games run in the browser with nothing to download, and each one has its own address, like yourgame.start.ng. https://start.ng/
+
+Q: Are there Nigerian or African web games on start.ng?
+A: Yes. Many games here are Naija-themed, from danfo rush hour to jollof and Lagos markets, and games from across Africa are welcome. Game makers anywhere on the continent can put their games on start.ng for free. https://start.ng/games
+
+Q: Is it free to play?
+A: Yes. Every game on start.ng is free to play in the browser. https://start.ng/games
+
+Q: Where can I find the games?
+A: The full, searchable list is at https://start.ng/games. The Game of the Week and today's daily challenge are at https://start.ng/spotlight. Games by independent creators hosted elsewhere are at https://start.ng/creators.
+
+Q: Can I find games of a certain kind, like Nigerian games or quick games?
+A: Yes. Games are grouped into categories, such as Nigerian themed, Endless runners and Brainy games, and each category has its own page. A game can be in more than one. https://start.ng/categories
+
+Q: Is there a guide for how to play a game?
+A: Many games have an About page, a How to play page, a FAQ and a walkthrough, at start.ng/games/<name>/about, /how-to-play, /faq and /walkthrough. They are written only from what the game's maker says about it, never made up, so a game that says too little has no guide yet. https://start.ng/games
+
+Q: Do I need an account?
+A: No, you can play as a guest. Sign in with Google to get your start.ng character, a username and profile, a level, badges, coins and a place on the leaderboards, all of which follow you into every start.ng game. Games by independent creators are hosted elsewhere, so they don't use your start.ng account. https://start.ng/
+
+Q: How does the daily tournament work?
+A: Every day 5 games are picked for 24 hours, ending at 18:00 Nigeria time. Share the tournament on X to enter, then play those games. On each game, 1st place gets 10 points, 2nd 7, 3rd 5, 4th 3, and everyone else who plays it 1. Most points wins the day, and the leaderboard adds up everyone's points, all time and this week. https://start.ng/tournament and https://start.ng/leaderboard
+
+Q: Can I play a tournament with just my friends?
+A: Yes. Pick any games, set how long it runs, and share the link. Your friends join and you all follow one table of scores. https://start.ng/friends
+
+Q: What are leagues?
+A: Signed-in players are put in a league group. Play any game to score; your best 5 games in a round count. The top 5 in a group move up a tier and the bottom 5 move down, from Bronze up to Diamond. There are 2-hour, daily and weekly rounds.
+
+Q: What are coins for?
+A: You earn coins by playing any game, and spend them in the shop on items for your character, which you then wear in every start.ng game. The shop has new stock every day. https://start.ng/shop
+
+Q: Can I challenge a friend to beat my score?
+A: Yes. From a game you've played, make a challenge from your best run and share its link. Your friend sees the score to beat.
+
+Q: Does start.ng have multiplayer?
+A: Yes. The Hangout is start.ng's own multiplayer park where signed-in players walk around as their characters and meet each other. Game makers can also use multiplayer rooms in their own games. https://start.ng/hangout and https://start.ng/docs.md
+
+Q: How do I publish my own game?
+A: Build a static game (HTML, CSS and JavaScript, already built), push it to a public GitHub repo, call the check and publish API, and approve it once. It then goes live at yourgame.start.ng with its own page and leaderboard, and each push to the repo updates it. You can pick up to 5 categories for it in startng.json, and the more it says there about itself, the more its About, How to play and FAQ pages say. No server or database is needed, because start.ng provides sign-in, characters, leaderboards, multiplayer rooms and hosting. Full steps: https://start.ng/docs.md
+
+Q: Which game engines can I use?
+A: Any engine that produces static files, such as plain JavaScript, canvas, three.js, Phaser, PixiJS or Babylon.js. start.ng never runs build commands, so commit the built folder. The start.ng Kit adds sign-in, the player's character and scores with one line of code. https://start.ng/docs.md
+
+Q: Can an AI build and publish a game for me?
+A: Yes. Give the AI https://start.ng/docs.md as plain text; it is written to be followed by an AI assistant, and a human approves the game once at the end.
+
+Q: I made a game somewhere else, like itch.io. Can it be on start.ng?
+A: Yes. Sign in and submit it on https://start.ng/creators, with up to 5 categories. It is listed with its own page plus About and FAQ pages, written only from what you typed, linking to where it is hosted.
+
+Q: Where is the list of every page?
+A: https://start.ng/sitemap.xml
