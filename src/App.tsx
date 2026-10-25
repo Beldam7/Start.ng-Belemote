@@ -10,6 +10,7 @@ import type { FeaturePage } from "./features/registry";
 import GamePage from "./GamePage";
 import IndiePage from "./IndiePage";
 import ThemeToggle from "./ThemeToggle";
+import NotFound from "./NotFound";
 import SearchBox, { matches, queryFromUrl, urlFor } from "./SearchBox";
 import { FilterBar, useGameFilters } from "./features/catalog/filters";
 import { setSeo, PAGES } from "./seo";
@@ -185,15 +186,17 @@ export default function App({ view = "home", gameName, indieId, featurePage }: {
   const cards = filters.apply(searching ? everyCard.filter((g) => matches(q, g.title, g.host, g.by)) : everyCard);
   // What this page shows: the first HOME_GAMES on the homepage, one page of them on /games.
   const pages = Math.max(1, Math.ceil(cards.length / PER_PAGE));
-  const current = Math.min(page, pages); // a page past the end shows the last one
+  const current = Math.min(page, pages); // a search or filter past its last page shows the last one
   // While the API answers, the Hangout (which needs no API) shows and skeleton cards hold the other places.
   const shown = allGames ? cards.slice((current - 1) * PER_PAGE, current * PER_PAGE) : cards.slice(0, HOME_GAMES);
+  // /games?page= past the last page of every game is "Page not found", as nginx serves it (a 404).
+  const pastEnd = allGames && games !== null && !searching && !filters.active && page > pages;
 
   // /games: the same tags nginx serves (see nginx.conf): each page is its own address, searches and filters are noindex.
   useEffect(() => {
-    if (!allGames) return;
+    if (!allGames || pastEnd) return; // NotFound sets its own
     setSeo({ ...PAGES.games, path: page > 1 ? `${PAGES.games.path}?page=${page}` : PAGES.games.path, noindex: searching || filters.active });
-  }, [allGames, page, searching, filters.active]);
+  }, [allGames, pastEnd, page, searching, filters.active]);
 
   // A real address for the hero: your own newest game, else the newest game on start.ng.
   const example = myLatest ?? community[0] ?? null;
@@ -325,6 +328,8 @@ export default function App({ view = "home", gameName, indieId, featurePage }: {
   }
 
   const firstName = (user?.name ?? user?.email ?? "").split(/[ @]/)[0];
+
+  if (pastEnd) return <NotFound />;
 
   return (
     <>
