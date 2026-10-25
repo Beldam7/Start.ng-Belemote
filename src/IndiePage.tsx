@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { analytics } from "./analytics";
 import { FavoriteButton, indieKey, useFavorites } from "./Favorites";
+import PageParts from "./features/PageParts";
 import { getIndieGame, IndieGame, indieCoverUrl, removeIndieGame, trackIndiePlay, User } from "./api";
 import { hostOf, indiePath } from "./indie";
 import { PAGES, setSeo } from "./seo";
@@ -103,6 +104,7 @@ export default function IndiePage({ id, user, onSignIn }: { id: number; user: Us
             <a className="ghost btn" href={tweet} target="_blank" rel="noreferrer" onClick={() => analytics.share("indie_game", String(g.id), "x")}>Share on X</a>
             <button type="button" className="ghost" onClick={copy}>{copied ? "Link copied" : "Copy link"}</button>
           </div>
+          <PageParts page="indie" user={user} onSignIn={onSignIn} game={String(g.id)} />
         </div>
       </div>
     </section>

@@ -4,12 +4,14 @@
 import { lazy, Suspense } from "react";
 import { registerAdminTab, registerPagePart, type AdminTabProps } from "../registry";
 import GamePages from "./GamePages";
+import IndiePages from "./IndiePages";
 import "./game_pages.css";
 
 const PagesTab = lazy(() => import("./PagesTab"));
 const FEATURE = "game_pages";
 
 registerPagePart({ feature: FEATURE, key: "game-pages", page: "game", order: 160, Component: GamePages });
+registerPagePart({ feature: FEATURE, key: "indie-pages", page: "indie", order: 160, Component: IndiePages });
 registerAdminTab({
   feature: FEATURE,
   key: "game-pages",

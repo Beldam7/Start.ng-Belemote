@@ -10,6 +10,8 @@ export type Gap = { game: string; reasons: string[] };
 const token = () => localStorage.getItem("token");
 
 export const getSubPages = (game: string) => call<SubPage[]>(token(), `/games/${encodeURIComponent(game)}/pages`);
+/** The pages of a game by an independent creator (its About and FAQ), by the game's id. */
+export const getIndieSubPages = (id: string) => call<SubPage[]>(token(), `/indie/${encodeURIComponent(id)}/pages`);
 
 // admin
 export const adminPages = (status: string) => call<PageRow[]>(token(), `/admin/game-pages?status=${status}&limit=500`);

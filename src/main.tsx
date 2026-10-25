@@ -34,6 +34,7 @@ const GAME_PATH = /^\/games\/([a-z0-9][a-z0-9-]{0,39})\/?$/; // one game's page,
 // A game's about / how to play / FAQ / walkthrough pages: the server writes the whole page (startng-be app/features/game_pages).
 // The category pages are written by the server too (startng-be app/features/tags): /categories and /categories/<slug>.
 const CATEGORY_PATH = /^\/categories(\/[a-z0-9][a-z0-9-]{0,39})?\/?$/;
+const INDIE_SUB_PATH = /^\/creators\/(\d{1,10})(?:-[a-z0-9-]*)?\/(about|faq)\/?$/; // the About and FAQ pages of an independent creator's game
 const GAME_SUB_PATH = /^\/games\/([a-z0-9][a-z0-9-]{0,39})\/(about|how-to-play|faq|walkthrough)\/?$/;
 
 // /connect is loaded invisibly by games, so it renders nothing.
@@ -46,6 +47,9 @@ if (location.pathname === "/connect") {
   // React does not start here: the server's page is the page, for everyone. If the server could not write it (the plain
   // page came back, with nothing in it), go to the game's own page instead of showing nothing.
   if (!document.querySelector(".game-sub")) location.replace(`/games/${location.pathname.match(GAME_SUB_PATH)![1]}`);
+} else if (INDIE_SUB_PATH.test(location.pathname)) {
+  // The same for a game by an independent creator: if the server could not write the page, go to the game's own page.
+  if (!document.querySelector(".game-sub")) location.replace(`/creators/${location.pathname.match(INDIE_SUB_PATH)![1]}`);
 } else {
   const path = location.pathname;
   const feature = findPage(path); // a feature's page (src/features), shown only while its flag is on
