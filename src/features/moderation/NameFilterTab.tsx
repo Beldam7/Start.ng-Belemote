@@ -58,19 +58,21 @@ export default function NameFilterTab({ ask }: AdminTabProps) {
       )}
 
       <h3>Add a word</h3>
-      <form className="admin-inline" onSubmit={(e) => { e.preventDefault(); act(() => addWord(word.trim(), kind, strong)).then(() => setWord("")); }}>
-        <input id="filter-word" value={word} onChange={(e) => setWord(e.target.value)} placeholder="One word" maxLength={40} required />
-        <select id="filter-kind" value={kind} onChange={(e) => setKind(e.target.value as "block" | "allow")} aria-label="Block or allow">
-          <option value="block">Block it</option>
-          <option value="allow">Allow it</option>
-        </select>
+      <form className="filter-add" onSubmit={(e) => { e.preventDefault(); act(() => addWord(word.trim(), kind, strong)).then(() => setWord("")); }}>
+        <div className="filter-add-row">
+          <input id="filter-word" value={word} onChange={(e) => setWord(e.target.value)} placeholder="One word" maxLength={40} required />
+          <div className="segmented" role="group" aria-label="Block or allow">
+            <button type="button" className={kind === "block" ? "on" : ""} aria-pressed={kind === "block"} onClick={() => setKind("block")}>Block it</button>
+            <button type="button" className={kind === "allow" ? "on" : ""} aria-pressed={kind === "allow"} onClick={() => setKind("allow")}>Allow it</button>
+          </div>
+          <button type="submit" disabled={!word.trim()}>Add</button>
+        </div>
         {kind === "block" && (
           <label className="filter-strong">
             <input type="checkbox" checked={strong} onChange={(e) => setStrong(e.target.checked)} />
-            Also inside other words
+            Also block it inside other words
           </label>
         )}
-        <button type="submit" disabled={!word.trim()}>Add</button>
       </form>
       <p className="note">
         "Allow" overrides the built-in list for a word that's fine here. Only tick "also inside other words" for words that never

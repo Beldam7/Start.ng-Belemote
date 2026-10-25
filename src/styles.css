@@ -684,12 +684,14 @@ button:disabled { opacity: .5; cursor: not-allowed; }
 
 /* The admin page (Admin.tsx) */
 .admin-shell { max-width: 1320px; margin: 0 auto; padding: 14px 20px 60px; display: grid; grid-template-columns: 220px minmax(0, 1fr); grid-template-areas: "top top" "side main"; gap: 22px 28px; align-items: start; }
-.admin-top { grid-area: top; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 8px 4px 14px; border-bottom: 1px solid var(--line); }
+.admin-top { grid-area: top; position: sticky; top: 0; z-index: 20; background: var(--bg); display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 8px 4px 14px; border-bottom: 1px solid var(--line); }
 .admin-brand { display: flex; align-items: center; gap: 10px; }
 .admin-me { display: flex; align-items: center; gap: 12px; }
 .admin-who { display: grid; text-align: right; min-width: 0; font-size: .8rem; color: var(--muted); }
 .admin-who b { font-weight: 600; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .88rem; }
-.admin-side { grid-area: side; position: sticky; top: 14px; max-height: calc(100vh - 28px); overflow-y: auto; }
+/* The header stays at the top, and the sidebar fills the space under it (scrolling on its own when it's longer), so
+   every section is reachable without scrolling the page. */
+.admin-side { grid-area: side; position: sticky; top: 96px; max-height: calc(100vh - 110px); overflow-y: auto; overscroll-behavior: contain; }
 .admin-main { grid-area: main; min-width: 0; }
 .admin-tabs { display: flex; flex-direction: column; gap: 2px; margin: 0; }
 .admin-tabs button { display: block; width: 100%; text-align: left; padding: 9px 14px; border-radius: 10px; border: 0; background: none; color: var(--muted); font-size: .94rem; font-weight: 600; transition: background .15s, color .15s; }
@@ -877,7 +879,12 @@ button.small { padding: 7px 12px; font-size: .85rem; border-radius: 8px; }
 .filter-result { margin: 0 0 6px; font-weight: 600; }
 .filter-result.ok { color: var(--ok); }
 .filter-result.bad { color: var(--danger); }
-.filter-strong { display: flex; gap: 6px; align-items: center; font-size: .9rem; }
+.filter-add { display: grid; gap: 10px; margin: 10px 0 14px; }
+.filter-add-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.filter-add-row input { flex: 1 1 240px; min-width: 0; }
+.filter-add-row .segmented { flex: none; }
+.filter-strong { display: inline-flex; gap: 8px; align-items: center; justify-self: start; font-size: .9rem; color: var(--muted); cursor: pointer; }
+.filter-strong input { width: 18px; height: 18px; margin: 0; accent-color: var(--ink); flex: none; }
 .filter-builtin { margin-top: 22px; }
 .filter-builtin summary { cursor: pointer; font-weight: 600; }
 
