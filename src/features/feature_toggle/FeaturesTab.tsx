@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { reloadFeatures } from "../flags";
 import type { AdminTabProps } from "../registry";
 import { listFeatures, switchFeature, type FeatureRow } from "./api";
 import "./feature_toggle.css";
@@ -26,6 +27,7 @@ export default function FeaturesTab({ ask }: AdminTabProps) {
     setError("");
     try {
       setRows(await switchFeature(row.name, enabled));
+      await reloadFeatures(); // the admin menu, pages and parts follow straight away, without a refresh
     } catch (e) { setError(e instanceof Error ? e.message : "That did not work"); } finally { setBusy(""); }
   }
 
