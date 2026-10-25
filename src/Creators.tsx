@@ -55,8 +55,9 @@ function useDialog(onClose: () => void): RefObject<HTMLDivElement> {
 
 function useIndieGames(user: User | null, limit?: number, sort: "newest" | "popular" = "newest") {
   const [games, setGames] = useState<IndieGame[] | null>(null);
+  const [loaded, setLoaded] = useState(false); // the API has answered at least once (games is [] after a failure too)
   const refresh = useCallback(() => {
-    listIndieGames(token(), limit, sort).then(setGames).catch(() => setGames((g) => g ?? []));
+    listIndieGames(token(), limit, sort).then((g) => { setGames(g); setLoaded(true); }).catch(() => setGames((g) => g ?? []));
   }, [limit, sort, user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
   // On load, every 30 seconds and when you come back to the tab, so the most clicked keeps up.
   useEffect(() => {
@@ -66,7 +67,7 @@ function useIndieGames(user: User | null, limit?: number, sort: "newest" | "popu
     document.addEventListener("visibilitychange", onVisible);
     return () => { window.clearInterval(timer); document.removeEventListener("visibilitychange", onVisible); };
   }, [refresh]);
-  return { games, setGames, refresh };
+  return { games, setGames, refresh, loaded };
 }
 
 type FavProps = { user: User | null; has: (key: string) => boolean; toggle: (key: string) => void; onSignIn: () => void };
@@ -260,7 +261,7 @@ export function CreatorsSection({ user, onSignIn }: { user: User | null; onSignI
 
 /** /creators: every game by independent creators, PER_PAGE at a time, with a search. */
 export function CreatorsPage({ user, onSignIn }: { user: User | null; onSignIn: () => void }) {
-  const { games } = useIndieGames(user);
+  const { games, loaded } = useIndieGames(user);
   const { startSubmit, popups } = useSubmitPopup(user, onSignIn);
   const favs = useFavorites(user);
   const fav: FavProps = { user, has: favs.has, toggle: favs.toggle, onSignIn };
@@ -288,7 +289,8 @@ export function CreatorsPage({ user, onSignIn }: { user: User | null; onSignIn: 
   const current = Math.min(page, pages); // a page past the end shows the last one
   const shown = found.slice((current - 1) * PER_PAGE, current * PER_PAGE);
   // /creators?page= past the last page is "Page not found", as nginx serves it (a 404); a search shows its last page.
-  const pastEnd = games !== null && !searching && page > pages;
+  // Only once the API has answered: if it can't, the page stays as it is.
+  const pastEnd = loaded && !searching && page > pages;
   // The same tags nginx serves: each page is its own address, searches are noindex.
   useEffect(() => {
     if (pastEnd) return; // NotFoundSection sets its own
