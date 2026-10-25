@@ -14,7 +14,8 @@ export const getSubPages = (game: string) => call<SubPage[]>(token(), `/games/${
 export const getIndieSubPages = (id: string) => call<SubPage[]>(token(), `/indie/${encodeURIComponent(id)}/pages`);
 
 // admin
-export const adminPages = (status: string) => call<PageRow[]>(token(), `/admin/game-pages?status=${status}&limit=500`);
+export const PAGE_SIZE = 500; // the most the API returns at once; ask again with an offset for the rest
+export const adminPages = (status: string, offset = 0) => call<PageRow[]>(token(), `/admin/game-pages?status=${status}&limit=${PAGE_SIZE}&offset=${offset}`);
 export const adminSummary = () => call<Summary>(token(), "/admin/game-pages/summary");
 export const adminGaps = () => call<Gap[]>(token(), "/admin/game-pages/gaps");
 export const adminPage = (id: number) => call<PageFull>(token(), `/admin/game-pages/${id}`);

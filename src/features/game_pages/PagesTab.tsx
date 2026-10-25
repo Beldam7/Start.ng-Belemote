@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { AdminTabProps } from "../registry";
-import { adminApprove, adminGaps, adminGenerate, adminPage, adminPages, adminSave, adminSummary, adminUnapprove, type Gap, type PageFull, type PageRow, type Summary } from "./api";
+import { adminApprove, adminGaps, adminGenerate, adminPage, adminPages, adminSave, adminSummary, adminUnapprove, PAGE_SIZE, type Gap, type PageFull, type PageRow, type Summary } from "./api";
 
 // start.ng/admin#game-pages: pages about each game (about, how to play, FAQ, walkthrough). They are written from the facts in a
 // game's own files; a person reads, edits and approves each one. A game that says too little gets no page, and is listed so
@@ -15,9 +15,16 @@ function Editor({ id, onChanged }: { id: number; onChanged: () => void }) {
   const [body, setBody] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const load = useCallback(() => adminPage(id).then((p) => { setPage(p); setTitle(p.title); setDescription(p.description); setBody(p.body); }).catch((e) => setError(e.message)), [id]);
+  const load = useCallback(() => {
+    setError("");
+    return adminPage(id).then((p) => { setPage(p); setTitle(p.title); setDescription(p.description); setBody(p.body); }).catch((e) => setError(e instanceof Error ? e.message : "Couldn't load the page"));
+  }, [id]);
   useEffect(() => { load(); }, [load]);
-  if (!page) return <p className="note" aria-busy="true">{error || "Loading…"}</p>;
+  if (!page) {
+    return error
+      ? <p className="error" role="alert">{error} <button type="button" className="link" onClick={load}>Try again</button></p>
+      : <p className="note" role="status" aria-busy="true">Loading…</p>;
+  }
 
   async function run(fn: () => Promise<unknown>) {
     setBusy(true); setError("");
@@ -26,10 +33,10 @@ function Editor({ id, onChanged }: { id: number; onChanged: () => void }) {
   const dirty = title !== page.title || description !== page.description || body !== page.body;
   return (
     <div className="gp-editor">
-      <label>Title <input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={160} /></label>
-      <label>Description (what search results show) <input value={description} onChange={(e) => setDescription(e.target.value)} maxLength={300} /></label>
+      <label>Title <input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={160} disabled={busy} /></label>
+      <label>Description (what search results show) <input value={description} onChange={(e) => setDescription(e.target.value)} maxLength={300} disabled={busy} /></label>
       <label>Text <span className="note">## Heading, a line of text, - bullet, 1. step</span>
-        <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={14} />
+        <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={14} disabled={busy} />
       </label>
       {page.facts && (
         <details>
@@ -52,23 +59,43 @@ function Editor({ id, onChanged }: { id: number; onChanged: () => void }) {
 export default function PagesTab({ ask }: AdminTabProps) {
   const [status, setStatus] = useState("draft");
   const [rows, setRows] = useState<PageRow[] | null>(null);
+  const [more, setMore] = useState(false); // the last request filled a whole page, so there may be more
+  const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState<Summary | null>(null);
   const [gaps, setGaps] = useState<Gap[] | null>(null);
   const [open, setOpen] = useState<number | null>(null);
   const [note, setNote] = useState("");
   const [error, setError] = useState("");
+  const latest = useRef(0); // each list request gets a number; only the newest one may change what is shown
 
-  const reload = useCallback(() => {
+  const load = useCallback((offset: number) => {
+    const mine = ++latest.current;
     setError("");
-    adminPages(status).then(setRows).catch((e) => setError(e.message));
-    adminSummary().then(setSummary).catch(() => {});
+    setLoading(true);
+    if (offset === 0) setRows(null); // never show rows from the other filter while this one loads
+    adminPages(status, offset)
+      .then((r) => {
+        if (mine !== latest.current) return;
+        setRows((old) => (offset === 0 ? r : [...(old ?? []), ...r]));
+        setMore(r.length === PAGE_SIZE);
+      })
+      .catch((e) => { if (mine === latest.current) setError(e instanceof Error ? e.message : "Couldn't load the pages"); })
+      .finally(() => { if (mine === latest.current) setLoading(false); });
   }, [status]);
+  const reload = useCallback(() => {
+    load(0);
+    adminSummary().then(setSummary).catch(() => {});
+  }, [load]);
   useEffect(reload, [reload]);
 
   async function generate() {
-    const ok = await ask({ title: "Make draft pages?", body: "This reads each game's files and writes draft pages from what they say. Pages already approved or edited by a person are kept.", confirm: "Make drafts" });
-    if (ok === null) return;
-    try { const c = await adminGenerate(); setNote(`${c.draft ?? 0} drafts, ${c.approved ?? 0} approved, ${c.skipped ?? 0} not made.`); reload(); } catch (e) { setError(e instanceof Error ? e.message : "Couldn't make pages"); }
+    try {
+      const ok = await ask({ title: "Make draft pages?", body: "This reads each game's files and writes draft pages from what they say. Pages already approved or edited by a person are kept.", confirm: "Make drafts" });
+      if (ok === null) return;
+      const c = await adminGenerate();
+      setNote(`${c.draft ?? 0} drafts, ${c.approved ?? 0} approved, ${c.skipped ?? 0} not made.`);
+      reload();
+    } catch (e) { setError(e instanceof Error ? e.message : "Couldn't make pages"); }
   }
 
   return (
@@ -89,7 +116,8 @@ export default function PagesTab({ ask }: AdminTabProps) {
         </div>
       </div>
       {note && <p className="note" role="status">{note}</p>}
-      {error && <p className="error" role="alert">{error}</p>}
+      {error && <p className="error" role="alert">{error} <button type="button" className="link" onClick={reload}>Try again</button></p>}
+      {loading && <p className="tags-state" role="status">Loading pages…</p>}
       {rows && rows.length === 0 && <p className="empty">Nothing here. {status === "draft" ? "Make draft pages to look for games that say enough." : ""}</p>}
       <div className="admin-list">
         {rows?.map((r) => (
@@ -105,10 +133,11 @@ export default function PagesTab({ ask }: AdminTabProps) {
           </article>
         ))}
       </div>
+      {more && !loading && <p><button type="button" className="ghost" onClick={() => load(rows?.length ?? 0)}>Show more</button></p>}
       <div className="gp-gaps">
         <button type="button" className="ghost" onClick={() => (gaps ? setGaps(null) : adminGaps().then(setGaps).catch((e) => setError(e.message)))}>{gaps ? "Hide" : "Show"} games with no page</button>
         {gaps && (
-          <ul>{gaps.map((g) => <li key={g.game}><b>{g.game}</b>: {g.reasons[0]}</li>)}</ul>
+          <ul>{gaps.map((g) => <li key={g.game}><b>{g.game}</b>: {g.reasons.join(" · ")}</li>)}</ul>
         )}
       </div>
     </section>

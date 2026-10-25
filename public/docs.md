@@ -224,6 +224,7 @@ Every refusal from publish and check has this shape: `detail` for people, and `e
 | `leaves_start_ng` | The game sends players to another site |
 | `no_cover` | No `cover.png` next to `index.html` |
 | `no_start_ng_player` | The game doesn't ask start.ng who's playing (see the character rule) |
+| `thin_page` | start.ng found nothing to say about your game on its own page. Add a `description` and a `story` to `startng.json` (or a paragraph about the game in a README) so the page tells people what it is about |
 
 ### When an update doesn't pass
 
@@ -500,6 +501,8 @@ Your game's page is at `start.ng/games/<your-game>`. start.ng can also write up 
 | How to play | `start.ng/games/<your-game>/how-to-play` | `controls` or `howToPlay` |
 | FAQ | `start.ng/games/<your-game>/faq` | a `description`, or `controls` or `howToPlay`, plus a leaderboard, categories or a way to play to answer with |
 | Walkthrough | `start.ng/games/<your-game>/walkthrough` | a `walkthrough` of at least 3 steps or tips |
+
+**What is on them.** The About page says what the game is about (your `description` and `story`, plus anything more your README and your game's own page say about it), the facts at a glance (who made it, since when, its categories, its leaderboard, its first control), your `features`, and how scoring works. The How to play page has the goal, your `controls` and `howToPlay` steps, how the leaderboard ranks players, and what to do before you start. Every page also shows, live: the top players right now, more games by you, and games like yours. **The more you write in `startng.json`, the more your game's pages say.**
 
 The pages are written **only from what your game says about itself**. start.ng never guesses how your game plays. If your files don't say how to play, the game gets no "How to play" page. Add the words, and the page becomes possible.
 
