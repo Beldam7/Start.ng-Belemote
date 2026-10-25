@@ -12,19 +12,23 @@ export default function GameTags({ game }: PagePartProps) {
   useEffect(() => {
     if (!game) return;
     let live = true;
+    setLoaded(null);
     setFailed(null);
     getGameTags(game).then((t) => live && setLoaded({ game, tags: t })).catch(() => live && setFailed(game));
     return () => { live = false; };
   }, [game, attempt]);
-  if (game && failed === game) {
+  if (!game) return null;
+  const tags = loaded && loaded.game === game ? loaded.tags : null;
+  if (failed === game || tags === null) {
     return (
       <section className="container game-tags" aria-label="Categories">
         <p className="eyebrow">Categories</p>
-        <p className="tags-state" role="status">The categories didn't load. <button type="button" className="link" onClick={() => setAttempt((n) => n + 1)}>Try again</button></p>
+        {failed === game
+          ? <p className="tags-state" role="status">The categories didn't load. <button type="button" className="link" onClick={() => setAttempt((n) => n + 1)}>Try again</button></p>
+          : <p className="tags-state" role="status" aria-busy="true">Loading categories…</p>}
       </section>
     );
   }
-  const tags = loaded && loaded.game === game ? loaded.tags : [];
   if (tags.length === 0) return null;
   return (
     <section className="container game-tags" aria-label="Categories">
