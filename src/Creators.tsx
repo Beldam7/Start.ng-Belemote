@@ -1,3 +1,4 @@
+import IndieCategoryPicker from "./features/tags/IndieCategoryPicker";
 import { ChangeEvent, FormEvent, RefObject, useCallback, useEffect, useRef, useState } from "react";
 import {
   COVER_TYPES, IndieGame, indieCoverUrl, listIndieGames, MAX_COVER_BYTES, submitIndieGame, User,
@@ -7,6 +8,8 @@ import Pagination from "./Pagination";
 import SearchBox, { matches, queryFromUrl, urlFor } from "./SearchBox";
 import { hostOf, indiePath } from "./indie";
 import { PAGES, setSeo } from "./seo";
+import { withHandle } from "./share";
+import { analytics } from "./analytics";
 import { SkeletonCards } from "./Skeleton";
 
 // Games by independent creators: made and hosted outside start.ng. The homepage shows the newest 4
@@ -93,9 +96,13 @@ function SubmitGame({ user, onSignIn, onClose, onAdded }: {
   const [url, setUrl] = useState("");
   const [description, setDescription] = useState("");
   const [cover, setCover] = useState<string | null>(null); // data URL
+  const [categories, setCategories] = useState<string[]>([]);
+  const [other, setOther] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const dialog = useDialog(onClose);
+  const [added, setAdded] = useState<IndieGame | null>(null);
+  const close = () => (added ? onAdded(added) : onClose());
+  const dialog = useDialog(close);
 
   function pickCover(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -115,21 +122,39 @@ function SubmitGame({ user, onSignIn, onClose, onAdded }: {
     setBusy(true);
     setError("");
     try {
-      onAdded(await submitIndieGame(token(), { name, url, description, cover }));
+      setAdded(await submitIndieGame(token(), { name, url, description, cover, categories, other_category: other.trim() || undefined }));
+      setBusy(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not add your game");
       setBusy(false);
     }
   }
 
+  // Once the game is added: a welcome, and an invitation (not a requirement) to share it on X. The post
+  // links the creators page and mentions start.ng's account. Closing it opens the game's own page.
+  const post = added && withHandle(`I just put my game ${added.name} on start.ng. Find it and more games by independent creators at ${location.origin}/creators`);
+  function share() {
+    if (!added || !post) return;
+    window.open(`https://twitter.com/intent/tweet?${new URLSearchParams({ text: post })}`, "_blank", "noopener,noreferrer");
+    analytics.share("indie_game", String(added.id), "x");
+  }
+
   return (
-    <div className="overlay creator-overlay" onClick={onClose}>
+    <div className="overlay creator-overlay" onClick={close}>
       <div ref={dialog} tabIndex={-1} className="card indie-form" role="dialog" aria-modal="true" aria-labelledby="submit-title" onClick={(e) => e.stopPropagation()}>
         <div className="card-head">
-          <h3 id="submit-title">Submit your game</h3>
-          <button type="button" className="link close" aria-label="Close" onClick={onClose}>✕</button>
+          <h3 id="submit-title">{added ? "Welcome to start.ng" : "Submit your game"}</h3>
+          <button type="button" className="link close" aria-label="Close" onClick={close}>✕</button>
         </div>
-        {!user ? (
+        {added ? (
+          <div className="indie-fields">
+            <p className="note"><b>{added.name}</b> is now on start.ng, with its own page for players to find it.</p>
+            <p className="indie-share-note">Want more players? Sharing your game on X helps more people find it. We wrote the post for you:</p>
+            <p className="indie-post">{post}</p>
+            <button type="button" onClick={share}>Share on X</button>
+            <button type="button" className="ghost" onClick={close}>See my game</button>
+          </div>
+        ) : !user ? (
           <>
             <p className="note">Sign in to add your game. New here? Signing in creates your free start.ng account.</p>
             <button type="button" onClick={onSignIn}>Sign in</button>
@@ -159,6 +184,7 @@ function SubmitGame({ user, onSignIn, onClose, onAdded }: {
               {cover && <button type="button" className="link" onClick={() => setCover(null)}>Use another picture</button>}
             </div>
             {error && <p className="error">{error}</p>}
+            <IndieCategoryPicker picked={categories} other={other} onPick={setCategories} onOther={setOther} />
             <button type="submit" disabled={busy}>{busy ? "Adding your game…" : "Add my game"}</button>
           </form>
         )}
@@ -167,7 +193,8 @@ function SubmitGame({ user, onSignIn, onClose, onAdded }: {
   );
 }
 
-/** The "Submit your game" popup, shared by the homepage section and the creators page. Once a game is added, its own page opens. */
+/** The "Submit your game" popup, shared by the homepage section and the creators page. Once a game is added it
+ *  welcomes the creator (with an optional share on X), and closing it opens the game's own page. */
 function useSubmitPopup(user: User | null, onSignIn: () => void) {
   const [submitting, setSubmitting] = useState(false);
   const popups = submitting && (

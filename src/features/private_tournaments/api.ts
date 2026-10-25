@@ -5,6 +5,7 @@ const API_URL = (import.meta.env.VITE_API_URL ?? "http://localhost:8000").replac
 export type Summary = {
   code: string; title: string; owner: string; starts_at: string; ends_at: string; finished: boolean;
   members: number; games: string[]; joined: boolean; mine: boolean;
+  by_admin?: boolean; max_members?: number | null; // F9: made by an admin; games stay hidden until you register
 };
 export type Run = { rank: number; player_id: number; name: string; color: string | null; stats: Record<string, number>; points: number };
 export type GameBoard = { name: string; url: string; cover_url: string | null; leaderboard: BoardStat[]; players: number; top: Run[] };

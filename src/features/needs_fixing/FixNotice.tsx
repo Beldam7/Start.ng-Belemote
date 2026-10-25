@@ -31,7 +31,7 @@ export default function FixNotice({ game, reload }: YourGameProps) {
   return (
     <div className="update-problem fix-notice" role="status">
       <b>Hidden: needs a fix</b>
-      <span>Our team found a problem: <i>{request.note}</i></span>
+      <span>{request.automatic ? "start.ng couldn't open this game, so it's hidden for now" : "Our team found a problem"}: <i>{request.note}</i></span>
       {request.status === "owner_fixed" ? (
         <span className="ok">Thanks. Our team will check it and put it back.</span>
       ) : writing ? (

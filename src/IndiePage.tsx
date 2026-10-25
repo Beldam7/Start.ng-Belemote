@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { analytics } from "./analytics";
 import { FavoriteButton, indieKey, useFavorites } from "./Favorites";
+import PageParts from "./features/PageParts";
 import { getIndieGame, IndieGame, indieCoverUrl, removeIndieGame, trackIndiePlay, User } from "./api";
 import { hostOf, indiePath } from "./indie";
 import { PAGES, setSeo } from "./seo";
@@ -91,6 +92,12 @@ export default function IndiePage({ id, user, onSignIn }: { id: number; user: Us
           <h1>{g.name}</h1>
           <p className="game-page-by">by {g.by} · <code>{hostOf(g.url)}</code></p>
           <p className="game-page-description">{g.description}</p>
+          {g.categories && g.categories.length > 0 && (
+            <section className="game-tags" aria-label="Categories">
+              <p className="eyebrow">Categories</p>
+              <ul className="plain">{g.categories.map((c) => <li key={c}>{c}</li>)}</ul>
+            </section>
+          )}
           <p className="note">Hosted by the creator, outside start.ng. It opens in a new tab.</p>
           {error && <p className="error">{error}</p>}
           <div className="game-page-actions">
@@ -103,6 +110,7 @@ export default function IndiePage({ id, user, onSignIn }: { id: number; user: Us
             <a className="ghost btn" href={tweet} target="_blank" rel="noreferrer" onClick={() => analytics.share("indie_game", String(g.id), "x")}>Share on X</a>
             <button type="button" className="ghost" onClick={copy}>{copied ? "Link copied" : "Copy link"}</button>
           </div>
+          <PageParts page="indie" user={user} onSignIn={onSignIn} game={String(g.id)} />
         </div>
       </div>
     </section>

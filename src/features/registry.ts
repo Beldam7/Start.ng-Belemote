@@ -83,6 +83,21 @@ export function registerAdminTab(tab: Omit<AdminTab, "order"> & { order?: number
 }
 export const allAdminTabs = () => adminTabs;
 
+// ---- parts of an admin tab
+
+/** A section a feature adds to one of the admin page's own tabs, under its content (private tournaments in Tournaments).
+ *  Shown while the feature's flag is on, to admins with its permission (super admins always). */
+type AdminTabPart = { feature: string; tab: string; key: string; order: number; permission?: string; Component: ComponentType<AdminTabProps> };
+const adminTabParts: AdminTabPart[] = [];
+
+export function registerAdminTabPart(p: Omit<AdminTabPart, "order"> & { order?: number }) {
+  const i = adminTabParts.findIndex((x) => x.key === p.key && x.tab === p.tab);
+  if (i >= 0) adminTabParts.splice(i, 1); // the same part again (a hot reload while developing)
+  adminTabParts.push({ order: 100, ...p });
+  adminTabParts.sort((a, b) => a.order - b.order);
+}
+export const adminTabPartsFor = (tab: string) => adminTabParts.filter((p) => p.tab === tab);
+
 // ---- profile sections
 
 export type ProfileSectionProps = { userId: number; isMe: boolean };
@@ -115,7 +130,7 @@ export const allYourGameParts = () => yourGameParts;
 // ---- parts of start.ng's own pages
 
 /** A start.ng page with a place for features to add a box (the tournament page: an email sign-up, crew invites). */
-export type PageSlot = "tournament" | "game" | "home";
+export type PageSlot = "tournament" | "game" | "home" | "games" | "indie";
 /** game: the game's slug, on the "game" page. games: every community game, on the "home" page. */
 export type PagePartProps = { user: User | null; onSignIn: () => void; game?: string; games?: Game[] };
 type PagePart = { feature: string; key: string; page: PageSlot; order: number; Component: ComponentType<PagePartProps> };

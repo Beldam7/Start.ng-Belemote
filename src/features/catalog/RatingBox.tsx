@@ -3,7 +3,7 @@ import type { PagePartProps } from "../registry";
 import Stars from "./Stars";
 import { getRating, rate, refreshCatalog, unrate, type MyRating } from "./api";
 
-/** Rate this game, on its page: 1 to 5 stars, once you've played it for a minute. */
+/** Rate this game, on its page: 1 to 5 stars, once you've played it. */
 export default function RatingBox({ user, onSignIn, game }: PagePartProps) {
   const [r, setR] = useState<MyRating | null>(null);
   const [error, setError] = useState("");
@@ -12,8 +12,23 @@ export default function RatingBox({ user, onSignIn, game }: PagePartProps) {
   useEffect(() => {
     if (!game) return;
     let live = true;
-    getRating(game).then((got) => live && setR(got)).catch(() => {});
-    return () => { live = false; };
+    const load = () => getRating(game).then((got) => live && setR(got)).catch(() => {});
+    load();
+    // The game opens in another tab, so whether you may rate it changes while this page waits: ask again when you come back
+    // to this tab, and a moment after you press Play.
+    const back = () => { if (document.visibilityState === "visible") load(); };
+    let later = 0;
+    const played = () => { window.clearTimeout(later); later = window.setTimeout(load, 1500); };
+    document.addEventListener("visibilitychange", back);
+    window.addEventListener("focus", load);
+    window.addEventListener("startng:played", played);
+    return () => {
+      live = false;
+      window.clearTimeout(later);
+      document.removeEventListener("visibilitychange", back);
+      window.removeEventListener("focus", load);
+      window.removeEventListener("startng:played", played);
+    };
   }, [game, user?.id]);
 
   if (!game || !r) return null;
