@@ -2,10 +2,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { AdminTabProps } from "../registry";
 import { adminReview, adminSetTags, adminSuggest, adminTags, type ReviewRow, type Tag } from "./api";
 
-// start.ng/admin#tags: the tag rules suggest tags for every game; a person approves them here, one game at a time.
+// start.ng/admin#tags: the tag rules suggest tags for every game; they are approved automatically, except tags about a place or a people (Nigerian, African, Lagos), which wait here.
 // Nothing is shown to players until it is approved. A tag only gets a public page once 3 games have it.
 
-function Row({ row, tags, onSaved }: { row: ReviewRow; tags: Tag[]; onSaved: () => void }) {
+function Row({ row, tags, tagsLoading, onSaved }: { row: ReviewRow; tags: Tag[]; tagsLoading: boolean; onSaved: () => void }) {
   const label = useMemo(() => new Map(tags.map((t) => [t.slug, t.label])), [tags]);
   const [picked, setPicked] = useState<string[]>(() => [...new Set([...row.approved, ...row.suggested])]);
   const [saving, setSaving] = useState(false);
@@ -37,7 +37,7 @@ function Row({ row, tags, onSaved }: { row: ReviewRow; tags: Tag[]; onSaved: () 
             {label.get(s) ?? s}{waiting(s) ? " · suggested" : ""} ✕
           </button>
         ))}
-        <select value="" disabled={saving} onChange={(e) => e.target.value && toggle(e.target.value)} aria-label={`Add a tag to ${row.game}`}>
+        <select value="" disabled={saving || tagsLoading || tags.length === 0} onChange={(e) => e.target.value && toggle(e.target.value)} aria-label={`Add a tag to ${row.game}`}>
           <option value="">+ Add a tag</option>
           {addable.map((t) => <option key={t.slug} value={t.slug}>{t.label}</option>)}
         </select>
@@ -49,10 +49,13 @@ function Row({ row, tags, onSaved }: { row: ReviewRow; tags: Tag[]; onSaved: () 
 
 export default function TagsTab({ ask }: AdminTabProps) {
   const [tags, setTags] = useState<Tag[]>([]);
+  const [tagsLoading, setTagsLoading] = useState(true);
+  const [tagsError, setTagsError] = useState("");
   const [rows, setRows] = useState<ReviewRow[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [pending, setPending] = useState(true);
   const [note, setNote] = useState("");
+  const [suggesting, setSuggesting] = useState(false);
   const [error, setError] = useState("");
   const latest = useRef(0); // each reload gets a number; only the newest one may change what is shown
 
@@ -66,17 +69,24 @@ export default function TagsTab({ ask }: AdminTabProps) {
       .catch((e) => { if (mine === latest.current) setError(e instanceof Error ? e.message : "Couldn't load the games"); })
       .finally(() => { if (mine === latest.current) setLoading(false); });
   }, [pending]);
-  useEffect(() => { adminTags().then(setTags).catch((e) => setError(e instanceof Error ? e.message : "Couldn't load the tags")); }, []);
+  const loadTags = useCallback(() => {
+    setTagsLoading(true);
+    setTagsError("");
+    adminTags().then(setTags).catch((e) => setTagsError(e instanceof Error ? e.message : "Couldn't load the tags")).finally(() => setTagsLoading(false));
+  }, []);
+  useEffect(loadTags, [loadTags]);
   useEffect(reload, [reload]);
 
   async function suggest() {
+    if (suggesting) return;
+    setSuggesting(true);
     try {
-      const ok = await ask({ title: "Suggest tags for every game?", body: "The rules look at each game's name and description and add suggestions. Nothing becomes public until you approve it.", confirm: "Suggest" });
+      const ok = await ask({ title: "Suggest tags for every game?", body: "The rules look at each game's name and description and add suggestions. Safe ones are approved by themselves.", confirm: "Suggest" });
       if (ok === null) return;
       const r = await adminSuggest();
       setNote(`${r.added} suggestions added.`);
       reload();
-    } catch (e) { setError(e instanceof Error ? e.message : "Couldn't suggest"); }
+    } catch (e) { setError(e instanceof Error ? e.message : "Couldn't suggest"); } finally { setSuggesting(false); }
   }
 
   return (
@@ -84,19 +94,21 @@ export default function TagsTab({ ask }: AdminTabProps) {
       <div className="dup-head">
         <div>
           <h2>Tags</h2>
-          <p className="note">Approve the tags on each game. Tap a tag to take it off, or add one. A tag gets its own page once 3 games have it. "Web games" and the other search words are on every game already.</p>
+          <p className="note">Tags are suggested and approved automatically. Check or change them here: tap a tag to take it off, or add one. A tag gets its own page once 3 games have it. "Web games" and the other search words are on every game already.</p>
         </div>
         <div className="actions">
           <button type="button" className="ghost" onClick={() => setPending((p) => !p)}>{pending ? "Show all games" : "Show only games to review"}</button>
-          <button type="button" onClick={suggest}>Suggest tags</button>
+          <button type="button" onClick={suggest} disabled={suggesting}>{suggesting ? "Suggesting…" : "Suggest tags"}</button>
         </div>
       </div>
       {note && <p className="note" role="status">{note}</p>}
       {error && <p className="error" role="alert">{error} <button type="button" className="link" onClick={reload}>Try again</button></p>}
+      {tagsError && <p className="error" role="alert">{tagsError} <button type="button" className="link" onClick={loadTags}>Try again</button></p>}
       {loading && <p className="tags-state" role="status">Loading games…</p>}
+      {tagsLoading && !loading && <p className="tags-state" role="status">Loading the tag choices…</p>}
       {rows && rows.length === 0 && <p className="empty">{pending ? "Nothing to review. Run Suggest tags to look for new suggestions." : "No games."}</p>}
       <div className="admin-list">
-        {rows?.map((r) => <Row key={r.game + r.approved.join() + r.suggested.join()} row={r} tags={tags} onSaved={reload} />)}
+        {rows?.map((r) => <Row key={r.game + r.approved.join() + r.suggested.join()} row={r} tags={tags} tagsLoading={tagsLoading} onSaved={reload} />)}
       </div>
     </section>
   );
