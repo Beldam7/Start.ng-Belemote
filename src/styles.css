@@ -1003,3 +1003,10 @@ option { background: var(--card); color: var(--ink); }
 .game-sub-links a { text-decoration: underline; text-underline-offset: 3px; }
 .game-sub-links a:hover { color: var(--ink); }
 .game-sub .game-tags { margin-top: 26px; padding: 0; max-width: 68ch; }
+
+/* live blocks on a game's own pages (written by the server): top players, and more games to play */
+.game-sub-more { margin: 40px 0 0; }
+.game-sub-more .section-head { margin-bottom: 14px; }
+.game-sub-more .section-head h2 { font-size: 1.3rem; letter-spacing: -.02em; margin: 0; }
+.game-sub-top span { color: var(--muted); font-family: var(--mono); font-size: .82rem; margin-left: 6px; }
+.game-sub-top p { margin: 12px 0 0; }
