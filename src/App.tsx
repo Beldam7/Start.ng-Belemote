@@ -144,7 +144,8 @@ export default function App({ view = "home", gameName, indieId, featurePage }: {
   // Titles and link previews for the page that's open (the served HTML has them too, see seo.ts).
   useEffect(() => {
     if (tournamentPage || leaderboardPage || featurePage) return; // they set their own
-    setSeo(approveCode ? PAGES.approve : allGames ? PAGES.games : creatorsPage ? PAGES.creators : PAGES.home);
+    if (allGames) return; // /games sets its own, below, with its page number
+    setSeo(approveCode ? PAGES.approve : creatorsPage ? PAGES.creators : PAGES.home);
   }, [allGames, creatorsPage, tournamentPage, leaderboardPage, featurePage]);
 
   // /games: the back and forward buttons move between pages and searches.
@@ -187,6 +188,12 @@ export default function App({ view = "home", gameName, indieId, featurePage }: {
   const current = Math.min(page, pages); // a page past the end shows the last one
   // While the API answers, the Hangout (which needs no API) shows and skeleton cards hold the other places.
   const shown = allGames ? cards.slice((current - 1) * PER_PAGE, current * PER_PAGE) : cards.slice(0, HOME_GAMES);
+
+  // /games: the same tags nginx serves (see nginx.conf): each page is its own address, searches and filters are noindex.
+  useEffect(() => {
+    if (!allGames) return;
+    setSeo({ ...PAGES.games, path: page > 1 ? `${PAGES.games.path}?page=${page}` : PAGES.games.path, noindex: searching || filters.active });
+  }, [allGames, page, searching, filters.active]);
 
   // A real address for the hero: your own newest game, else the newest game on start.ng.
   const example = myLatest ?? community[0] ?? null;
