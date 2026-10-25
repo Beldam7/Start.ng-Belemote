@@ -3,7 +3,7 @@ import type { AdminTabProps } from "../registry";
 import { adminApprove, adminGaps, adminGenerate, adminPage, adminPages, adminSave, adminSummary, adminUnapprove, PAGE_SIZE, type Gap, type PageFull, type PageRow, type Summary } from "./api";
 
 // start.ng/admin#game-pages: pages about each game (about, how to play, FAQ, walkthrough). They are written from the facts in a
-// game's own files; a person reads, edits and approves each one. A game that says too little gets no page, and is listed so
+// game's own files; they are made and published automatically; an admin can edit or take any page down. A game that says too little gets no page, and is listed so
 // its creator can be asked to add a description.
 
 const KIND: Record<string, string> = { about: "About", "how-to-play": "How to play", faq: "FAQ", walkthrough: "Walkthrough" };
@@ -69,6 +69,8 @@ export default function PagesTab({ ask }: AdminTabProps) {
   const [generating, setGenerating] = useState(false);
   const generationInProgress = useRef(false);
   const latest = useRef(0); // each list request gets a number; only the newest one may change what is shown
+  const latestSummary = useRef(0); // the counts have their own numbers, so "Show more" cannot throw them away
+  const [summaryFailed, setSummaryFailed] = useState(false);
 
   const load = useCallback((offset: number) => {
     const mine = ++latest.current;
@@ -86,8 +88,9 @@ export default function PagesTab({ ask }: AdminTabProps) {
   }, [status]);
   const reload = useCallback(() => {
     load(0);
-    const mine = latest.current;
-    adminSummary().then((s) => { if (mine === latest.current) setSummary(s); }).catch(() => {});
+    const mine = ++latestSummary.current;
+    setSummaryFailed(false);
+    adminSummary().then((s) => { if (mine === latestSummary.current) setSummary(s); }).catch(() => { if (mine === latestSummary.current) setSummaryFailed(true); });
   }, [load]);
   useEffect(reload, [reload]);
 
@@ -110,11 +113,11 @@ export default function PagesTab({ ask }: AdminTabProps) {
       <div className="dup-head">
         <div>
           <h2>Game pages</h2>
-          <p className="note">About, how to play, FAQ and walkthrough pages for each game, written only from what its own files say. Read, edit and approve each one. {summary && `${summary.approved} approved · ${summary.draft} waiting · ${summary.skipped} not made · ${summary.games_without_pages} games have no page at all.`}</p>
+          <p className="note">About, how to play, FAQ and walkthrough pages for each game, written only from what its own files say. Pages publish themselves when the text passes the safety check. Edit one or take it down here, and it stays as you leave it. {summaryFailed && !summary && "The counts didn't load. "}{summary && `${summary.approved} approved · ${summary.draft} waiting · ${summary.skipped} not made · ${summary.games_without_pages} games have no page at all.`}</p>
         </div>
         <div className="actions">
           <select value={status} onChange={(e) => { setStatus(e.target.value); setOpen(null); }} aria-label="Show">
-            <option value="draft">Waiting for review</option>
+            <option value="draft">Waiting (taken down, or needs a look)</option>
             <option value="approved">Approved</option>
             <option value="skipped">Not made</option>
             <option value="all">Everything</option>
