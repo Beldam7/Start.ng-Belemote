@@ -985,5 +985,5 @@ option { background: var(--card); color: var(--ink); }
 .log-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 12px 0 10px; }
 .log-search { flex: 1 1 240px; min-width: 200px; padding: 9px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg); color: inherit; font: inherit; }
 .log-filters label { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: .85rem; }
-.log-filters input[type="date"] { padding: 6px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: inherit; font: inherit; font-size: .85rem; }
+.log-filters .datefield-button { min-width: 168px; padding: 7px 12px; font-size: .9rem; }
 .log-count { margin: 10px 0 6px; color: var(--muted); font-size: .85rem; }

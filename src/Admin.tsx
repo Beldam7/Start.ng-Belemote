@@ -4,6 +4,7 @@ import {
   Analytics, Overview, Permission, reasonLabel, Report, ReviewGame, Role, User,
 } from "./api";
 import { toCard } from "./games";
+import DateField from "./DateField";
 import ThemeToggle from "./ThemeToggle";
 import Boundary from "./features/Boundary";
 import { useFeatures } from "./features/flags";
@@ -745,8 +746,8 @@ function LogTab(_: AdminTabProps) {
           <option value="">All actions</option>
           {actions.map((a) => <option key={a} value={a}>{a}</option>)}
         </select>
-        <label>From <input type="date" value={since} max={until || undefined} onChange={(e) => pick(setSince)(e.target.value)} /></label>
-        <label>To <input type="date" value={until} min={since || undefined} onChange={(e) => pick(setUntil)(e.target.value)} /></label>
+        <label className="log-date">From <DateField value={since} max={until || undefined} onChange={pick(setSince)} placeholder="Any day" label="From" /></label>
+        <label className="log-date">To <DateField value={until} min={since || undefined} onChange={pick(setUntil)} placeholder="Any day" label="To" /></label>
         {filtered && <button type="button" className="link" onClick={clear}>Clear filters</button>}
       </div>
       <div className="chips" role="group" aria-label="Show">
