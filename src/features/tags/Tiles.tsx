@@ -33,12 +33,14 @@ export function useTags(): { data: TagsData | null; failed: boolean; retry: () =
 const PICKS = ["endless-runners", "nigerian-themed", "brainy-games", "space-and-sci-fi", "racing-and-driving", "catch-and-dodge", "ancient-ruins-and-treasure", "with-friends"];
 const MIN_SHOWN = 4; // fewer than this is not worth a section
 
-export function Picks({ heading }: { heading: string }) {
+/** `nested`: it is already inside a .container (the /games page), so it adds no side padding of its own. */
+export function Picks({ heading, nested = false }: { heading: string; nested?: boolean }) {
+  const wrap = nested ? "tags-picks" : "container tags-picks";
   const { data, failed, retry } = useTags();
   if (failed && !data) {
     // The request did not work: say so, keep the way to all the categories, and let the visitor try again.
     return (
-      <section className="container tags-picks" aria-label={heading}>
+      <section className={wrap} aria-label={heading}>
         <div className="tags-picks-head">
           <h2>{heading}</h2>
           <a className="link" href="/categories">All categories →</a>
@@ -52,7 +54,7 @@ export function Picks({ heading }: { heading: string }) {
   const picks = PICKS.map((s) => all.find((t) => t.slug === s)).filter((t): t is Tag => !!t);
   if (picks.length < MIN_SHOWN) return null;
   return (
-    <section className="container tags-picks" aria-label={heading}>
+    <section className={wrap} aria-label={heading}>
       <div className="tags-picks-head">
         <h2>{heading}</h2>
         <a className="link" href="/categories">All categories →</a>
