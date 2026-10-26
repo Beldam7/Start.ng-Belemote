@@ -1,3 +1,4 @@
+import IndieCategoryPicker from "./features/tags/IndieCategoryPicker";
 import { ChangeEvent, FormEvent, RefObject, useCallback, useEffect, useRef, useState } from "react";
 import {
   COVER_TYPES, IndieGame, indieCoverUrl, listIndieGames, MAX_COVER_BYTES, submitIndieGame, User,
@@ -7,6 +8,9 @@ import Pagination from "./Pagination";
 import SearchBox, { matches, queryFromUrl, urlFor } from "./SearchBox";
 import { hostOf, indiePath } from "./indie";
 import { PAGES, setSeo } from "./seo";
+import { withHandle } from "./share";
+import { analytics } from "./analytics";
+import { NotFoundSection } from "./NotFound";
 import { SkeletonCards } from "./Skeleton";
 
 // Games by independent creators: made and hosted outside start.ng. The homepage shows the newest 4
@@ -51,8 +55,9 @@ function useDialog(onClose: () => void): RefObject<HTMLDivElement> {
 
 function useIndieGames(user: User | null, limit?: number, sort: "newest" | "popular" = "newest") {
   const [games, setGames] = useState<IndieGame[] | null>(null);
+  const [loaded, setLoaded] = useState(false); // the API has answered at least once (games is [] after a failure too)
   const refresh = useCallback(() => {
-    listIndieGames(token(), limit, sort).then(setGames).catch(() => setGames((g) => g ?? []));
+    listIndieGames(token(), limit, sort).then((g) => { setGames(g); setLoaded(true); }).catch(() => setGames((g) => g ?? []));
   }, [limit, sort, user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
   // On load, every 30 seconds and when you come back to the tab, so the most clicked keeps up.
   useEffect(() => {
@@ -62,7 +67,7 @@ function useIndieGames(user: User | null, limit?: number, sort: "newest" | "popu
     document.addEventListener("visibilitychange", onVisible);
     return () => { window.clearInterval(timer); document.removeEventListener("visibilitychange", onVisible); };
   }, [refresh]);
-  return { games, setGames, refresh };
+  return { games, setGames, refresh, loaded };
 }
 
 type FavProps = { user: User | null; has: (key: string) => boolean; toggle: (key: string) => void; onSignIn: () => void };
@@ -93,9 +98,13 @@ function SubmitGame({ user, onSignIn, onClose, onAdded }: {
   const [url, setUrl] = useState("");
   const [description, setDescription] = useState("");
   const [cover, setCover] = useState<string | null>(null); // data URL
+  const [categories, setCategories] = useState<string[]>([]);
+  const [other, setOther] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const dialog = useDialog(onClose);
+  const [added, setAdded] = useState<IndieGame | null>(null);
+  const close = () => (added ? onAdded(added) : onClose());
+  const dialog = useDialog(close);
 
   function pickCover(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -115,21 +124,39 @@ function SubmitGame({ user, onSignIn, onClose, onAdded }: {
     setBusy(true);
     setError("");
     try {
-      onAdded(await submitIndieGame(token(), { name, url, description, cover }));
+      setAdded(await submitIndieGame(token(), { name, url, description, cover, categories, other_category: other.trim() || undefined }));
+      setBusy(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not add your game");
       setBusy(false);
     }
   }
 
+  // Once the game is added: a welcome, and an invitation (not a requirement) to share it on X. The post
+  // links the creators page and mentions start.ng's account. Closing it opens the game's own page.
+  const post = added && withHandle(`I just put my game ${added.name} on start.ng. Find it and more games by independent creators at ${location.origin}/creators`);
+  function share() {
+    if (!added || !post) return;
+    window.open(`https://twitter.com/intent/tweet?${new URLSearchParams({ text: post })}`, "_blank", "noopener,noreferrer");
+    analytics.share("indie_game", String(added.id), "x");
+  }
+
   return (
-    <div className="overlay creator-overlay" onClick={onClose}>
+    <div className="overlay creator-overlay" onClick={close}>
       <div ref={dialog} tabIndex={-1} className="card indie-form" role="dialog" aria-modal="true" aria-labelledby="submit-title" onClick={(e) => e.stopPropagation()}>
         <div className="card-head">
-          <h3 id="submit-title">Submit your game</h3>
-          <button type="button" className="link close" aria-label="Close" onClick={onClose}>✕</button>
+          <h3 id="submit-title">{added ? "Welcome to start.ng" : "Submit your game"}</h3>
+          <button type="button" className="link close" aria-label="Close" onClick={close}>✕</button>
         </div>
-        {!user ? (
+        {added ? (
+          <div className="indie-fields">
+            <p className="note"><b>{added.name}</b> is now on start.ng, with its own page for players to find it.</p>
+            <p className="indie-share-note">Want more players? Sharing your game on X helps more people find it. We wrote the post for you:</p>
+            <p className="indie-post">{post}</p>
+            <button type="button" onClick={share}>Share on X</button>
+            <button type="button" className="ghost" onClick={close}>See my game</button>
+          </div>
+        ) : !user ? (
           <>
             <p className="note">Sign in to add your game. New here? Signing in creates your free start.ng account.</p>
             <button type="button" onClick={onSignIn}>Sign in</button>
@@ -159,6 +186,7 @@ function SubmitGame({ user, onSignIn, onClose, onAdded }: {
               {cover && <button type="button" className="link" onClick={() => setCover(null)}>Use another picture</button>}
             </div>
             {error && <p className="error">{error}</p>}
+            <IndieCategoryPicker picked={categories} other={other} onPick={setCategories} onOther={setOther} />
             <button type="submit" disabled={busy}>{busy ? "Adding your game…" : "Add my game"}</button>
           </form>
         )}
@@ -167,7 +195,8 @@ function SubmitGame({ user, onSignIn, onClose, onAdded }: {
   );
 }
 
-/** The "Submit your game" popup, shared by the homepage section and the creators page. Once a game is added, its own page opens. */
+/** The "Submit your game" popup, shared by the homepage section and the creators page. Once a game is added it
+ *  welcomes the creator (with an optional share on X), and closing it opens the game's own page. */
 function useSubmitPopup(user: User | null, onSignIn: () => void) {
   const [submitting, setSubmitting] = useState(false);
   const popups = submitting && (
@@ -232,14 +261,13 @@ export function CreatorsSection({ user, onSignIn }: { user: User | null; onSignI
 
 /** /creators: every game by independent creators, PER_PAGE at a time, with a search. */
 export function CreatorsPage({ user, onSignIn }: { user: User | null; onSignIn: () => void }) {
-  const { games } = useIndieGames(user);
+  const { games, loaded } = useIndieGames(user);
   const { startSubmit, popups } = useSubmitPopup(user, onSignIn);
   const favs = useFavorites(user);
   const fav: FavProps = { user, has: favs.has, toggle: favs.toggle, onSignIn };
   const [q, setQ] = useState(queryFromUrl);
   const [page, setPage] = useState(pageFromUrl);
   useEffect(() => {
-    setSeo(PAGES.creators);
     const onPop = () => { setPage(pageFromUrl()); setQ(queryFromUrl()); };
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
@@ -260,6 +288,15 @@ export function CreatorsPage({ user, onSignIn }: { user: User | null; onSignIn: 
   const pages = Math.max(1, Math.ceil(found.length / PER_PAGE));
   const current = Math.min(page, pages); // a page past the end shows the last one
   const shown = found.slice((current - 1) * PER_PAGE, current * PER_PAGE);
+  // /creators?page= past the last page is "Page not found", as nginx serves it (a 404); a search shows its last page.
+  // Only once the API has answered: if it can't, the page stays as it is.
+  const pastEnd = loaded && !searching && page > pages;
+  // The same tags nginx serves: each page is its own address, searches are noindex.
+  useEffect(() => {
+    if (pastEnd) return; // NotFoundSection sets its own
+    setSeo({ ...PAGES.creators, path: page > 1 ? `${PAGES.creators.path}?page=${page}` : PAGES.creators.path, noindex: searching });
+  }, [pastEnd, page, searching]);
+  if (pastEnd) return <NotFoundSection />;
   return (
     <section className="container all-games creators-page">
       <div className="section-head">

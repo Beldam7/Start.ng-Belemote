@@ -348,7 +348,8 @@ export function LeaderboardPage({ user }: { user: User | null }) {
   const [error, setError] = useState("");
   const playerId = user?.id ?? null;
 
-  useEffect(() => setSeo(PAGES.leaderboard), []);
+  // This week's is its own address, as nginx serves it (see nginx.conf).
+  useEffect(() => setSeo({ ...PAGES.leaderboard, path: period === "week" ? "/leaderboard?period=week" : PAGES.leaderboard.path }), [period]);
   useEffect(() => {
     setRows(null);
     setError("");
