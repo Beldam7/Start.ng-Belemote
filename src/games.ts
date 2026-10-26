@@ -209,6 +209,9 @@ const handlers: Record<string, (msg: Message, game: string) => Promise<object>> 
   },
 };
 
+// The handlers by name, in a Map so a message can only pick one of ours.
+const handlerFor = new Map(Object.entries(handlers));
+
 /** Runs on /connect: answers games (and nobody else) about the signed-in player, scores and live rooms. */
 export function serveConnect() {
   void whoami(); // start preparing now, before the first question arrives
@@ -216,9 +219,9 @@ export function serveConnect() {
   window.addEventListener("storage", (e) => { if (e.key === "token") { prepared = null; void whoami(); } });
   window.addEventListener("message", async (e) => {
     if (!isGameOrigin(e.origin)) return; // only games answer, and nobody else is asked anything
-    const type = e.data?.type;
-    if (typeof type !== "string" || !Object.prototype.hasOwnProperty.call(handlers, type)) return; // our own handlers only, never "constructor" and the like
-    const reply = await handlers[type](e.data, gameFromOrigin(e.origin));
+    const handle = typeof e.data?.type === "string" ? handlerFor.get(e.data.type) : undefined; // our own handlers only, never "constructor" and the like
+    if (!handle) return;
+    const reply = await handle(e.data, gameFromOrigin(e.origin));
     (e.source as Window | null)?.postMessage({ ...reply, requestId: e.data.requestId }, e.origin);
   });
 }
