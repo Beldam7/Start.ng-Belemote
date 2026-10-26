@@ -233,7 +233,7 @@
   // room.serverNow() is the server's clock in milliseconds: count down to the deadlines in state against it.
   // Players must be signed in with start.ng. Opening a room rejects with an Error whose message is 'signin' if they
   // aren't (call startng.signIn(), which brings them back to the same address, ?room=CODE included).
-  const ROOM_EVENTS = ['open', 'welcome', 'state', 'join', 'away', 'back', 'waiting', 'no_match', 'setup_ok', 'message', 'room_state', 'state_conflict', 'error', 'closed', 'reconnecting'];
+  const ROOM_EVENTS = ['open', 'welcome', 'state', 'join', 'away', 'back', 'waiting', 'no_match', 'setup_ok', 'rematch', 'message', 'room_state', 'state_conflict', 'error', 'closed', 'reconnecting'];
   const NO_RETRY = [4401, 4403, 4404, 4409, 4429]; // not signed in, full, no such room, replaced by another tab, too many tries
   let roomsBase = null; // where the API and rooms are, learned from the first ticket
 
@@ -247,7 +247,7 @@
 
   function openRoom(game, which, opts = {}) {
     const handlers = Object.fromEntries(ROOM_EVENTS.map((n) => [n, new Set()]));
-    const room = { game, code: null, you: null, players: [], status: null, state: null, turn: null, result: null, host: null, clock: 0, max: null, shared: null };
+    const room = { game, code: null, you: null, players: [], status: null, state: null, turn: null, result: null, host: null, clock: 0, max: null, shared: null, rematchAsked: [] };
     let ws;
     let closedForGood = false;
     let tries = 0;
@@ -259,7 +259,7 @@
     function apply(msg) {
       if (msg.now) room.clock = msg.now - Date.now(); // the server's clock minus this device's, so countdowns match the server
       if (msg.type === 'welcome') {
-        Object.assign(room, { code: msg.room, you: msg.you, players: msg.players, status: msg.status, state: msg.state, turn: msg.turn, result: msg.result, host: msg.host ?? null, max: msg.max ?? null, shared: msg.shared ?? null });
+        Object.assign(room, { code: msg.room, you: msg.you, players: msg.players, status: msg.status, state: msg.state, turn: msg.turn, result: msg.result, host: msg.host ?? null, max: msg.max ?? null, shared: msg.shared ?? null, rematchAsked: [] });
         target = msg.room;
       } else if (msg.type === 'state') {
         Object.assign(room, { state: msg.state, turn: msg.turn, result: msg.result, status: msg.status });
@@ -267,6 +267,8 @@
         room.players = [...room.players.filter((p) => p.seat !== msg.player.seat), msg.player];
       } else if (msg.type === 'away' || msg.type === 'back') {
         room.players = room.players.map((p) => (p.seat === msg.seat ? { ...p, online: msg.type === 'back' } : p));
+      } else if (msg.type === 'rematch') {
+        room.rematchAsked = msg.seats;
       } else if (msg.type === 'room_state') {
         room.shared = { version: msg.version, data: msg.data };
       } else if (msg.type === 'error' && msg.code === 'state_conflict') {
@@ -317,6 +319,9 @@
       on(name, fn) { (handlers[name] ??= new Set()).add(fn); return () => handlers[name].delete(fn); },
       send: (move) => send({ type: 'move', data: move }),
       resign: () => send({ type: 'resign' }),
+      // After a game ends: ask to play again in this room. 'rematch' events say who has asked (room.rematchAsked); once everyone has,
+      // a new 'welcome' starts the game, with the seats moved round so someone else goes first (room.you can change).
+      rematch: () => send({ type: 'rematch' }),
       playBot: () => send({ type: 'bot' }),
       // Games with a host (a quiz, bingo): the room's creator sets the game up, then starts it.
       setup: (data) => send({ type: 'setup', data }),
