@@ -1039,6 +1039,41 @@ option { background: var(--card); color: var(--ink); }
 .game-sub-body p, .game-sub-body ul, .game-sub-body ol { margin: 0 0 14px; }
 .game-sub-body ul, .game-sub-body ol { padding-left: 1.3em; }
 .game-sub-body li { margin: 0 0 6px; }
+/* a game's about, how to play, FAQ and walkthrough pages (written by the server, startng-be app/features/game_pages/router.py) */
+.gs-hero { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 32px; align-items: center; margin: 0 0 22px; }
+.gs-art { border-radius: 20px; aspect-ratio: 16 / 10; overflow: hidden; border: 1px solid var(--line); box-shadow: 6px 6px 0 var(--lime); display: grid; place-items: center; color: var(--on-art); font-size: 4rem; font-weight: 800; }
+.gs-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.gs-hero-body { min-width: 0; }
+.gs-hero-body h1 { margin: 0 0 12px; }
+.gs-lead { margin: 0 0 14px; font-size: 1.15rem; line-height: 1.6; color: var(--text-2); overflow-wrap: anywhere; }
+.gs-chips { list-style: none; margin: 0 0 6px; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.gs-chips a { display: inline-block; padding: 6px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); font-size: .88rem; font-weight: 600; }
+.gs-chips a:hover { border-color: var(--ink); background: var(--lime); color: var(--on-lime); }
+.gs-hero-body .game-sub-play { margin-top: 18px; }
+.gs-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 18px; padding: 0 0 18px; border-bottom: 1px solid var(--line); }
+.gs-tabs a { padding: 8px 16px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); font-weight: 600; font-size: .92rem; }
+.gs-tabs a:hover { border-color: var(--ink); }
+.gs-tabs a[aria-current="page"] { background: var(--lime); border-color: var(--ink); color: var(--on-lime); }
+.gs-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin: 0 0 22px; }
+.gs-facts > div { padding: 14px 16px; background: var(--card); border: 1px solid var(--line); border-radius: 16px; min-width: 0; }
+.gs-facts dt { font-family: var(--mono); font-size: .72rem; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
+.gs-facts dd { margin: 6px 0 0; font-size: 1.1rem; font-weight: 700; letter-spacing: -.02em; overflow-wrap: anywhere; }
+.game-sub-body { max-width: none; display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
+/* one card under the other; the first (what the game is about) reads larger */
+.game-sub-body > .gs-card:first-child { padding: 22px 24px; }
+.game-sub .game-sub-links { max-width: none; margin-top: 14px; }
+.game-sub .game-sub-links ul { display: flex; flex-wrap: wrap; gap: 8px 22px; }
+.game-sub-body > .gs-card:first-child p { font-size: 1.08rem; line-height: 1.7; margin-bottom: 0; }
+.gs-intro { grid-column: 1 / -1; max-width: 68ch; }
+.gs-card { padding: 18px 20px; background: var(--card); border: 1px solid var(--line); border-radius: 18px; min-width: 0; }
+.gs-card h2 { margin: 0 0 8px; font-size: 1.2rem; }
+.gs-card > :last-child { margin-bottom: 0; }
+.gs-qa { grid-column: 1 / -1; background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 4px 20px; }
+.gs-qa summary { cursor: pointer; font-weight: 700; padding: 14px 0; letter-spacing: -.01em; }
+.gs-qa[open] summary { border-bottom: 1px solid var(--line); margin-bottom: 12px; }
+.gs-qa > div > :last-child { margin-bottom: 14px; }
+.game-sub kbd { display: inline-block; min-width: 1.6em; padding: 1px 7px; margin: 0 1px; text-align: center; font: 600 .85em var(--mono); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 6px; }
+@media (max-width: 760px) { .gs-hero { grid-template-columns: minmax(0, 1fr); gap: 18px; } .gs-art { font-size: 3rem; } }
 .game-sub-play { display: flex; flex-wrap: wrap; gap: 10px; margin: 28px 0 0; }
 .game-sub-links { margin: 34px 0 0; padding: 18px 20px; background: var(--card); border: 1px solid var(--line); border-radius: 18px; max-width: 68ch; }
 .game-sub-links h2 { font-size: 1.1rem; margin: 0 0 10px; letter-spacing: -.02em; }
