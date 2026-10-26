@@ -21,19 +21,19 @@ export default function GameTags({ game }: PagePartProps) {
   const tags = loaded && loaded.game === game ? loaded.tags : null;
   if (failed === game || tags === null) {
     return (
-      <section className="container game-tags" aria-label="Categories">
-        <p className="eyebrow">Categories</p>
+      <div className="game-page-share" role="group" aria-label="Categories">
+        <span>Categories</span>
         {failed === game
-          ? <p className="tags-state" role="status">The categories didn't load. <button type="button" className="link" onClick={() => setAttempt((n) => n + 1)}>Try again</button></p>
-          : <p className="tags-state" role="status" aria-busy="true">Loading categories…</p>}
-      </section>
+          ? <span className="tags-state" role="status">The categories didn't load. <button type="button" className="link" onClick={() => setAttempt((n) => n + 1)}>Try again</button></span>
+          : <span className="tags-state" role="status" aria-busy="true">Loading categories…</span>}
+      </div>
     );
   }
   if (tags.length === 0) return null;
   return (
-    <section className="container game-tags" aria-label="Categories">
-      <p className="eyebrow">Categories</p>
-      <ul>{tags.map((t) => <li key={t.slug}><a href={`/categories/${t.slug}`}>{t.label}</a></li>)}</ul>
-    </section>
+    <div className="game-page-share" role="group" aria-label="Categories">
+      <span>Categories</span>
+      {tags.map((t) => <a key={t.slug} className="ghost btn" href={`/categories/${t.slug}`}>{t.label}</a>)}
+    </div>
   );
 }

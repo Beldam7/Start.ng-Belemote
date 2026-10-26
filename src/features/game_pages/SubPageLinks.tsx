@@ -21,19 +21,19 @@ export default function SubPageLinks({ id, load }: { id: string | undefined; loa
   const pages = loaded && loaded.key === id ? loaded.pages : null;
   if (failed === id || pages === null) {
     return (
-      <section className="container game-tags" aria-label="More about this game">
-        <p className="eyebrow">More about this game</p>
+      <div className="game-page-share" role="group" aria-label="More about this game">
+        <span>More about this game</span>
         {failed === id
-          ? <p className="tags-state" role="status">These links didn't load. <button type="button" className="link" onClick={() => setAttempt((n) => n + 1)}>Try again</button></p>
-          : <p className="tags-state" role="status" aria-busy="true">Loading pages…</p>}
-      </section>
+          ? <span className="tags-state" role="status">These links didn't load. <button type="button" className="link" onClick={() => setAttempt((n) => n + 1)}>Try again</button></span>
+          : <span className="tags-state" role="status" aria-busy="true">Loading pages…</span>}
+      </div>
     );
   }
   if (pages.length === 0) return null;
   return (
-    <section className="container game-tags" aria-label="More about this game">
-      <p className="eyebrow">More about this game</p>
-      <ul>{pages.map((p) => <li key={p.kind}><a href={p.path}>{p.label}</a></li>)}</ul>
-    </section>
+    <div className="game-page-share" role="group" aria-label="More about this game">
+      <span>More about this game</span>
+      {pages.map((p) => <a key={p.kind} className="ghost btn" href={p.path}>{p.label}</a>)}
+    </div>
   );
 }
