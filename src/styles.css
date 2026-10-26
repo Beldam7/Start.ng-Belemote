@@ -1045,9 +1045,9 @@ option { background: var(--card); color: var(--ink); }
 .gs-facts > div { padding: 14px 16px; background: var(--card); border: 1px solid var(--line); border-radius: 16px; min-width: 0; }
 .gs-facts dt { font-family: var(--mono); font-size: .72rem; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
 .gs-facts dd { margin: 6px 0 0; font-size: 1.1rem; font-weight: 700; letter-spacing: -.02em; overflow-wrap: anywhere; }
-.game-sub-body { max-width: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 14px; align-items: stretch; }
-/* the first card (what the game is about) runs the full width and reads larger; the rest line up in even rows */
-.game-sub-body > .gs-card:first-child { grid-column: 1 / -1; padding: 22px 24px; }
+.game-sub-body { max-width: none; display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
+/* one card under the other; the first (what the game is about) reads larger */
+.game-sub-body > .gs-card:first-child { padding: 22px 24px; }
 .game-sub .game-sub-links { max-width: none; margin-top: 14px; }
 .game-sub .game-sub-links ul { display: flex; flex-wrap: wrap; gap: 8px 22px; }
 .game-sub-body > .gs-card:first-child p { font-size: 1.08rem; line-height: 1.7; margin-bottom: 0; }
