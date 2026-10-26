@@ -505,6 +505,7 @@ export default function App({ view = "home", gameName, indieId, featurePage }: {
         <section id="about" className="container about">
           <h2>About start.ng</h2>
           {ABOUT.map((p) => <p key={p}>{p}</p>)}
+          <p><a href="/about">More about start.ng →</a></p>
           <h3>Questions</h3>
           <div className="faq">
             {QUESTIONS.map(([q, a]) => (
