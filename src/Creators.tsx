@@ -249,7 +249,7 @@ export function CreatorsSection({ user, onSignIn }: { user: User | null; onSignI
             <h3>New from independent creators</h3>
             <a className="count" href="/creators">See all →</a>
           </div>
-          <div className="grid" aria-busy={games === null}>
+          <div className="grid creators-new" aria-busy={games === null}>
             {games === null ? <SkeletonCards count={HOME_COUNT} /> : games.map((g) => <IndieCard key={g.id} game={g} fav={fav} />)}
           </div>
         </>
