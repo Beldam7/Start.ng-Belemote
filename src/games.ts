@@ -215,9 +215,10 @@ export function serveConnect() {
   // Signing in or out in another tab changes the answer.
   window.addEventListener("storage", (e) => { if (e.key === "token") { prepared = null; void whoami(); } });
   window.addEventListener("message", async (e) => {
-    const handle = handlers[e.data?.type];
-    if (!isGameOrigin(e.origin) || !handle) return;
-    const reply = await handle(e.data, gameFromOrigin(e.origin));
+    if (!isGameOrigin(e.origin)) return; // only games answer, and nobody else is asked anything
+    const type = e.data?.type;
+    if (typeof type !== "string" || !Object.prototype.hasOwnProperty.call(handlers, type)) return; // our own handlers only, never "constructor" and the like
+    const reply = await handlers[type](e.data, gameFromOrigin(e.origin));
     (e.source as Window | null)?.postMessage({ ...reply, requestId: e.data.requestId }, e.origin);
   });
 }
