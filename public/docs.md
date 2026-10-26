@@ -55,7 +55,7 @@ Your game plays at `<name>.start.ng`. The name comes from `name` in the publish 
 
 Games go live through the API: one request with your repo link. No key or account is needed, so it works the same by hand, from a script, or from your AI. The game goes live at `<name>.start.ng` and on the start.ng homepage.
 
-Uploading from **Your games** on your start.ng profile is switched off for now. That's still where you manage your games: see them, change their cover, or click **Remove** to take one down.
+You can also paste your repo link into **Your games** on your start.ng profile (where you change your character) and click **Upload**. That's also where you manage your games: see them, change their cover, or click **Remove** to take one down.
 
 ### With the API
 
