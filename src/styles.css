@@ -139,7 +139,8 @@ mark { background: linear-gradient(transparent 62%, var(--lime) 62%, var(--lime)
 .faq summary { padding: 14px 18px; font-weight: 600; }
 .faq details p { margin: 0; padding: 0 18px 16px; color: var(--muted); line-height: 1.6; }
 
-.site-footer { margin-top: 56px; padding: 0 24px 28px; color: var(--muted); font-size: .92rem; }
+/* the bottom space keeps the floating Help and scroll-up buttons off the last line */
+.site-footer { margin-top: 56px; padding: 0 24px 92px; color: var(--muted); font-size: .92rem; }
 .site-footer-grid { padding-top: 40px; border-top: 1px solid var(--line); display: grid; grid-template-columns: minmax(0, 1.6fr) repeat(3, minmax(0, 1fr)); gap: 32px; }
 .site-footer-brand .logo { font-size: 1.35rem; color: var(--ink); }
 .site-footer-brand p { margin: 10px 0 0; max-width: 34ch; line-height: 1.6; }
@@ -149,7 +150,7 @@ mark { background: linear-gradient(transparent 62%, var(--lime) 62%, var(--lime)
 .site-footer nav a:hover { text-decoration: underline; text-underline-offset: 3px; }
 .site-footer-base { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px 24px; margin: 32px 0 0; padding-top: 18px; border-top: 1px solid var(--line); font-size: .85rem; }
 @media (max-width: 760px) { .site-footer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .site-footer-brand { grid-column: 1 / -1; } }
-@media (max-width: 600px) { .site-footer { padding: 0 16px 24px; } .site-footer-grid { padding-top: 32px; } .site-footer-base { flex-direction: column; } }
+@media (max-width: 600px) { .site-footer { padding: 0 16px 92px; } .site-footer-grid { padding-top: 32px; } .site-footer-base { flex-direction: column; } }
 
 /* sign-in popup */
 .overlay { position: fixed; inset: 0; background: var(--scrim); backdrop-filter: blur(4px); display: grid; place-items: center; padding: 16px; z-index: 60; overflow-y: auto; overscroll-behavior: contain; }
