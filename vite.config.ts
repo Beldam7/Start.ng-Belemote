@@ -90,7 +90,7 @@ function seoPages(site: string): Plugin {
       const faq = { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: QUESTIONS.map(([name, text]) => ({ "@type": "Question", name, acceptedAnswer: { "@type": "Answer", text } })) };
       const about = readFileSync(resolve(out, "about.html"), "utf8");
       if (!about.includes("<!--/seo-->")) throw new Error("about.html has no seo block");
-      writeFileSync(resolve(out, "about.html"), about.replace("<!--/seo-->", () => `<script type="application/ld+json">${JSON.stringify(faq).replace(/</g, "\u003c")}</script>
+      writeFileSync(resolve(out, "about.html"), about.replace("<!--/seo-->", () => `<script type="application/ld+json">${JSON.stringify(faq).replace(/</g, "\\u003c")}</script>
     <!--/seo-->`));
       fill("hangout.html", PAGES.hangout.path, hangoutText());
       mkdirSync(out, { recursive: true });
