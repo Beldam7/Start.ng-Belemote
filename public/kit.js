@@ -340,7 +340,16 @@
       leave() { closedForGood = true; clearInterval(ping); ws?.close(1000); },
       inviteUrl: () => (room.code ? `${location.origin}${location.pathname}?room=${room.code}` : null),
     });
-    return connect().then(() => room);
+    // The first connection can fail on a shaky network (some networks drop IPv6 to start.ng), so try it three times with a
+    // new ticket each time before giving up. A connection that never opened made no room, so trying again is safe.
+    const first = async (left) => {
+      try { await connect(); } catch (e) {
+        if (e.message !== 'Could not connect' || left <= 1) throw e;
+        await new Promise((r) => setTimeout(r, left === 3 ? 500 : 1500));
+        return first(left - 1);
+      }
+    };
+    return first(3).then(() => room);
   }
 
   const rooms = Object.freeze({
