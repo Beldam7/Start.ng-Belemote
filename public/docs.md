@@ -686,8 +686,9 @@ room.inviteUrl();                                            // https://your-gam
 ```
 
 - Players must be signed in with start.ng. If they are not, opening a room fails with an error whose message is `signin`; call `startng.signIn()`, which brings them back to the same address, `?room=CODE` included.
-- Events on `room.on(...)`: `welcome`, `state`, `join`, `away` (a player dropped: they have 10 minutes to come back), `back`, `waiting`, `no_match` (offer a bot), `setup_ok`, `error`, `closed`, `reconnecting`. The kit reconnects by itself after a dropped connection.
-- `room.resign()`, `room.playBot()` (play against start.ng's bot) and `room.leave()`. `startng.rooms.online()` says how many people are in the game's rooms, and `startng.rooms.codeFromUrl()` reads `?room=CODE`.
+- Events on `room.on(...)`: `welcome`, `state`, `join`, `away` (a player dropped: they have 10 minutes to come back), `back`, `waiting`, `no_match` (offer a bot), `setup_ok`, `rematch`, `error`, `closed`, `reconnecting`. The kit reconnects by itself after a dropped connection.
+- `room.resign()`, `room.playBot()` (play against start.ng's bot) and `room.leave()`.
+- **Play again:** after a game ends, `room.rematch()` asks to play again in the same room. Each `rematch` event lists the seats that have asked (`room.rematchAsked`), so show the others "Dave wants a rematch". Once every person in the room has asked (a bot always agrees), a new `welcome` starts the game with the seats moved round by one, so someone else goes first: read `room.you` again. In a game with a host, only the host asks, and the room waits for them to start it again. A finished room closes after 5 minutes. `startng.rooms.online()` says how many people are in the game's rooms, and `startng.rooms.codeFromUrl()` reads `?room=CODE`.
 - A room waits 15 minutes for a friend, and matchmaking 60 seconds. A room closes after 30 minutes without a move or 10 minutes with nobody in it. Messages are limited to 2 KB and 30 a second.
 - The first refereed game is tic-tac-toe (`startng-tictactoe`).
 
