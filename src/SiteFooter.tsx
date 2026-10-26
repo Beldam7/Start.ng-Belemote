@@ -9,7 +9,7 @@ export default function SiteFooter() {
       <div className="site-footer-grid">
         <div className="site-footer-brand">
           <a className="logo" href="/"><b>start<span>.ng</span></b></a>
-          <p>Nigeria's home for free browser games. Play in your browser, with nothing to download.</p>
+          <p>Nigeria's home for browser games, made by the community and by creators across Africa.</p>
         </div>
         <nav aria-label="Play">
           <h2>Play</h2>
@@ -38,7 +38,7 @@ export default function SiteFooter() {
       </div>
       <p className="site-footer-base">
         <span>© {new Date().getFullYear()} start.ng</span>
-        <span>Free to play. Nothing to download.</span>
+        <span>Games from Nigeria and across Africa.</span>
       </p>
     </footer>
   );
