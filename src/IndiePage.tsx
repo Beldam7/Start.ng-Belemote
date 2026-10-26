@@ -19,6 +19,8 @@ export default function IndiePage({ id, user, onSignIn }: { id: number; user: Us
   const [copied, setCopied] = useState(false);
   const favs = useFavorites(user);
   const [more, setMore] = useState<IndieGame[]>([]); // other independent games, for "More from independent creators"
+  const [moreFailed, setMoreFailed] = useState(false); // the request failed (not the same as "there are no others")
+  const [moreAttempt, setMoreAttempt] = useState(0);
 
   useEffect(() => {
     getIndieGame(localStorage.getItem("token"), id)
@@ -31,8 +33,11 @@ export default function IndiePage({ id, user, onSignIn }: { id: number; user: Us
   }, [id, user?.id]);
 
   useEffect(() => {
-    listIndieGames(localStorage.getItem("token"), 5, "popular").then(setMore).catch(() => setMore([]));
-  }, [id]);
+    let live = true;
+    setMoreFailed(false);
+    listIndieGames(localStorage.getItem("token"), 5, "popular").then((g) => live && setMore(g)).catch(() => { if (live) { setMore([]); setMoreFailed(true); } });
+    return () => { live = false; };
+  }, [id, moreAttempt]);
 
   useEffect(() => {
     if (game) {
@@ -129,6 +134,11 @@ export default function IndiePage({ id, user, onSignIn }: { id: number; user: Us
         )}
         <PageParts page="indie" user={user} onSignIn={onSignIn} game={String(g.id)} />
       </div>
+      {moreFailed && (
+        <section className="indie-more" aria-label="More from independent creators">
+          <p className="tags-state" role="status">More games from independent creators didn't load. <button type="button" className="link" onClick={() => setMoreAttempt((n) => n + 1)}>Try again</button></p>
+        </section>
+      )}
       {others.length > 0 && (
         <section className="indie-more" aria-label="More from independent creators">
           <div className="section-head">
