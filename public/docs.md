@@ -170,6 +170,17 @@ shareButton.onclick = () => {
 
 For the link, use your game's start.ng page (`https://start.ng/games/<your-game>`) if you want people to land on its page with the leaderboard.
 
+### Works on a small phone
+
+Many players are on a small phone (about 320 to 375 pixels wide). Open your game at that size before you publish. This is advice, not a check, but a game that doesn't fit gets bad reviews fast.
+
+- Add `<meta name="viewport" content="width=device-width, initial-scale=1">` to `index.html`. Without it a phone draws your game at desktop width.
+- Keep the top bar short: score, lives and buttons on one or two rows, taking up no more than about a quarter of the screen. Put the rest in a menu, or hide small extras on narrow screens.
+- Nothing cut off at the sides, and the page never scrolls sideways. Let rows of buttons wrap.
+- Don't draw a title, a hint or a banner on top of the score or the buttons.
+- Buttons and tap targets at least 44 pixels square.
+- Don't make a "Sign in" button and a player name fight for room: shorten the name or let it shrink on narrow screens.
+
 start.ng reads your game's files to check these, so it can tell the code is there, not that it's on screen. Please make them easy to see: players share more when the button is easy to find. `POST /games/check` reports anything missing (codes `missing_back_link`, `missing_branding`, `missing_share`), so run it before you publish.
 
 ## Checks before anything goes live
