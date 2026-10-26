@@ -179,7 +179,7 @@ Many players are on a small phone (about 320 to 375 pixels wide). Open your game
 - Nothing cut off at the sides, and the page never scrolls sideways. Let rows of buttons wrap.
 - Don't draw a title, a hint or a banner on top of the score or the buttons.
 - Buttons and tap targets at least 44 pixels square.
-- Don't make a "Sign in" button and a player name fight for room: the Kit's profile card already fits small screens (see "A profile card, for games without a character").
+- Don't make a "Sign in" button and a player name fight for room: shorten the name or let it shrink on narrow screens.
 
 start.ng reads your game's files to check these, so it can tell the code is there, not that it's on screen. Please make them easy to see: players share more when the button is easy to find. `POST /games/check` reports anything missing (codes `missing_back_link`, `missing_branding`, `missing_share`), so run it before you publish.
 
