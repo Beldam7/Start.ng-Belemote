@@ -7,6 +7,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import AboutView from "./src/AboutView";
 import { QUESTIONS } from "./src/home-copy";
 import { Markdown, slug } from "./src/markdown";
+import { SiteFooterView } from "./src/SiteFooterView";
 import { DEFAULT_SITE_URL, headTags, jsonLd, PAGES, SITEMAP_PATHS, STATIC_PAGES } from "./src/seo";
 
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -25,7 +26,7 @@ function docsText(site: string): string {
     '<a class="btn ghost" href="/docs.md" download="startng-docs.md">Download as .md</a></div>' +
     (toc ? `<nav class="toc" aria-label="On this page"><p class="toc-title">On this page</p>${toc}</nav>` : "") +
     `</aside><article class="docs-body">${renderToStaticMarkup(createElement(Markdown, { source }))}</article></main>` +
-    '<footer class="container footer"><span>start<span>.ng</span></span><span>Built by the HNG community</span></footer>'
+    renderToStaticMarkup(createElement(SiteFooterView))
   );
 }
 

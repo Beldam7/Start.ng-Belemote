@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { ABOUT, QUESTIONS } from "./home-copy";
+import { SiteFooterView } from "./SiteFooterView";
 
 // The /about page. Pure, so the build can write the same page into about.html for search engines and AI tools
 // (vite.config.ts) and the app draws it again when it loads (About.tsx). Its words are the homepage's (home-copy.ts) plus
@@ -45,10 +46,7 @@ export default function AboutView({ themeToggle }: { themeToggle?: ReactNode }) 
           </div>
         </section>
       </main>
-      <footer className="container footer">
-        <span>start<span>.ng</span></span>
-        <span>Built by the HNG community</span>
-      </footer>
+      <SiteFooterView />
     </>
   );
 }
