@@ -11,6 +11,7 @@ import type { FeaturePage } from "./features/registry";
 import GamePage from "./GamePage";
 import IndiePage from "./IndiePage";
 import ThemeToggle from "./ThemeToggle";
+import EyedWord from "./EyedWord";
 import NotFound from "./NotFound";
 import SearchBox, { matches, queryFromUrl, urlFor } from "./SearchBox";
 import { FilterBar, useGameFilters } from "./features/catalog/filters";
@@ -391,7 +392,7 @@ export default function App({ view = "home", gameName, indieId, featurePage }: {
         {view === "home" && (
         <section className="container hero">
           <p className="eyebrow">Big imagination. Played everywhere.</p>
-          <h1>Good vibes.<br /><mark>Good games.</mark></h1>
+          <h1><EyedWord word="Good" /> vibes.<br /><mark><EyedWord word="Good" /> games.</mark></h1>
           <p className="lead">
             Games made by builders in the community.{" "}<br />
             {example ? (

@@ -609,6 +609,38 @@ code { color: var(--on-lime); }
    brown page, so it gets a brown outline to stay readable where the lime underline runs behind it */
 :root[data-theme="dark"] .hero h1, :root[data-theme="dark"] mark { -webkit-text-stroke: .075em var(--bg); paint-order: stroke fill; }
 
+/* the o's in the homepage heading are eyes (src/EyedWord.tsx): the letter is the eye, with a brow above and a pupil
+   in the hole. Open in light mode; asleep in dark mode, where the one you hover opens until you move away.
+   Hovering makes it glow and its pupil twinkle. .eye-face is an empty box sitting on the text baseline just before
+   the "o", so the parts are placed in em from the baseline and the letter's left edge, the same in every font size.
+   The word is one inline-block so the line can't break at those boxes. */
+.eye-word { display: inline-block; }
+.eye { transition: text-shadow .3s ease; }
+.eye-face { display: inline-block; position: relative; width: 0; height: 0; }
+.eye-face::before { content: ""; position: absolute; left: .33em; bottom: -.05em; width: .66em; height: .8em; transform: translateX(-50%); } /* a bigger hover area */
+.eye-brow, .eye-ball, .eye-lid { position: absolute; left: .33em; pointer-events: none; transition: transform .35s cubic-bezier(.3, 1.4, .5, 1), opacity .25s ease; }
+.eye-brow { bottom: .63em; width: .36em; height: .1em; border-top: .05em solid var(--ink); border-radius: 50% 50% 0 0 / 100% 100% 0 0; transform: translateX(-50%) translateY(-.02em); }
+.eye-ball { bottom: .19em; width: .13em; height: .13em; border-radius: 50%; background: var(--ink); transform: translateX(-50%); }
+.eye-ball::after { content: ""; position: absolute; top: 16%; left: 20%; width: 34%; height: 34%; border-radius: 50%; background: var(--bg); } /* the shine */
+.eye-lid { bottom: .2em; width: .17em; height: .07em; border-bottom: .035em solid var(--ink); border-radius: 0 0 50% 50% / 0 0 100% 100%; transform: translateX(-50%) scaleX(.4); opacity: 0; }
+.eye:hover { text-shadow: 0 0 .1em var(--lime), 0 0 .3em var(--lime); }
+.eye:hover .eye-brow { transform: translateX(-50%) translateY(-.06em); }
+.eye:hover .eye-ball { box-shadow: 0 0 .05em var(--lime), 0 0 .14em var(--lime); }
+.eye:hover .eye-ball::after { animation: eye-twinkle 1.1s ease-in-out infinite; }
+.eye:hover .eye-face::after { content: ""; position: absolute; left: .5em; bottom: .38em; width: .15em; height: .15em; background: var(--lime); filter: drop-shadow(0 0 .02em var(--ink));
+  clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%); animation: eye-sparkle 1.1s ease-in-out infinite; pointer-events: none; }
+@keyframes eye-twinkle { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: .7; } }
+@keyframes eye-sparkle { 0%, 100% { transform: scale(.3) rotate(0deg); opacity: 0; } 50% { transform: scale(1) rotate(90deg); opacity: 1; } }
+/* dark mode: asleep, with the brow resting low and flat and the eye shut, until hovered */
+:root[data-theme="dark"] .eye:not(:hover) .eye-brow { transform: translateX(-50%) translateY(.04em) scaleY(.5); }
+:root[data-theme="dark"] .eye:not(:hover) .eye-ball { transform: translateX(-50%) scaleY(0); }
+:root[data-theme="dark"] .eye:not(:hover) .eye-lid { transform: translateX(-50%); opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .eye, .eye-brow, .eye-ball, .eye-lid { transition: none; }
+  .eye:hover .eye-ball::after, .eye:hover .eye-face::after { animation: none; }
+  .eye:hover .eye-face::after { transform: none; opacity: 1; }
+}
+
 /* The Hangout is a game scene with its own overlay colours: it stays on the light palette in both modes. */
 .hangout { --bg: #f6f5ee; --card: #fffefa; --ink: #292a23; --muted: #6b6c63; --line: #e4e2d6; --on-solid: #fff; --on-solid-accent: var(--lime); --on-lime: #292a23; color-scheme: light; }
 .hangout .hangout-brand, .hangout h1, .hangout mark { -webkit-text-stroke: 0; }
