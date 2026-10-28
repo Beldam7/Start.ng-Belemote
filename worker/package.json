@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "test": "node --test \"test/*.test.js\"",
-    "dev": "node dev-server.js",
+    "dev": "node init && node dev-server.js",
     "publish-game": "node scripts/publish-game.js"
   }
 }
