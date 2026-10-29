@@ -12,6 +12,9 @@ import GamePage from "./GamePage";
 import IndiePage from "./IndiePage";
 import ThemeToggle from "./ThemeToggle";
 import EyedWord from "./EyedWord";
+import HeroArt, { HeroTrail } from "./HeroArt";
+import Mascot from "./Mascot";
+import { Reveal } from "./Reveal";
 import NotFound from "./NotFound";
 import SearchBox, { matches, queryFromUrl, urlFor } from "./SearchBox";
 import { FilterBar, useGameFilters } from "./features/catalog/filters";
@@ -406,6 +409,8 @@ export default function App({ view = "home", gameName, indieId, featurePage }: {
             <a className="btn" href="#games">Play now</a>
             {!user && <button className="ghost" onClick={() => setSignInOpen(true)}>Create free account</button>}
           </div>
+          <HeroArt />
+          <HeroTrail />
         </section>
         )}
 
@@ -440,16 +445,19 @@ export default function App({ view = "home", gameName, indieId, featurePage }: {
           {allGames && <FilterBar filters={filters} />}
           {games && filters.active && !searching && cards.length === 0 && (
             <p className="empty">
+              <Mascot sleepy className="empty-mascot" />
               No games match these filters. <button type="button" className="link" onClick={filters.reset}>Clear filters</button>
             </p>
           )}
           {games && !searching && community.length === 0 && (
             <p className="empty">
+              <Mascot sleepy className="empty-mascot" />
               No community games yet. The first ones are on their way. <a href={allGames ? "/#how" : "#how"}>Put yours here.</a>
             </p>
           )}
           {games && searching && cards.length === 0 && (
             <p className="empty">
+              <Mascot sleepy className="empty-mascot" />
               No games match “{q.trim()}”. <button type="button" className="link" onClick={() => search("")}>Clear search</button>
             </p>
           )}
@@ -487,23 +495,23 @@ export default function App({ view = "home", gameName, indieId, featurePage }: {
         {view === "home" && <CreatorsSection user={user} onSignIn={() => setSignInOpen(true)} />}
 
         {view === "home" && (
-        <section id="how" className="container how">
+        <Reveal as="section" id="how" className="container how">
           <h2>Got a game? Put it on start.ng</h2>
           <ol>
-            <li><b>Build it</b><span>Any static browser game: HTML, JavaScript, three.js, Phaser. Players bring their start.ng character, scores and friends.</span></li>
-            <li><b>Push it to GitHub</b><span>A public repo with a ready-to-play <code>index.html</code> at the top or in <code>dist/</code>, plus a <code>cover.png</code> for its card.</span></li>
-            <li><b>Publish it</b><span>One API call with your repo link, no key needed. Or hand your AI <code>start.ng/docs</code> and let it do the lot.</span></li>
-            <li><b>Approve it once</b><span>Open the link you get back and it's live at <code>yourgame.start.ng</code>, with its own leaderboard if you want one. After that, every push updates it.</span></li>
+            <Reveal as="li"><b>Build it</b><span>Any static browser game: HTML, JavaScript, three.js, Phaser. Players bring their start.ng character, scores and friends.</span></Reveal>
+            <Reveal as="li"><b>Push it to GitHub</b><span>A public repo with a ready-to-play <code>index.html</code> at the top or in <code>dist/</code>, plus a <code>cover.png</code> for its card.</span></Reveal>
+            <Reveal as="li"><b>Publish it</b><span>One API call with your repo link, no key needed. Or hand your AI <code>start.ng/docs</code> and let it do the lot.</span></Reveal>
+            <Reveal as="li"><b>Approve it once</b><span>Open the link you get back and it's live at <code>yourgame.start.ng</code>, with its own leaderboard if you want one. After that, every push updates it.</span></Reveal>
           </ol>
           <div className="how-actions">
             <a className="btn" href="/docs">Read the docs</a>
             <a className="btn ghost" href="/docs.md" download="startng-docs.md">Docs for your AI (.md)</a>
           </div>
-        </section>
+        </Reveal>
         )}
 
         {view === "home" && (
-        <section id="about" className="container about">
+        <Reveal as="section" id="about" className="container about">
           <h2>About start.ng</h2>
           {ABOUT.map((p) => <p key={p}>{p}</p>)}
           <p><a href="/about">More about start.ng →</a></p>
@@ -513,7 +521,7 @@ export default function App({ view = "home", gameName, indieId, featurePage }: {
               <details key={q}><summary>{q}</summary><p>{a}</p></details>
             ))}
           </div>
-        </section>
+        </Reveal>
         )}
       </main>
 

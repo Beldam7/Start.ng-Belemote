@@ -12,6 +12,7 @@ import { withHandle } from "./share";
 import { analytics } from "./analytics";
 import { NotFoundSection } from "./NotFound";
 import { SkeletonCards } from "./Skeleton";
+import { Reveal } from "./Reveal";
 
 // Games by independent creators: made and hosted outside start.ng. The homepage shows the newest 4
 // under a banner; /creators shows them all. Cards open the game's own page on start.ng
@@ -214,7 +215,7 @@ export function CreatorsSection({ user, onSignIn }: { user: User | null; onSignI
   const { games: top } = useIndieGames(user, 3, "popular"); // the banner: most clicked this week
   const { startSubmit, popups } = useSubmitPopup(user, onSignIn);
   return (
-    <section id="creators" className="container creators">
+    <Reveal as="section" id="creators" className="container creators">
       <div className="indie-banner">
         <div className="indie-banner-text">
           <p className="eyebrow">Independent creators</p>
@@ -255,7 +256,7 @@ export function CreatorsSection({ user, onSignIn }: { user: User | null; onSignI
         </>
       )}
       {popups}
-    </section>
+    </Reveal>
   );
 }
 
