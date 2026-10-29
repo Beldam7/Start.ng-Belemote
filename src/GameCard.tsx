@@ -3,6 +3,7 @@ import type { User } from "./api";
 import { cardPartsFor, type CardSlot } from "./features/registry";
 import { useFeatures } from "./features/flags";
 import type { Game } from "./games";
+import { useReveal } from "./Reveal";
 
 // A game's card on the homepage and /games. Features add to it through slots (src/features/registry.ts,
 // registerCardPart) instead of editing this file: badges on the picture, stats under the title, actions by Play.
@@ -17,6 +18,7 @@ export default function GameCard({ game: g, legendary = false, link, user, onSig
   play: ReactNode;
 }) {
   const isOn = useFeatures();
+  const ref = useReveal<HTMLElement>();
   const slot = (name: CardSlot) => {
     const parts = cardPartsFor(name)
       .filter((p) => isOn(p.feature))
@@ -25,7 +27,7 @@ export default function GameCard({ game: g, legendary = false, link, user, onSig
     return parts.length ? <div className={`card-${name}`}>{parts.map((p) => <span key={p.key}>{p.node}</span>)}</div> : null;
   };
   return (
-    <article className={legendary ? "game legendary" : "game"}>
+    <article ref={ref} className={legendary ? "game legendary" : "game"}>
       <a className="game-link" {...link}>
         <div className="art" style={{ background: `linear-gradient(135deg, ${g.colors[0]}, ${g.colors[1]})` }}>
           {g.cover ? <img src={g.cover} alt="" loading="lazy" decoding="async" /> : <span>{g.title.charAt(0)}</span>}

@@ -11,6 +11,7 @@ import { Game, toCard } from "./games";
 import { PAGES, setSeo, TOURNAMENT_IMAGE } from "./seo";
 import ShareButton from "./features/share_cards/ShareButton";
 import { withHandle } from "./share";
+import { Reveal } from "./Reveal";
 
 // Daily tournaments (startng-be app/tournaments.py): every day 5 random games for 24 hours, ending at 18:00
 // Nigeria time. Sharing on X enters you; your runs on those games count, and places give points
@@ -100,7 +101,7 @@ export function TournamentBanner({ tournament }: { tournament: Tournament | null
   const left = useTimeLeft(tournament?.ends_at);
   if (!tournament) return null;
   return (
-    <section className="container">
+    <Reveal as="section" className="container">
       <a className="tournament-banner" href="/tournament">
         <div>
           <p className="eyebrow">Today's tournament · {left}</p>
@@ -122,7 +123,7 @@ export function TournamentBanner({ tournament }: { tournament: Tournament | null
         </div>
         <span className="btn">See the tournament →</span>
       </a>
-    </section>
+    </Reveal>
   );
 }
 
