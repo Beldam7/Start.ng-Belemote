@@ -5,7 +5,12 @@
 // One listener set and one animation frame loop serve all of them, and the loop only runs while something is still
 // moving. With no pointer (a phone), they glance around now and then instead. Every few seconds they blink: the
 // class "blink" is on them for a moment. An eye the pointer is near (or that was just touched) also gets "near",
-// which wakes it in dark mode, where the eyes sleep. With reduced motion there is no glancing, blinking or easing.
+// which wakes it in dark mode, where the eyes sleep. With reduced motion they stay still: no following, glancing or blinking.
+//
+// Two small reactions share the same eyes: attend(el) makes them look at one element and widen ("wide", while a
+// control is hovered or focused), and doubleBlink() blinks twice (when the heading is clicked). Both do nothing
+// with reduced motion, so the eyes stay still.
+import type { SyntheticEvent } from "react";
 
 const NEAR = 180; // px from the pointer where a sleeping eye wakes
 const REACH = 150; // px from the pointer where the pupil is all the way to the side
@@ -15,6 +20,7 @@ const lookers = new Map<Element, { x: number; y: number }>();
 let pointer: { x: number; y: number; touch: boolean } | null = null;
 let moved = 0; // when the pointer last moved
 let glance: { x: number; y: number } | null = null;
+let attention: Element | null = null; // an element the eyes are looking at instead of the pointer
 let awakeUntil = 0;
 let frame = 0;
 let glanceTimer = 0;
@@ -28,18 +34,20 @@ function tick() {
   const now = performance.now();
   const calm = reduced();
   let busy = false;
+  const a = attention?.getBoundingClientRect();
+  const look = a ? { x: a.left + a.width / 2, y: a.top + a.height / 2 } : null; // where the attended element is
   for (const [el, cur] of lookers) {
     const r = el.getBoundingClientRect();
-    let tx = 0, ty = 0, near = now < awakeUntil;
-    if (r.bottom > 0 && r.top < innerHeight && (pointer || glance)) {
-      const target = glance ?? pointer!;
+    let tx = 0, ty = 0, near = !calm && (now < awakeUntil || !!look);
+    if (!calm && r.bottom > 0 && r.top < innerHeight && (look || pointer || glance)) {
+      const target = look ?? glance ?? pointer!;
       const dx = target.x - (r.left + r.width / 2), dy = target.y - (r.top + r.height / 2);
       const dist = Math.hypot(dx, dy) || 1;
-      if (glance) { tx = glance.x; ty = glance.y; }
+      if (glance && !look) { tx = glance.x; ty = glance.y; }
       else {
         const reach = Math.min(1, dist / REACH);
         tx = (dx / dist) * reach; ty = (dy / dist) * reach;
-        if (!pointer!.touch && dist < NEAR) near = true;
+        if (!look && !pointer!.touch && dist < NEAR) near = true;
       }
     }
     const k = calm ? 1 : 0.2;
@@ -51,6 +59,7 @@ function tick() {
     style.setProperty("--look-x", cur.x.toFixed(3));
     style.setProperty("--look-y", cur.y.toFixed(3));
     el.classList.toggle("near", near);
+    el.classList.toggle("wide", !!look);
   }
   if (busy) frame = requestAnimationFrame(tick);
 }
@@ -113,6 +122,27 @@ function stop() {
   frame = 0; glance = null;
 }
 
+/** Look at this element (and widen) until the returned function is called: for a control that is hovered or focused. */
+export function attend(el: Element): () => void {
+  if (reduced() || !lookers.size) return () => {};
+  attention = el;
+  schedule();
+  return () => { if (attention === el) { attention = null; schedule(); } };
+}
+
+/** Handlers for a control the eyes should look at while it is hovered or focused: spread them on the element. */
+export function attendProps() {
+  let release = () => {};
+  const on = (e: SyntheticEvent<Element>) => { release(); release = attend(e.currentTarget); };
+  const off = () => release();
+  return { onPointerEnter: on, onFocus: on, onPointerLeave: off, onBlur: off };
+}
+
+/** Both eyes blink twice, quickly. */
+export function doubleBlink() {
+  if (!reduced() && lookers.size) blink(2);
+}
+
 /** Make an element look at the pointer. Returns the function that stops it (call it when the element goes away). */
 export function watchLook(el: HTMLElement | SVGElement): () => void {
   if (!lookers.size) start();
@@ -122,7 +152,7 @@ export function watchLook(el: HTMLElement | SVGElement): () => void {
     lookers.delete(el);
     el.style.removeProperty("--look-x");
     el.style.removeProperty("--look-y");
-    el.classList.remove("near", "blink");
+    el.classList.remove("near", "blink", "wide");
     if (!lookers.size) stop();
   };
 }
