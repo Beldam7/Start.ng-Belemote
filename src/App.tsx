@@ -12,8 +12,9 @@ import GamePage from "./GamePage";
 import IndiePage from "./IndiePage";
 import ThemeToggle from "./ThemeToggle";
 import EyedWord from "./EyedWord";
-import HeroArt, { HeroTrail } from "./HeroArt";
+import HeroArt, { HeroBackdrop, HeroTrail } from "./HeroArt";
 import Mascot from "./Mascot";
+import { attendProps, doubleBlink } from "./look";
 import { Reveal } from "./Reveal";
 import NotFound from "./NotFound";
 import SearchBox, { matches, queryFromUrl, urlFor } from "./SearchBox";
@@ -45,6 +46,8 @@ const openFavorites = opening.has("favorites");
 if (openProfile || openSignIn || openFavorites) history.replaceState(null, "", location.pathname + location.hash);
 
 // The homepage shows the first few games; /games has them all, a page at a time.
+// The eyes in the heading look at Play now, and widen, while it is hovered or focused.
+const playLook = attendProps();
 const HOME_GAMES = 8;
 // Under them, every game by name, A to Z (the API writes the same list for search engines: HOME_GAMES_LISTED).
 const AZ_GAMES = 200;
@@ -394,8 +397,10 @@ export default function App({ view = "home", gameName, indieId, featurePage }: {
 
         {view === "home" && (
         <section className="container hero">
+          <HeroBackdrop />
           <p className="eyebrow">Big imagination. Played everywhere.</p>
-          <h1><EyedWord word="Good" /> vibes.<br /><mark><EyedWord word="Good" /> games.</mark></h1>
+          {/* aria-label: the eyes split the letters into spans, so say the heading whole. Clicking it makes the eyes blink twice. */}
+          <h1 aria-label="Good vibes. Good games." onClick={doubleBlink}><EyedWord word="Good" /> vibes.<br /><mark><EyedWord word="Good" /> games.</mark></h1>
           <p className="lead">
             Games made by builders in the community.{" "}<br />
             {example ? (
@@ -406,7 +411,7 @@ export default function App({ view = "home", gameName, indieId, featurePage }: {
             Pick one and play right in your browser.
           </p>
           <div className="actions">
-            <a className="btn" href="#games">Play now</a>
+            <a className="btn" href="#games" {...playLook}>Play now</a>
             {!user && <button className="ghost" onClick={() => setSignInOpen(true)}>Create free account</button>}
           </div>
           <HeroArt />
@@ -450,9 +455,13 @@ export default function App({ view = "home", gameName, indieId, featurePage }: {
             </p>
           )}
           {games && !searching && community.length === 0 && (
-            <p className="empty">
+            // The Hangout is always listed, so with no community games it is the only card: say that, and the card sits right under.
+            <p className={cards.length > 0 ? "empty empty-starter" : "empty"}>
               <Mascot sleepy className="empty-mascot" />
-              No community games yet. The first ones are on their way. <a href={allGames ? "/#how" : "#how"}>Put yours here.</a>
+              <span>
+                {cards.length > 0 ? "Only our starter game so far. Yours could be next. " : "No community games yet. The first ones are on their way. "}
+                <a href={allGames ? "/#how" : "#how"}>Put yours here.</a>
+              </span>
             </p>
           )}
           {games && searching && cards.length === 0 && (
